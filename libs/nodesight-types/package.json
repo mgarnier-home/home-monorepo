@@ -1,0 +1,17 @@
+{
+  "name": "@mgarnier11/nodesight-types",
+  "description": "",
+  "main": "",
+  "types": "types/types.d.ts",
+  "files": [
+    "types/**/*",
+    "package.json"
+  ],
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
