@@ -1,6 +1,5 @@
 import * as si from "systeminformation";
-
-import { HwGpu } from "@mgarnier11/nodesight-types";
+import { HwGpu } from "utils";
 
 const normalizeGpuBrand = (brand: string) => {
   return brand ? brand.replace(/(corporation)/gi, "").trim() : undefined;

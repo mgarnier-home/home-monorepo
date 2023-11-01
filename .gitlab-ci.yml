@@ -1,0 +1,52 @@
+image: jdrouet/docker-with-buildx:stable
+
+stages:
+  - login
+  - build
+
+login:
+  stage: login
+  services:
+    - docker:dind
+  script:
+    - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
+    - docker buildx create --use
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+
+build dashboard:
+  dependencies:
+    - login
+  stage: build
+  script:
+    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/dashboard -f apps/dashboard/docker/Dockerfile . --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/dashboard/**/*
+
+build nodesight:
+  dependencies:
+    - login
+  stage: build
+  script:
+    - docker buildx create --use
+    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/nodesight -f apps/nodesight/docker/Dockerfile . --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/nodesight/**/*
+
+build stats-api:
+  dependencies:
+    - login
+  stage: build
+  script:
+    - docker buildx create --use
+    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/stats-api -f apps/stats-api/docker/Dockerfile . --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/stats-api/**/*

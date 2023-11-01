@@ -4,12 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently -p [{name}] -n \"TSC,NODE\" -c \"yellow.bold,cyan.bold\" \"npm:compile-w\" \"npm:start-w\"",
-    "compile-w": "npm run compile -- --watch --preserveWatchOutput",
+    "dev": "concurrently -p [{name}] -n \"TSC,NODE\" -c \"yellow.bold,cyan.bold\" \"npm:build-w\" \"npm:start-w\"",
+    "build-w": "npm run build -- --watch --preserveWatchOutput",
     "start-w": "npm run sleep2.5s && nodemon --watch dist --delay 1 dist/index.js",
     "sleep2.5s": "node -e \"setTimeout(() => process.exit(0), 2500)\"",
-    "compile": "shx rm -rf dist/ && tsc",
-    "start": "npm run compile && node dist/"
+    "build": "shx rm -rf dist/ && tsc",
+    "start": "npm run build && node dist/"
   },
   "keywords": [],
   "author": "",

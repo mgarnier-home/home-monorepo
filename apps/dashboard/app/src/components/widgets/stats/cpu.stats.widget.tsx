@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from "react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { HwCpu } from "utils";
 
-import { HwCpu } from "@mgarnier11/nodesight-types";
 import WidgetInterfaces from "@shared/interfaces/widgetInterfaces";
 
 import { ConfigContext } from "../../../utils/configContext";

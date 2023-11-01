@@ -2,16 +2,16 @@
   "name": "utils",
   "description": "",
   "main": "",
-  "types": "types/types.d.ts",
-  "files": [
-    "types/**/*",
-    "package.json"
-  ],
+  "types": "dist/index.js",
+  "scripts": {
+    "build": "shx rm -rf dist/ && tsc"
+  },
   "keywords": [],
   "type": "module",
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "shx": "^0.3.4",
     "typescript": "^5.2.2"
   }
 }

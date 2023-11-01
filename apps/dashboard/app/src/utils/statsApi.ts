@@ -1,4 +1,5 @@
-import { HwCpu, HwGpu, HwNetwork, HwRam, HwStorage } from "@mgarnier11/nodesight-types";
+import { HwCpu, HwGpu, HwNetwork, HwRam, HwStorage } from "utils";
+
 import WidgetInterfaces from "@shared/interfaces/widgetInterfaces";
 import { SimpleCache } from "@shared/simpleCache";
 

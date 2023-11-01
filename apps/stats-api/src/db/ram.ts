@@ -1,5 +1,6 @@
+import { HwRam } from "utils";
+
 import { Point } from "@influxdata/influxdb-client";
-import { HwRam } from "@mgarnier11/nodesight-types";
 
 import { config } from "../utils/config.js";
 import { Database } from "./database.js";

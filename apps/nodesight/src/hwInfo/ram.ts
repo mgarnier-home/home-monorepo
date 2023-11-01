@@ -1,6 +1,5 @@
 import * as si from "systeminformation";
-
-import { HwRam } from "@mgarnier11/nodesight-types";
+import { HwRam } from "utils";
 
 import { Utils } from "../utils/utils.js";
 

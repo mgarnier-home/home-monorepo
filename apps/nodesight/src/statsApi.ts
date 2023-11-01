@@ -1,4 +1,4 @@
-import { HwCpu, HwGpu, HwNetwork, HwRam } from "@mgarnier11/nodesight-types";
+import { HwCpu, HwGpu, HwNetwork, HwRam } from "utils";
 
 import { config } from "./utils/config.js";
 import { Current } from "./utils/interfaces.js";

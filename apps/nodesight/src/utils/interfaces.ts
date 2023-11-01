@@ -1,4 +1,4 @@
-import { HwCpu, HwGpu, HwNetwork, HwRam, HwStorage } from "@mgarnier11/nodesight-types";
+import { HwCpu, HwGpu, HwNetwork, HwRam, HwStorage } from "utils";
 
 export interface Config {
   hostname: string;

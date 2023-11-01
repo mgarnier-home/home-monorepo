@@ -1,6 +1,5 @@
 import * as si from "systeminformation";
-
-import { HwCpu } from "@mgarnier11/nodesight-types";
+import { HwCpu } from "utils";
 
 import { config } from "../utils/config.js";
 

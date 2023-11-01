@@ -1,6 +1,5 @@
 import * as si from "systeminformation";
-
-import { HwNetwork } from "@mgarnier11/nodesight-types";
+import { HwNetwork } from "utils";
 
 import { Utils } from "../utils/utils.js";
 

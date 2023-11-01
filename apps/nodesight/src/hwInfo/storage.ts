@@ -1,6 +1,5 @@
 import * as si from "systeminformation";
-
-import { HwStorage } from "@mgarnier11/nodesight-types";
+import { HwStorage } from "utils";
 
 import { Utils } from "../utils/utils.js";
 
