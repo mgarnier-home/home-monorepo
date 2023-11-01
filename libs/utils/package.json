@@ -1,5 +1,5 @@
 {
-  "name": "@mgarnier11/nodesight-types",
+  "name": "utils",
   "description": "",
   "main": "",
   "types": "types/types.d.ts",
