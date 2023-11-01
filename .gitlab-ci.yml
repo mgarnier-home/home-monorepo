@@ -21,6 +21,7 @@ build dashboard:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - apps/dashboard/**/*
+    - when: manual
 
 build nodesight:
   stage: build
@@ -31,6 +32,7 @@ build nodesight:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - apps/nodesight/**/*
+    - when: manual
 
 build stats-api:
   stage: build
@@ -41,3 +43,4 @@ build stats-api:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - apps/stats-api/**/*
+    - when: manual
