@@ -12,6 +12,8 @@ import { Current } from "./utils/interfaces.js";
 
 const app = express();
 
+console.log("");
+
 let current: Current | undefined = undefined;
 
 let lastSendSuccess = false;
