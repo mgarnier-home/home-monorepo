@@ -1,20 +1,17 @@
 image: jdrouet/docker-with-buildx:stable
 
 stages:
-  - login
   - build
 
-login:
-  stage: login
-  services:
-    - docker:dind
-  script:
-    - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
-    - docker buildx create --use
-  variables:
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_DRIVER: overlay2
+before_script:
+  - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
+  - docker buildx create --use
+services:
+  - docker:dind
+variables:
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
 
 build dashboard:
   dependencies:
