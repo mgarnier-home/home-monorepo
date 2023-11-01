@@ -14,8 +14,6 @@ variables:
   DOCKER_DRIVER: overlay2
 
 build dashboard:
-  dependencies:
-    - login
   stage: build
   script:
     - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/dashboard -f apps/dashboard/docker/Dockerfile . --push
@@ -25,8 +23,6 @@ build dashboard:
         - apps/dashboard/**/*
 
 build nodesight:
-  dependencies:
-    - login
   stage: build
   script:
     - docker buildx create --use
@@ -37,8 +33,6 @@ build nodesight:
         - apps/nodesight/**/*
 
 build stats-api:
-  dependencies:
-    - login
   stage: build
   script:
     - docker buildx create --use
