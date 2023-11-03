@@ -167,12 +167,6 @@ importers:
         specifier: workspace:^
         version: link:../../libs/utils
 
-  libs/nodesight-types:
-    devDependencies:
-      typescript:
-        specifier: ^5.2.2
-        version: 5.2.2
-
   libs/utils:
     devDependencies:
       shx:

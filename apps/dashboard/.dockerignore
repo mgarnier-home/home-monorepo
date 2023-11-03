@@ -1,0 +1,7 @@
+docker
+app-dist
+node_modules
+conf.yml
+.gitignore
+
+

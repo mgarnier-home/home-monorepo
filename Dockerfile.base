@@ -1,0 +1,7 @@
+
+# Copy required libs files
+COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./
+COPY ./libs ./libs
+COPY ./apps/$APP ./apps/$APP
+
+
