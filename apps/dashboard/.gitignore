@@ -12,6 +12,7 @@ node_modules
 dist
 app/styled-system
 app-dist
+server-dist
 dist-ssr
 *.local
 

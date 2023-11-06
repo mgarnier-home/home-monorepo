@@ -13,11 +13,11 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "outDir": "./dist",
+    // "noEmit": true,
+    "outDir": "./server-dist",
     "paths": {
       "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["./server/*.ts", "./shared/*.ts"]
+  "include": ["./server/**/*.ts", "./shared/**/*.ts"]
 }

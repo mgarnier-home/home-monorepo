@@ -1,9 +1,9 @@
-# syntax = edrevo/dockerfile-plus
-ARG APP=dashboard
 FROM node:18.11.0-alpine AS build
 WORKDIR /build
 
-INCLUDE+ Dockerfile.base
+COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./
+COPY ./libs ./libs
+COPY ./apps/dashboard ./apps/dashboard
 
 # Install pnpm
 RUN npm i -g pnpm
@@ -16,18 +16,12 @@ RUN pnpm install
 # Build the app
 RUN pnpm run build
 
-FROM node:18.11.0-alpine AS runtime
-WORKDIR /usr/app
+# Prune dev dependencies
+RUN pnpm prune --prod
 
-# Copy node modules and built app from build stage
-COPY --from=build /build/apps/$APP/node_modules ./node_modules
-COPY --from=build /build/apps/$APP/app-dist ./app-dist
+RUN rm -rf ./server ./shared ./app
 
-# Copy required runtime files
-COPY ./apps/$APP/package.json ./apps/$APP/vite.config.ts ./apps/$APP/tsconfig.json ./
-COPY ./apps/$APP/server ./server
-COPY ./apps/$APP/shared ./shared
-
+# Install production dependencies
 ENV NODE_ENV=production
 
-CMD ["npm", "run", "start"]
+CMD ["node", ""]

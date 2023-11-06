@@ -1,3 +1,8 @@
+require("module-alias/register");
+require("module-alias").addAliases({
+  "@shared": require("path").resolve(__dirname, "../shared"),
+});
+
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
