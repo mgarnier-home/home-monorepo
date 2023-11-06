@@ -16,7 +16,7 @@ variables:
 build dashboard:
   stage: build
   script:
-    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/dashboard -f apps/dashboard/docker/Dockerfile ./apps/dashboard --push
+    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/dashboard -f apps/dashboard/docker/Dockerfile . --push
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -26,7 +26,7 @@ build dashboard:
 build nodesight:
   stage: build
   script:
-    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/nodesight -f apps/nodesight/docker/Dockerfile ./apps/nodesight --push
+    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/nodesight -f apps/nodesight/docker/Dockerfile . --push
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
@@ -36,7 +36,7 @@ build nodesight:
 build stats-api:
   stage: build
   script:
-    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/stats-api -f apps/stats-api/docker/Dockerfile ./apps/stats-api --push
+    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/stats-api -f apps/stats-api/docker/Dockerfile . --push
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
