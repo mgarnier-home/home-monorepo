@@ -1,11 +1,7 @@
-require("module-alias/register");
-require("module-alias").addAliases({
-  "@shared": require("path").resolve(__dirname, "../shared"),
-});
-
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
+import { SimpleCache } from "utils";
 import ViteExpress from "vite-express";
 
 import { ServerRoutes } from "@shared/routes";
@@ -13,6 +9,8 @@ import { ServerRoutes } from "@shared/routes";
 import { RestControllers } from "./restControllers";
 import { config } from "./utils/config";
 import { bindSocketIOServer } from "./wsControllers";
+
+const cache = new SimpleCache();
 
 const log = (...args: any[]) => {
   console.log(`[API]`, ...args);

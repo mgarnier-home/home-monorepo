@@ -23,9 +23,6 @@ RUN rm -rf ./src
 # Remove development dependencies
 RUN pnpm prune --prod
 
-  
-
-
 FROM nvidia/cuda:12.2.0-base-ubuntu20.04 AS deps-amd64
 
 ENV NVIDIA_VISIBLE_DEVICES=all

@@ -24,4 +24,4 @@ RUN rm -rf ./server ./shared ./app
 # Install production dependencies
 ENV NODE_ENV=production
 
-CMD ["node", ""]
+CMD ["node", "./server-dist/server/main.js"]
