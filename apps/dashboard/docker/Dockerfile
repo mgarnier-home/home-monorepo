@@ -11,8 +11,6 @@ RUN npm i -g pnpm
 # Install dependencies
 RUN pnpm install
 
-WORKDIR /build/apps/dashboard
-
 # Build the app
 RUN npx nx build dashboard
 
