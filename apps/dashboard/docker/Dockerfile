@@ -1,7 +1,7 @@
 FROM node:18.11.0-alpine AS build
 WORKDIR /build
 
-COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./
+COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./nx.json ./
 COPY ./libs ./libs
 COPY ./apps/dashboard ./apps/dashboard
 
