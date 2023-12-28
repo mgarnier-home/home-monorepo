@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "name": "my-dashboard",
+  "scripts": {
+    "build:app": "tsc --project app/tsconfig.json && vite build",
+    "build:server": "node scripts/build-server.mjs",
+    "dev:server": "run-p dev:server:*",
+    "dev:server:tsc": "tsc --project server/tsconfig.json --watch --preserveWatchOutput",
+    "dev:server:node": "node --watch server-dist/main.js",
+    "dev:server:esbuild": "node scripts/dev-server.mjs"
+  },
+  "dependencies": {
+    "utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vite": "^5.0.10"
+  }
+}
