@@ -8,6 +8,7 @@ const main = async () => {
     bundle: true,
     outdir: 'server-dist',
     logLevel: 'info',
+    platform: 'node',
   };
 
   console.log('Args are :', args);

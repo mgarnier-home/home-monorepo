@@ -1,12 +1,14 @@
 {
   "private": true,
-  "name": "utils",
+  "name": "nodesight-types",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "shx rm -rf dist && tsc"
-  },
+  "types": "types/types.d.ts",
+  "files": [
+    "types/**/*",
+    "package.json"
+  ],
+  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",

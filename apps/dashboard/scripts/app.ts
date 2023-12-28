@@ -35,11 +35,21 @@ const main = async () => {
 
   if (fs.existsSync(distDir)) fs.rmSync(distDir, { recursive: true });
 
-  if (args[0] === 'dev') {
+  if (args[0] === 'serve') {
     const ctx = await esbuild.context({ ...context });
 
     await ctx.watch();
     await ctx.serve({ servedir: distDir, port: 3000 });
+
+    copyFiles(publicDir, distDir);
+
+    fs.watch(publicDir, async (eventType, filename) => {
+      copyFiles(publicDir, distDir);
+    });
+  } else if (args[0] === 'dev') {
+    const ctx = await esbuild.context({ ...context });
+
+    await ctx.watch();
 
     copyFiles(publicDir, distDir);
 

@@ -1,3 +1,4 @@
-export const t2 = () => {
-  console.log('t2');
-}
+import { SimpleCache } from './simpleCache';
+import { Utils } from './utils';
+
+export { Utils, SimpleCache };

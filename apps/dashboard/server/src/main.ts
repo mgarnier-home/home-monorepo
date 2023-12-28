@@ -1,21 +1,48 @@
-import { t2 } from 'utils';
+import express from 'express';
+import http from 'http';
 
-import { t3 } from '@shared/utils';
+import { ServerRoutes } from '@shared/routes';
 
-import { t1 } from './test';
+import { RestControllers } from './restControllers';
+import { config } from './utils/config';
+import { bindSocketIOServer } from './wsControllers';
 
-// const t: string = 1;
+const log = (...args: any[]) => {
+  console.log(`[API]`, ...args);
+};
 
-t1();
-t2();
-t3();
+const expressApp = express();
+const httpServer = http.createServer(expressApp);
 
-console.log('dashboard');
-console.log('dashboard2');
-console.log('dashboard3');
-console.log('dashboard4');
-console.log('dashboard5');
+log(config);
 
-setTimeout(() => {
-  console.log('dashboard6');
-}, 999999999);
+expressApp.use('/', (req, res, next) => {
+  log(`${req.method} ${req.url}`);
+  next();
+});
+
+expressApp.use(express.json());
+expressApp.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+expressApp.use(express.urlencoded({ extended: true }));
+
+expressApp.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+
+  res.status(500).send(err.message);
+});
+
+expressApp.use(express.static(config.iconsPath));
+expressApp.use(express.static(config.appDistPath));
+
+expressApp.get(ServerRoutes.CONF, RestControllers.getConf);
+expressApp.post(ServerRoutes.PING_HOST, RestControllers.postPingHost);
+expressApp.post(ServerRoutes.MAKE_REQUEST, RestControllers.postMakeRequest);
+
+bindSocketIOServer(httpServer);
+
+httpServer.listen(config.serverPort, () => {
+  console.log(`Server listening on port ${config.serverPort}`);
+});
