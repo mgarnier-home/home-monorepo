@@ -3,6 +3,8 @@ import './test.css';
 import ReactDOM from 'react-dom/client';
 import { t2 } from 'utils';
 
+import { t3 } from '../../shared/utils';
+
 // App Component
 const App = () => (<div>
   <h1 className={'test'}>Hello, ESBUILD!</h1>
@@ -22,3 +24,5 @@ root.render(<App />);
 t2();
 
 t2();
+
+t3();

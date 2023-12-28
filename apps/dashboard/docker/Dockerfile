@@ -8,13 +8,13 @@ COPY ./apps/dashboard ./apps/dashboard
 # Install pnpm
 RUN npm i -g pnpm
 
-WORKDIR /build/apps/dashboard
-
 # Install dependencies
 RUN pnpm install
 
+WORKDIR /build/apps/dashboard
+
 # Build the app
-RUN pnpm run build
+RUN npx nx build dashboard
 
 FROM node:18.11.0-alpine AS app
 
