@@ -23,22 +23,22 @@ build dashboard:
         - apps/dashboard/**/*
     - when: manual
 
-build nodesight:
-  stage: build
-  script:
-    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/nodesight -f apps/nodesight/docker/Dockerfile . --push
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - apps/nodesight/**/*
-    - when: manual
+# build nodesight:
+#   stage: build
+#   script:
+#     - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/nodesight -f apps/nodesight/docker/Dockerfile . --push
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+#       changes:
+#         - apps/nodesight/**/*
+#     - when: manual
 
-build stats-api:
-  stage: build
-  script:
-    - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/stats-api -f apps/stats-api/docker/Dockerfile . --push
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - apps/stats-api/**/*
-    - when: manual
+# build stats-api:
+#   stage: build
+#   script:
+#     - docker buildx build --platform linux/amd64,linux/arm/v8 -t mgarnier11/stats-api -f apps/stats-api/docker/Dockerfile . --push
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+#       changes:
+#         - apps/stats-api/**/*
+#     - when: manual

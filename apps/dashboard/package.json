@@ -2,26 +2,28 @@
   "private": true,
   "name": "my-dashboard",
   "scripts": {
-    "dev:app": "node scripts/app.mjs",
-    "esbuild:server": "node scripts/server.mjs",
-    "lint:server": "tsc --project server/tsconfig.json",
+    "build": "run-s build:*",
+    "esbuild:app": "tsx scripts/app.ts",
+    "lint:app": "tsc --project app/tsconfig.json",
+    "build:app": "npm run esbuild:app -- build",
+    "dev:app": "run-p dev:app:*",
+    "dev:app:esbuild": "npm run esbuild:app -- dev",
+    "esbuild:server": "tsx scripts/server.ts",
+    "lint:server": "tsc --project server/tsconfig.json --noEmit",
     "build:server": "npm run lint:server && npm run esbuild:server -- build",
     "dev:server": "run-p dev:server:*",
     "dev:server:node": "node --watch server-dist/main.js",
     "dev:server:esbuild": "npm run esbuild:server -- dev"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.10.5",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
-    "@vitejs/plugin-react": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "serve-handler": "^6.1.5",
-    "ts-node": "^10.9.1",
-    "vite": "^5.0.10"
+    "tsx": "^4.7.0"
   }
 }
