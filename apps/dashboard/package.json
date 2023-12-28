@@ -2,12 +2,13 @@
   "private": true,
   "name": "my-dashboard",
   "scripts": {
-    "build:app": "tsc --project app/tsconfig.json && vite build",
-    "build:server": "node scripts/build-server.mjs",
+    "dev:app": "node scripts/app.mjs",
+    "esbuild:server": "node scripts/server.mjs",
+    "lint:server": "tsc --project server/tsconfig.json",
+    "build:server": "npm run lint:server && npm run esbuild:server -- build",
     "dev:server": "run-p dev:server:*",
-    "dev:server:tsc": "tsc --project server/tsconfig.json --watch --preserveWatchOutput",
     "dev:server:node": "node --watch server-dist/main.js",
-    "dev:server:esbuild": "node scripts/dev-server.mjs"
+    "dev:server:esbuild": "npm run esbuild:server -- dev"
   },
   "dependencies": {
     "utils": "workspace:*"
@@ -19,6 +20,8 @@
     "@vitejs/plugin-react": "^4.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "serve-handler": "^6.1.5",
+    "ts-node": "^10.9.1",
     "vite": "^5.0.10"
   }
 }
