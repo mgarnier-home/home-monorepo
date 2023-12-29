@@ -4,7 +4,7 @@ WORKDIR /build
 
 COPY --from=mgarnier11/my-home-deps /build .
 
-RUN npx nx build dashboard
+RUN pnpm run --filter dashboard build
 
 FROM node:18-slim AS dashboard-app
 

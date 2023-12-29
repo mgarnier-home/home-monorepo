@@ -11,6 +11,8 @@ WORKDIR /build
 
 COPY . .
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
+
+RUN pnpm run --filter "./libs/**" build
 
 
