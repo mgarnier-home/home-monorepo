@@ -1,15 +1,8 @@
-FROM node:18-alpine AS build
+FROM mgarnier11/my-home-deps as build
+
 WORKDIR /build
 
-
-COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./nx.json ./
-COPY ./libs ./libs
-COPY ./apps/nodesight ./apps/nodesight
-
-RUN npm i -g pnpm
-
-# Install dependencies
-RUN pnpm install
+COPY --from=mgarnier11/my-home-deps /build .
 
 RUN npx nx build nodesight
 

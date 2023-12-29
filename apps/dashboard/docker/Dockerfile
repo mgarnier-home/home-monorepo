@@ -1,20 +1,12 @@
-FROM node:18.11.0-alpine AS build
+FROM mgarnier11/my-home-deps as build
+
 WORKDIR /build
 
-COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./nx.json ./
-COPY ./libs ./libs
-COPY ./apps/dashboard ./apps/dashboard
+COPY --from=mgarnier11/my-home-deps /build .
 
-# Install pnpm
-RUN npm i -g pnpm
-
-# Install dependencies
-RUN pnpm install
-
-# Build the app
 RUN npx nx build dashboard
 
-FROM node:18.11.0-alpine AS app
+FROM node:18-slim AS dashboard-app
 
 ENV NODE_ENV=production
 

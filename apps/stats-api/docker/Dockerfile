@@ -1,22 +1,13 @@
-# Use the official lightweight Node.js 18.11.0 image.
-# https://hub.docker.com/_/node
-FROM node:18.11.0-alpine AS build
+FROM mgarnier11/my-home-deps as build
 
 WORKDIR /build
 
-COPY ./package.json ./pnpm-lock.yaml ./pnpm-workspace.yaml ./nx.json ./
-COPY ./libs ./libs
-COPY ./apps/stats-api ./apps/stats-api
-
-RUN npm i -g pnpm
-
-# Install dependencies
-RUN pnpm install
+COPY --from=mgarnier11/my-home-deps /build .
 
 RUN npx nx build stats-api
 
 # Use a multi-stage build to create a lean production image
-FROM node:18.11.0-alpine AS runtime
+FROM node:18-slim AS runtime
 
 # Set the working directory
 WORKDIR /usr/app
