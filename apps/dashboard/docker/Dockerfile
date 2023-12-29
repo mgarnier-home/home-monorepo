@@ -4,7 +4,14 @@ WORKDIR /build
 
 COPY --from=mgarnier11/my-home-deps /build .
 
-RUN pnpm run --filter dashboard build
+# RUN pnpm run --filter dashboard build
+
+WORKDIR /build/apps/dashboard
+
+RUN pnpm run esbuild:app -- build
+RUN pnpm run build:app:tailwind
+RUN pnpm run lint:server
+RUN pnpm run esbuild:server -- build
 
 FROM node:18-slim AS dashboard-app
 

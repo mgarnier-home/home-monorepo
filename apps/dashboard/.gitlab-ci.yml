@@ -10,8 +10,6 @@ build dashboard amd64:
 
 build dashboard arm64:
   stage: build
-  tags:
-    - arm64
   script:
     - docker buildx build --platform linux/arm64 -t mgarnier11/dashboard -f apps/dashboard/docker/Dockerfile . --push
   rules:
