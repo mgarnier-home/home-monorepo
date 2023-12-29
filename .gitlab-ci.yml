@@ -28,4 +28,3 @@ install dependencies:
         - 'Dockerfile'
         - '**/package.json'
         - 'pnpm-lock.yaml'
-    - when: manual
