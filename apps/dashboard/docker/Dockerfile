@@ -1,4 +1,4 @@
-FROM mgarnier11/my-home:deps as dashboard-build
+FROM mgarnier11/my-home:$TARGETARCH as dashboard-build
 
 WORKDIR /build
 
