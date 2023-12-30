@@ -1,4 +1,4 @@
-x-rules-stats-api: &rules-stats-api
+.rules-stats-api: &rules-stats-api
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:

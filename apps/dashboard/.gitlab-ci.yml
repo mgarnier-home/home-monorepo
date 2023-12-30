@@ -1,4 +1,4 @@
-x-rules-dashboard: &rules-dashboard
+.rules-dashboard: &rules-dashboard
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:

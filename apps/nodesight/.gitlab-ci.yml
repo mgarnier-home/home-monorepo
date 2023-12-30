@@ -1,4 +1,4 @@
-x-rules-nodesight: &rules-nodesight
+.rules-nodesight: &rules-nodesight
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
