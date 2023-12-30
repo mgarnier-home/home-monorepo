@@ -23,4 +23,6 @@ manifest dashboard:
   script:
     - docker manifest create mgarnier11/dashboard mgarnier11/dashboard:amd64 mgarnier11/dashboard:arm64
     - docker manifest push mgarnier11/dashboard
-  <<: *rules-dashboard
+  needs:
+    - build dashboard amd64
+    - build dashboard arm64
