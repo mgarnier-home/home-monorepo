@@ -1,20 +1,13 @@
-FROM node:18-slim AS base
+FROM node:18-slim
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Enable corepack, that allows us to use pnpm as a drop-in replacement for npm
 RUN corepack enable
 
-FROM base AS build
-
 WORKDIR /build
 
 COPY . .
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
-
-RUN pnpm run --filter "./libs/**" build
-
 RUN mv ./apps /apps
-
-
