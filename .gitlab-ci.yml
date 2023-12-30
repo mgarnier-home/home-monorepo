@@ -15,31 +15,31 @@ before_script:
   - corepack prepare pnpm@latest-8 --activate
   - pnpm config set store-dir .pnpm-store
 
-# cache:
-#   key:
-#     files:
-#       - pnpm-lock.yaml
-#   paths:
-#     - node_modules/
-#     - .pnpm-store/
+cache:
+  key:
+    files:
+      - pnpm-lock.yaml
+  paths:
+    - node_modules/
+    - .pnpm-store/
 
-install dependencies:
-  stage: install dependencies
-  script:
-    - pnpm install --frozen-lockfile
-    - pnpm run --filter "./libs/**" build
-  # rules:
-  #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-  #     changes:
-  #       - 'docker/**'
-  #       - '**/package.json'
-  #       - 'pnpm-lock.yaml'
-  #       - 'libs/**/*'
+# install dependencies:
+#   stage: install dependencies
+#   script:
+#     - pnpm install --frozen-lockfile
+# rules:
+#   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+#     changes:
+#       - 'docker/**'
+#       - '**/package.json'
+#       - 'pnpm-lock.yaml'
+#       - 'libs/**/*'
 
 build dashboard:
   stage: build
   script:
-    - pnpm run --filter "./apps/dashboard" build
+    - pnpm install --frozen-lockfile
+    - npx nx build dashboard
 
   # rules:
   #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
