@@ -1,30 +1,50 @@
-FROM node:18.11.0-alpine AS build
+ARG deps=mgarnier11/my-home:$TARGETARCH
 
-WORKDIR /usr/app
+FROM $deps as deps
 
-RUN npm i -g pnpm
+FROM deps as build
 
-# Install dependencies
-COPY ./package.json ./
+WORKDIR /build
+
+COPY --from=deps /build .
+
+COPY ./apps/node-proxy ./apps/node-proxy
+
+WORKDIR /build/apps/node-proxy
+
 RUN pnpm install --shamefully-hoist
 
-# Copy local code to the container image
-COPY ./src ./src
-COPY ./tsconfig.json ./tsconfig.json
-
-# Compile the code
 RUN pnpm run compile
 
-RUN rm -rf ./src
 
-RUN pnpm prune --prod
 
-FROM node:18.11.0-alpine AS app
+# FROM node:18.11.0-alpine AS build
 
-RUN apk add iputils
+# WORKDIR /usr/app
 
-WORKDIR /usr/app
+# RUN npm i -g pnpm
 
-COPY --from=build /usr/app/ .
+# # Install dependencies
+# COPY ./package.json ./
+# RUN pnpm install --shamefully-hoist
 
-CMD node ./dist/index.js
+# # Copy local code to the container image
+# COPY ./src ./src
+# COPY ./tsconfig.json ./tsconfig.json
+
+# # Compile the code
+# RUN pnpm run compile
+
+# RUN rm -rf ./src
+
+# RUN pnpm prune --prod
+
+# FROM node:18.11.0-alpine AS app
+
+# RUN apk add iputils
+
+# WORKDIR /usr/app
+
+# COPY --from=build /usr/app/ .
+
+# CMD node ./dist/index.js
