@@ -14,7 +14,7 @@ const log = (...args: any[]) => {
 const expressApp = express();
 const httpServer = http.createServer(expressApp);
 
-// log(config);
+log(config);
 
 expressApp.use('/', (req, res, next) => {
   log(`${req.method} ${req.url}`);
