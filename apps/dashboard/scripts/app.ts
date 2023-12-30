@@ -1,4 +1,4 @@
-import esbuild from 'esbuild';
+import esbuild, { BuildOptions } from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,7 +23,7 @@ const main = async () => {
 
   const args = process.argv.slice(2);
 
-  const context /*: BuildOptions*/ = {
+  const context: BuildOptions = {
     entryPoints: ['app/src/main.tsx'],
     bundle: true,
     outdir: 'app-dist',

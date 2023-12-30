@@ -4,8 +4,8 @@
   "scripts": {
     "build": "run-s build:*",
     "dev": "run-p dev:*",
-    "esbuild:app": "node scripts/app.mjs",
-    "esbuild:server": "node scripts/server.mjs",
+    "esbuild:app": "tsx scripts/app.ts",
+    "esbuild:server": "tsx scripts/server.ts",
     "lint:app": "tsc --project app/tsconfig.json",
     "lint:server": "tsc --project server/tsconfig.json --noEmit",
     "build:app": "npm run esbuild:app -- build && npm run build:app:tailwind",

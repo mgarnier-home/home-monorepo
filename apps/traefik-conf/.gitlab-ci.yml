@@ -1,0 +1,29 @@
+.rules-traefik-conf: &rules-traefik-conf
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/traefik-conf/**/*
+
+build traefik-conf amd64:
+  stage: build apps
+  script:
+    - docker build -t mgarnier11/traefik-conf:amd64 -f apps/traefik-conf/docker/Dockerfile . --push
+  <<: *rules-traefik-conf
+
+build traefik-conf arm64:
+  stage: build apps
+  tags:
+    - arm64
+  script:
+    - docker build -t mgarnier11/traefik-conf:arm64 -f apps/traefik-conf/docker/Dockerfile . --push
+  <<: *rules-traefik-conf
+
+manifest traefik-conf:
+  stage: manifest apps
+  script:
+    - docker manifest create mgarnier11/traefik-conf mgarnier11/traefik-conf:amd64 mgarnier11/traefik-conf:arm64
+    - docker manifest push mgarnier11/traefik-conf
+  <<: *rules-traefik-conf
+  needs:
+    - build traefik-conf amd64
+    - build traefik-conf arm64
