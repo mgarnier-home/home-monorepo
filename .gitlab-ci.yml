@@ -63,11 +63,20 @@ variables:
   DOCKER_TLS_CERTDIR: ''
   DOCKER_DRIVER: overlay2
 
-install dependencies:
+install dependencies amd64:
   stage: install dependencies
   script:
-    - docker buildx build --platform linux/amd64,linux/arm64/v8 -t mgarnier11/my-home:deps -f docker/deps.Dockerfile . --push
-    - docker buildx build --platform linux/amd64,linux/arm64/v8 -t mgarnier11/my-home:libs -f docker/libs.Dockerfile . --push
+    - docker buildx build --platform linux/amd64 -t mgarnier11/my-home:deps -f docker/deps.Dockerfile . --push
+    - docker buildx build --platform linux/amd64 -t mgarnier11/my-home:libs -f docker/libs.Dockerfile . --push
+
+install dependencies arm64:
+  stage: install dependencies
+  tags:
+    - arm64
+  script:
+    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/my-home:deps -f docker/deps.Dockerfile . --push
+    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/my-home:libs -f docker/libs.Dockerfile . --push
+
   # rules:
   #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
   #     changes:

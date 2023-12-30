@@ -1,8 +1,17 @@
-build dashboard:
+build dashboard amd64:
   stage: build
   script:
-    - docker buildx build --platform linux/amd64,linux/arm64/v8 -t mgarnier11/dashboard:dashboard-build -f apps/dashboard/docker/build.Dockerfile . --push
-    - docker buildx build --platform linux/amd64,linux/arm64/v8 -t mgarnier11/dashboard -f apps/dashboard/docker/package.Dockerfile . --push
+    - docker buildx build --platform linux/amd64 -t mgarnier11/dashboard:dashboard-build -f apps/dashboard/docker/build.Dockerfile . --push
+    - docker buildx build --platform linux/amd64 -t mgarnier11/dashboard -f apps/dashboard/docker/package.Dockerfile . --push
+
+build dashboard arm64:
+  stage: build
+  tags:
+    - arm64
+  script:
+    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/dashboard:dashboard-build -f apps/dashboard/docker/build.Dockerfile . --push
+    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/dashboard -f apps/dashboard/docker/package.Dockerfile . --push
+
   # rules:
   #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
   #     changes:
