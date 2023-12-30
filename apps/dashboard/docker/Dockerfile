@@ -3,10 +3,15 @@ FROM mgarnier11/my-home-deps as build
 WORKDIR /build
 
 COPY --from=mgarnier11/my-home-deps /build .
+COPY ./apps/dashboard ./apps/dashboard
+COPY --from=mgarnier11/my-home-deps /apps/dashboard/node_modules ./apps/dashboard/node_modules
+
 
 # RUN pnpm run --filter dashboard build
 
 WORKDIR /build/apps/dashboard
+
+RUN ls
 
 RUN node scripts/app.mjs build
 RUN npx tailwindcss -i ./app/src/index.css -o ./app-dist/tailwind.css -c ./app/tailwind.config.ts

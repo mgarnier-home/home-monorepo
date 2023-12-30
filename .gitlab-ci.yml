@@ -21,7 +21,8 @@ variables:
 install dependencies:
   stage: install dependencies
   script:
-    - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/my-home-deps . --push
+    - echo "Installing dependencies"
+    # - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/my-home-deps . --push
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
