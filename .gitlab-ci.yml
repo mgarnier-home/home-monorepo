@@ -51,7 +51,9 @@ include:
 
 stages:
   - install dependencies
-  - build
+  - manifest dependencies
+  - build apps
+  - manifest apps
 
 before_script:
   - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
@@ -66,16 +68,20 @@ variables:
 install dependencies amd64:
   stage: install dependencies
   script:
-    - docker buildx build --platform linux/amd64 -t mgarnier11/my-home:deps -f docker/deps.Dockerfile . --push
-    - docker buildx build --platform linux/amd64 -t mgarnier11/my-home:libs -f docker/libs.Dockerfile . --push
+    - docker buildx build --platform linux/amd64 -t mgarnier11/my-home -f docker/Dockerfile . --push
 
 install dependencies arm64:
   stage: install dependencies
   tags:
     - arm64
   script:
-    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/my-home:deps -f docker/deps.Dockerfile . --push
-    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/my-home:libs -f docker/libs.Dockerfile . --push
+    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/my-home -f docker/Dockerfile . --push
+
+manifest dependencies:
+  stage: manifest dependencies
+  script:
+    - docker manifest create mgarnier11/my-home mgarnier11/my-home:amd64 mgarnier11/my-home:arm64
+    - docker manifest push mgarnier11/my-home
 
   # rules:
   #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
