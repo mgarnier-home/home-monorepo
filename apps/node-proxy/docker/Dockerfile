@@ -22,6 +22,7 @@ FROM node:18-slim AS app
 # Set the working directory
 WORKDIR /app
 
+COPY --from=build /build/apps/node-proxy/package.json ./package.json
 COPY --from=build /build/node_modules ./node_modules
 COPY --from=build /build/apps/node-proxy/dist ./dist
 
