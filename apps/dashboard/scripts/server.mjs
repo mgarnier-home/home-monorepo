@@ -1,9 +1,9 @@
-import esbuild, { BuildOptions } from 'esbuild';
+import esbuild from 'esbuild';
 
 const main = async () => {
   const args = process.argv.slice(2);
 
-  const context: BuildOptions = {
+  const context /*: BuildOptions*/ = {
     entryPoints: ['server/src/main.ts'],
     bundle: true,
     outdir: 'server-dist',

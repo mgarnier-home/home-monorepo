@@ -8,10 +8,10 @@ COPY --from=mgarnier11/my-home-deps /build .
 
 WORKDIR /build/apps/dashboard
 
-RUN npx tsx scripts/app.ts build
+RUN node scripts/app.mjs build
 RUN npx tailwindcss -i ./app/src/index.css -o ./app-dist/tailwind.css -c ./app/tailwind.config.ts
 RUN npx tsc --project server/tsconfig.json --noEmit
-RUN npx tsx scripts/server.ts build
+RUN node scripts/server.mjs build
 
 FROM node:18-slim AS dashboard-app
 
