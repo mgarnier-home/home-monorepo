@@ -1,6 +1,8 @@
 ARG deps=mgarnier11/my-home:$TARGETARCH
 
-FROM deps as dashboard-build
+FROM $deps as deps
+
+FROM deps as build
 
 WORKDIR /build
 
@@ -10,13 +12,13 @@ COPY --from=deps /apps/dashboard/node_modules ./apps/dashboard/node_modules
 
 RUN npx nx build dashboard
 
-FROM node:18-slim AS dashboard-app
+FROM node:18-slim AS app
 
 ENV NODE_ENV=production
 
 WORKDIR /app
 
-COPY --from=dashboard-build /build/apps/dashboard/server-dist ./server-dist
-COPY --from=dashboard-build /build/apps/dashboard/app-dist ./app-dist
+COPY --from=build /build/apps/dashboard/server-dist ./server-dist
+COPY --from=build /build/apps/dashboard/app-dist ./app-dist
 
 CMD ["node", "./server-dist/main.js"]

@@ -1,5 +1,7 @@
 ARG deps=mgarnier11/my-home:$TARGETARCH
 
+FROM $deps as deps
+
 FROM deps as build
 
 WORKDIR /build
@@ -27,7 +29,7 @@ FROM node:18-alpine AS deps-arm64
 
 RUN apk add pciutils dmidecode util-linux lm-sensors
 
-FROM deps-$TARGETARCH AS runtime
+FROM deps-$TARGETARCH AS app
 
 ARG TARGETARCH
 ARG TARGETPLATFORM
@@ -36,7 +38,7 @@ ARG TARGETVARIANT
 RUN echo "Target Arch : $TARGETARCH, Target Platform : $TARGETPLATFORM, Target Variant : $TARGETVARIANT"
 
 # Set the working directory
-WORKDIR /usr/app
+WORKDIR /app
 
 # Copy compiled files from build stage
 COPY --from=build /build/apps/nodesight/dist ./dist
