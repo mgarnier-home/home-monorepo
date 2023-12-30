@@ -5,13 +5,13 @@
         - apps/nodesight/**/*
 
 build nodesight amd64:
-  stage: build
+  stage: build apps
   script:
     - docker build -t mgarnier11/nodesight:amd64 -f apps/nodesight/docker/Dockerfile . --push
   <<: *rules-nodesight
 
 build nodesight arm64:
-  stage: build
+  stage: build apps
   tags:
     - arm64
   script:
@@ -19,7 +19,7 @@ build nodesight arm64:
   <<: *rules-nodesight
 
 manifest nodesight:
-  stage: manifest
+  stage: manifest apps
   script:
     - docker manifest create mgarnier11/nodesight mgarnier11/nodesight:amd64 mgarnier11/nodesight:arm64
     - docker manifest push mgarnier11/nodesight
