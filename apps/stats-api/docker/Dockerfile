@@ -8,7 +8,7 @@ WORKDIR /build
 
 COPY --from=deps /build .
 COPY ./apps/stats-api ./apps/stats-api
-COPY --from=deps /apps/stat-api/node_modules ./apps/stats-api/node_modules
+COPY --from=deps /apps/stats-api/node_modules ./apps/stats-api/node_modules
 
 RUN npx nx build stats-api
 

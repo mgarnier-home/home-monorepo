@@ -31,6 +31,7 @@ install dependencies amd64:
   stage: install dependencies
   script:
     - docker build -t mgarnier11/my-home:amd64 -f docker/Dockerfile . --push
+  <<: *rules-deps
 
 install dependencies arm64:
   stage: install dependencies
@@ -38,3 +39,4 @@ install dependencies arm64:
     - arm64
   script:
     - docker build -t mgarnier11/my-home:arm64 -f docker/Dockerfile . --push
+  <<: *rules-deps
