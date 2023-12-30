@@ -57,7 +57,7 @@ before_script:
   - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
   - docker buildx create --use
 services:
-  - name: docker:20-dind
+  - name: docker:dind
     alias: docker
 variables:
   DOCKER_HOST: tcp://docker:2375
