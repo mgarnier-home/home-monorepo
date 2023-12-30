@@ -1,7 +1,14 @@
+x-rules-dashboard: &rules-dashboard
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/dashboard/**/*
+
 build dashboard amd64:
   stage: build apps
   script:
     - docker build -t mgarnier11/dashboard:amd64 -f apps/dashboard/docker/Dockerfile . --push
+  <<: *rules-dashboard
 
 build dashboard arm64:
   stage: build apps
@@ -9,15 +16,11 @@ build dashboard arm64:
     - arm64
   script:
     - docker build -t mgarnier11/dashboard:arm64 -f apps/dashboard/docker/Dockerfile . --push
+  <<: *rules-dashboard
 
 manifest dashboard:
   stage: manifest apps
   script:
     - docker manifest create mgarnier11/dashboard mgarnier11/dashboard:amd64 mgarnier11/dashboard:arm64
     - docker manifest push mgarnier11/dashboard
-
-  # rules:
-  #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-  #     changes:
-  #       - apps/dashboard/**/*
-  #   - when: manual
+  <<: *rules-dashboard

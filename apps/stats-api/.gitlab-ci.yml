@@ -1,9 +1,26 @@
-build stats-api:
-  stage: build
-  script:
-    - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/stats-api -f apps/stats-api/docker/Dockerfile . --push
+x-rules-stats-api: &rules-stats-api
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - apps/stats-api/**/*
-    - when: manual
+
+build stats-api amd64:
+  stage: build
+  script:
+    - docker build -t mgarnier11/stats-api:amd64 -f apps/stats-api/docker/Dockerfile . --push
+  <<: *rules-stats-api
+
+build stats-api arm64:
+  stage: build
+  tags:
+    - arm64
+  script:
+    - docker build -t mgarnier11/stats-api:arm64 -f apps/stats-api/docker/Dockerfile . --push
+  <<: *rules-stats-api
+
+manifest stats-api:
+  stage: manifest
+  script:
+    - docker manifest create mgarnier11/stats-api mgarnier11/stats-api:amd64 mgarnier11/stats-api:arm64
+    - docker manifest push mgarnier11/stats-api
+  <<: *rules-stats-api
