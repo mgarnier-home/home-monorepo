@@ -1,4 +1,4 @@
-import esbuild, { BuildOptions } from 'esbuild';
+import esbuild from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
