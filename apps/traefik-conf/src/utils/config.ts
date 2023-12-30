@@ -2,17 +2,12 @@ import dotenv from 'dotenv';
 //the config is coming from a file name config.json
 import Fs from 'node:fs';
 import Path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { Config } from './interfaces.js';
 
 dotenv.config();
 
 console.log(process.env);
-
-export const __filename = fileURLToPath(import.meta.url);
-
-export const __dirname = Path.dirname(__filename);
 
 const configFilePath = process.env.CONFIG_FILE || Path.resolve(__dirname, '../../config.json');
 
