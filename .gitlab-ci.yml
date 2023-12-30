@@ -43,7 +43,7 @@
 #   script:
 #     - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/dashboard -f apps/dashboard/docker/package.Dockerfile . --push
 
-image: docker:19.03.12
+image: docker:24.0.7
 
 include:
   - 'apps/dashboard/.gitlab-ci.yml'
@@ -57,7 +57,7 @@ before_script:
   - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
   - docker buildx create --use
 services:
-  - docker:19.03.12-dind
+  - docker:24.0.7-dind
 variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ''
