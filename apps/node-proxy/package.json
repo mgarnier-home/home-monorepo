@@ -1,14 +1,9 @@
 {
   "private": true,
   "name": "node-proxy",
+  "type": "module",
   "scripts": {
-    "esbuild": "tsx scripts/build.ts",
-    "lint": "tsc --noEmit",
-    "build": "npm run lint && npm run esbuild -- build",
-    "dev": "run-p dev:*",
-    "dev:node": "node --watch dist/main.js",
-    "dev:esbuild": "npm run esbuild -- dev",
-    "start": "npm run build && node dist/main.js"
+    "build": "shx rm -rf dist/ && tsc"
   },
   "devDependencies": {
     "@types/express": "^4.17.14",
