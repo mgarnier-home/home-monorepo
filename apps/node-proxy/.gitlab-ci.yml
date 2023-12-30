@@ -1,9 +1,8 @@
-# .rules-node-proxy: &rules-node-proxy
-#   rules:
-#     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-#       changes:
-#         - apps/node-proxy/**/*
-
+.rules-node-proxy: &rules-node-proxy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/node-proxy/**/*
 # build node-proxy amd64:
 #   stage: build apps
 #   script:
