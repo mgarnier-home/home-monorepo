@@ -27,7 +27,7 @@ install dependencies:
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
-        - 'Dockerfile'
+        - 'docker/**'
         - '**/package.json'
         - 'pnpm-lock.yaml'
         - 'libs/**/*'
