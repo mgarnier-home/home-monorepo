@@ -21,14 +21,14 @@ variables:
 install dependencies amd64:
   stage: install dependencies
   script:
-    - docker buildx build --platform linux/amd64 -t mgarnier11/my-home:amd64 -f docker/Dockerfile . --push
+    - docker build -t mgarnier11/my-home:amd64 -f docker/Dockerfile . --push
 
 install dependencies arm64:
   stage: install dependencies
   tags:
     - arm64
   script:
-    - docker buildx build --platform linux/arm64/v8 -t mgarnier11/my-home:arm64 -f docker/Dockerfile . --push
+    - docker build -t mgarnier11/my-home:arm64 -f docker/Dockerfile . --push
 
   # rules:
   #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
