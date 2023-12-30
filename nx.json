@@ -5,8 +5,7 @@
   "targetDefaults": {
     "build": {
       "inputs": ["noMarkdown", "^noMarkdown"],
-      "dependsOn": ["^build"],
-      "cache": true
+      "dependsOn": ["^build"]
     },
     "dev": {
       "dependsOn": ["^build"]
@@ -14,6 +13,5 @@
     "test": {
       "inputs": ["noMarkdown", "^noMarkdown"]
     }
-  },
-  "nxCloudAccessToken": "N2UxNzcxNjYtOWE3Zi00M2QwLWE1NDctZGU4MmQ0MmQ0MTAzfHJlYWQ="
+  }
 }

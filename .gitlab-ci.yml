@@ -7,6 +7,7 @@
 stages:
   - install dependencies
   - build
+  - package
 
 image: node:18
 
@@ -20,29 +21,30 @@ cache:
     files:
       - pnpm-lock.yaml
   paths:
-    - node_modules/
     - .pnpm-store/
-
-# install dependencies:
-#   stage: install dependencies
-#   script:
-#     - pnpm install --frozen-lockfile
-# rules:
-#   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-#     changes:
-#       - 'docker/**'
-#       - '**/package.json'
-#       - 'pnpm-lock.yaml'
-#       - 'libs/**/*'
 
 build dashboard:
   stage: build
   script:
     - pnpm install --frozen-lockfile
     - npx nx build dashboard
+  artifacts:
+    paths:
+      - apps/dashboard/app-dist
+      - apps/dashboard/server-dist
+    expire_in: 1 week
 
-  # rules:
-  #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-  #     changes:
-  #       - apps/dashboard/**/*
-  #   - when: manual
+package dashboard:
+  stage: package
+  image: docker:20
+  before_script:
+    - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
+    - docker buildx create --use
+  services:
+    - docker:20-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ''
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/dashboard -f apps/dashboard/docker/package.Dockerfile . --push
