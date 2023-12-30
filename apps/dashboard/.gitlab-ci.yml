@@ -1,10 +1,10 @@
 build dashboard:
   stage: build
   script:
-    - docker buildx build --platform linux/amd64 -t mgarnier11/dashboard:dashboard-build -f apps/dashboard/docker/build.Dockerfile . --push
+    - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/dashboard:dashboard-build -f apps/dashboard/docker/build.Dockerfile . --push
     - docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/dashboard -f apps/dashboard/docker/package.Dockerfile . --push
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - apps/dashboard/**/*
-    - when: manual
+  # rules:
+  #   - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+  #     changes:
+  #       - apps/dashboard/**/*
+  #   - when: manual
