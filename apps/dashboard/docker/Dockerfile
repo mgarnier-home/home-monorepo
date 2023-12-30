@@ -1,10 +1,12 @@
-FROM mgarnier11/my-home:$TARGETARCH as dashboard-build
+ARG deps=mgarnier11/my-home:$TARGETARCH
+
+FROM deps as dashboard-build
 
 WORKDIR /build
 
-COPY --from=mgarnier11/my-home /build .
+COPY --from=deps /build .
 COPY ./apps/dashboard ./apps/dashboard
-COPY --from=mgarnier11/my-home /apps/dashboard/node_modules ./apps/dashboard/node_modules
+COPY --from=deps /apps/dashboard/node_modules ./apps/dashboard/node_modules
 
 RUN npx nx build dashboard
 

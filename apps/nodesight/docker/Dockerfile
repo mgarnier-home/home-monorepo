@@ -1,8 +1,12 @@
-FROM mgarnier11/my-home-deps as build
+ARG deps=mgarnier11/my-home:$TARGETARCH
+
+FROM deps as build
 
 WORKDIR /build
 
-COPY --from=mgarnier11/my-home-deps /build .
+COPY --from=deps /build .
+COPY ./apps/nodesight ./apps/nodesight
+COPY --from=deps /apps/nodesight/node_modules ./apps/nodesight/node_modules
 
 RUN npx nx build nodesight
 

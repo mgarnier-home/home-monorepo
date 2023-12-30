@@ -1,8 +1,12 @@
-FROM mgarnier11/my-home-deps as build
+ARG deps=mgarnier11/my-home:$TARGETARCH
+
+FROM deps as build
 
 WORKDIR /build
 
-COPY --from=mgarnier11/my-home-deps /build .
+COPY --from=deps /build .
+COPY ./apps/stats-api ./apps/stats-api
+COPY --from=deps /apps/stat-api/node_modules ./apps/stats-api/node_modules
 
 RUN npx nx build stats-api
 
