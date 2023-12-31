@@ -1,0 +1,28 @@
+.rules-autosaver: &rules-autosaver
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/autosaver/**/*
+build autosaver amd64:
+  stage: build apps
+  script:
+    - docker build -t mgarnier11/autosaver:amd64 -f apps/autosaver/docker/Dockerfile . --push
+  <<: *rules-autosaver
+
+build autosaver arm64:
+  stage: build apps
+  tags:
+    - arm64
+  script:
+    - docker build -t mgarnier11/autosaver:arm64 -f apps/autosaver/docker/Dockerfile . --push
+  <<: *rules-autosaver
+
+manifest autosaver:
+  stage: manifest apps
+  script:
+    - docker manifest create mgarnier11/autosaver mgarnier11/autosaver:amd64 mgarnier11/autosaver:arm64
+    - docker manifest push mgarnier11/autosaver
+  <<: *rules-autosaver
+  needs:
+    - build autosaver amd64
+    - build autosaver arm64
