@@ -12,7 +12,7 @@ COPY --from=deps /apps/dashboard/node_modules ./apps/dashboard/node_modules
 
 RUN npx nx build dashboard
 
-FROM node:18-slim AS app
+FROM node:18-alpine AS app
 
 ENV NODE_ENV=production
 
