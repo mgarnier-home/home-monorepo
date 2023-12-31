@@ -2,7 +2,7 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { Worker } from 'worker_threads';
 
-import { updateHostConfig } from '../utils/config.js';
+import { __dirname, updateHostConfig } from '../utils/config.js';
 import { Host, ManagerThreadMessage, Service, ThreadMessageType, WorkerThreadMessage } from '../utils/interfaces.js';
 import { sendStoppingServer } from '../utils/ntfy.js';
 import { ServerControl } from '../utils/serverCtrl.js';
