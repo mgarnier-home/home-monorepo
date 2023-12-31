@@ -10,7 +10,7 @@ WORKDIR /build
 COPY . .
 
 # Install dependencies for all workspaces
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Move apps to a separate directory, so that we can copy the /build directory without having to copy possibly not up to date apps
 RUN mv ./apps /apps
