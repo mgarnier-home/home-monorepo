@@ -20,7 +20,7 @@ export class Ram {
   public static staticInfo = getStaticInfo();
 
   public static current = async (): Promise<HwRam.Load> => {
-    const memInfo = Utils.convert((await si.mem()).active, 'B', 'MB');
+    const memInfo = Math.round(Utils.convert((await si.mem()).active, 'B', 'MB'));
 
     return { load: memInfo };
   };
