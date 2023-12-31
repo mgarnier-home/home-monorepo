@@ -10,26 +10,18 @@ COPY --from=deps /build .
 COPY ./apps/node-proxy ./apps/node-proxy
 COPY --from=deps /apps/node-proxy/node_modules ./apps/node-proxy/node_modules
 
-RUN pnpm install --shamefully-hoist --force
-
 RUN npx nx build node-proxy
 
-RUN pnpm prune --prod
+RUN pnpm deploy --filter=node-proxy --prod /app
 
-# Use a multi-stage build to create a lean production image
 FROM node:18-alpine AS app
 
 RUN apk add iputils
 
-# Set the working directory
 WORKDIR /app
 
-COPY --from=build /build/apps/node-proxy/package.json ./package.json
-COPY --from=build /build/node_modules ./node_modules
-COPY --from=build /build/apps/node-proxy/node_modules ./node_modules
-COPY --from=build /build/apps/node-proxy/dist ./dist
+COPY --from=build /app .
 
-# Define the command to run the app
 CMD ["node", "./dist/main.js"]
 
 
