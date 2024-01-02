@@ -3,6 +3,7 @@
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
       changes:
         - apps/autosaver/**/*
+
 build autosaver amd64:
   extends: .build-template
   variables:
