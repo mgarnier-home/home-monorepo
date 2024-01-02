@@ -14,3 +14,6 @@ manifest autosaver:
   extends: .manifest-template
   variables:
     PROJECT_NAME: autosaver
+  needs:
+    - build autosaver amd64
+    - build autosaver arm64

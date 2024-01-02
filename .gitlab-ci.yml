@@ -1,4 +1,4 @@
-image: docker:24.0.7
+#region template
 
 .rules-template: &rules-template
   rules:
@@ -11,6 +11,17 @@ image: docker:24.0.7
   script:
     - docker build -t mgarnier11/$PROJECT_NAME:$TAG_NAME -f apps/$PROJECT_NAME/docker/Dockerfile . --push
   <<: *rules-template
+
+.manifest-template: &manifest-template
+  stage: manifest apps
+  script:
+    - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
+    - docker manifest push mgarnier11/$PROJECT_NAME
+  <<: *rules-template
+
+#endregion
+
+image: docker:24.0.7
 
 include:
   - 'apps/**/.gitlab-ci.yml'
@@ -38,16 +49,6 @@ variables:
         - '**/package.json'
         - '**/.gitlab-ci.yml'
         - 'pnpm-lock.yaml'
-
-.manifest-template: &manifest-template
-  stage: manifest apps
-  script:
-    - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
-    - docker manifest push mgarnier11/$PROJECT_NAME
-  <<: *rules-template
-  needs:
-    - build $PROJECT_NAME amd64
-    - build $PROJECT_NAME arm64
 
 install dependencies amd64:
   stage: install dependencies
