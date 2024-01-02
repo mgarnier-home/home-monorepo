@@ -4,13 +4,13 @@
       changes:
         - apps/autosaver/**/*
 build autosaver amd64:
-  <<: *build-template
+  extends: .build-template
   variables:
     PROJECT_NAME: autosaver
     TAG_NAME: amd64
 
 build autosaver arm64:
-  <<: *build-template
+  extends: .build-template
   variables:
     PROJECT_NAME: autosaver
     TAG_NAME: arm64
