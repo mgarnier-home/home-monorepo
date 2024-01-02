@@ -1,5 +1,14 @@
 image: docker:24.0.7
 
+.build-template: &build-template
+  stage: build apps
+  script:
+    - docker build -t mgarnier11/$PROJECT_NAME:$TAG_NAME -f app/$PROJECT_NAME/docker/Dockerfile . --push
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/$PROJECT_NAME/**/*
+
 include:
   - 'apps/**/.gitlab-ci.yml'
   - 'libs/**/.gitlab-ci.yml'

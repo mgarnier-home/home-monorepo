@@ -4,18 +4,16 @@
       changes:
         - apps/autosaver/**/*
 build autosaver amd64:
-  stage: build apps
-  script:
-    - docker build -t mgarnier11/autosaver:amd64 -f apps/autosaver/docker/Dockerfile . --push
-  <<: *rules-autosaver
+  <<: *build-template
+  variables:
+    PROJECT_NAME: autosaver
+    TAG_NAME: amd64
 
 build autosaver arm64:
-  stage: build apps
-  tags:
-    - arm64
-  script:
-    - docker build -t mgarnier11/autosaver:arm64 -f apps/autosaver/docker/Dockerfile . --push
-  <<: *rules-autosaver
+  <<: *build-template
+  variables:
+    PROJECT_NAME: autosaver
+    TAG_NAME: arm64
 
 manifest autosaver:
   stage: manifest apps
