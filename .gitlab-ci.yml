@@ -1,4 +1,4 @@
-#region template
+#region templates
 
 .rules-template: &rules-template
   rules:
@@ -18,6 +18,21 @@
     - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
     - docker manifest push mgarnier11/$PROJECT_NAME
   <<: *rules-template
+
+.rules-deps: &rules-deps-template
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - 'docker/**'
+        - '**/package.json'
+        - '**/.gitlab-ci.yml'
+        - 'pnpm-lock.yaml'
+
+.install-deps-template: &install-deps-template
+  stage: install dependencies
+  script:
+    - docker build -t mgarnier11/my-home:$TAG_NAME -f docker/Dockerfile . --push
+  <<: *rules-deps-template
 
 #endregion
 
@@ -41,25 +56,14 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ''
 
-.rules-deps: &rules-deps
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - 'docker/**'
-        - '**/package.json'
-        - '**/.gitlab-ci.yml'
-        - 'pnpm-lock.yaml'
-
 install dependencies amd64:
-  stage: install dependencies
-  script:
-    - docker build -t mgarnier11/my-home:amd64 -f docker/Dockerfile . --push
-  <<: *rules-deps
+  extends: .install-deps-template
+  variables:
+    TAG_NAME: amd64
 
 install dependencies arm64:
-  stage: install dependencies
+  extends: .install-deps-template
   tags:
     - arm64
-  script:
-    - docker build -t mgarnier11/my-home:arm64 -f docker/Dockerfile . --push
-  <<: *rules-deps
+  variables:
+    TAG_NAME: arm64

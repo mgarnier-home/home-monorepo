@@ -6,6 +6,8 @@ build autosaver amd64:
 
 build autosaver arm64:
   extends: .build-template
+  tags:
+    - arm64
   variables:
     PROJECT_NAME: autosaver
     TAG_NAME: arm64
