@@ -23,7 +23,7 @@
 
 .rules-deps: &rules-deps-template
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_MESSAGE != "chore: increment versions"'
       changes:
         - 'docker/**'
         - '**/package.json'
