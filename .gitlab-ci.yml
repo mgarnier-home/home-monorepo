@@ -23,7 +23,7 @@
 
 .rules-deps: &rules-deps-template
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_MESSAGE !~ /^chore:/'
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_MESSAGE !~ /\[skip deps\]/'
       changes:
         - 'docker/**'
         - '**/package.json'
