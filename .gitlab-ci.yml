@@ -81,7 +81,8 @@ increment versions:
     - git config user.name "CI 🤖"
     - git config user.email "mgarnier11@gmail.com"
   script:
-    - git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^apps/.*' | xargs -I {} dirname {} | sort -u | xargs -I {} sh -c 'cd {} && npm version patch -m "ci:bump version to %s [skip ci]"'
+    - git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^apps/.*' | xargs -I {} dirname {} | sort -u | xargs -I {} sh -c 'cd {} && npm version patch'
+    - 'git commit -am "ci: Increment versions [skip ci]"'
     - git remote remove origin
     - git remote add origin "https://oauth2:${CI_JOB_TOKEN}@gitlab.com/mgarnier-home/home-monorepo.git"
     - git push origin HEAD:master
