@@ -65,9 +65,13 @@ variables:
 test:
   stage: test
   image: node:18
+  services: []
   variables:
     PATATE: 'PATATE'
     TEST_PATATE: 'autosaver'
+  before_script:
+    - echo "$PATATE"
+    - echo "${TEST_${PATATE}}"
   script:
     - echo "$PATATE"
     - echo "${TEST_${PATATE}}"
@@ -87,6 +91,7 @@ install dependencies arm64:
 increment versions:
   stage: increment versions
   image: node:18
+  services: []
   before_script:
     - apt-get update && apt-get install -y git
     - git config user.name "CI 🤖"
