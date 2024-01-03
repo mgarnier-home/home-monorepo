@@ -20,6 +20,7 @@ if (!process.env.TZ) {
 }
 
 console.log(process.env);
+
 console.log(config);
 
 let lastExecutionSuccess = false;
