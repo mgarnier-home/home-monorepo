@@ -11,8 +11,6 @@
   script:
     - docker build -t mgarnier11/$PROJECT_NAME:$TAG_NAME -f apps/$PROJECT_NAME/docker/Dockerfile . --push
   <<: *rules-template
-  needs:
-    - increment versions
 
 .publish-template: &publish-template
   stage: publish apps
@@ -20,8 +18,7 @@
     - cat apps/$PROJECT_NAME/package.json
     - 'export VERSION=$(cat apps/$PROJECT_NAME/package.json | grep version | head -1 | awk -F: ''{ print $2 }'' | sed ''s/[",]//g'' | tr -d ''[[:space:]]'')'
     - echo $VERSION
-    - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
-    - docker manifest push mgarnier11/$PROJECT_NAME
+    - docker buildx imagetools create --tag mgarnier11/$PROJECT_NAME:latest --tag mgarnier11/$PROJECT_NAME:$VERSION mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
   <<: *rules-template
 
 .rules-deps: &rules-deps-template
@@ -49,7 +46,6 @@ include:
 
 stages:
   - install dependencies
-  - increment versions
   - build apps
   - publish apps
 
@@ -73,22 +69,3 @@ install dependencies arm64:
     - arm64
   variables:
     TAG_NAME: arm64
-
-increment versions:
-  stage: increment versions
-  image: node:18
-  services: []
-  before_script:
-    - apt-get update && apt-get install -y git
-    - git config user.name "CI 🤖"
-    - git config user.email "mgarnier11@gmail.com"
-  script:
-    - git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^apps/.*' | xargs -I {} dirname {} | sort -u | xargs -I {} sh -c 'cd {} && npm version patch'
-    - 'git commit -am "ci: Increment versions [skip ci]"'
-    - git remote remove origin
-    - git remote add origin "https://oauth2:${CI_JOB_TOKEN}@gitlab.com/mgarnier-home/home-monorepo.git"
-    - git push origin HEAD:master
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - apps/**/*
