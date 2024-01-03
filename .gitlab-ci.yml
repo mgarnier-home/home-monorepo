@@ -17,7 +17,7 @@
 .publish-template: &publish-template
   stage: publish apps
   script:
-    - export VERSION=$(docker run --rm -v "apps/$PROJECT_NAME":/app:ro -w /app node:slim node -p "require('./package.json').version")
+    - 'export VERSION=$(cat apps/$PROJECT_NAME/package.json | grep version | head -1 | awk -F: ''{ print $2 }'' | sed ''s/[",]//g'' | tr -d ''[[:space:]]'')'
     - echo $VERSION
     - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
     - docker manifest push mgarnier11/$PROJECT_NAME
@@ -47,6 +47,7 @@ include:
   - 'libs/**/.gitlab-ci.yml'
 
 stages:
+  - test
   - install dependencies
   - increment versions
   - build apps
@@ -60,6 +61,16 @@ services:
 variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ''
+
+test:
+  stage: test
+  image: node:18
+  variables:
+    PATATE: 'PATATE'
+    TEST_PATATE: 'autosaver'
+  script:
+    - echo "$PATATE"
+    - echo "${TEST_${PATATE}}"
 
 install dependencies amd64:
   extends: .install-deps-template
