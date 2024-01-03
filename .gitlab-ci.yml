@@ -18,6 +18,7 @@
   stage: publish apps
   script:
     - export VERSION=$(docker run --rm -v "apps/$PROJECT_NAME":/app:ro -w /app node:slim node -p "require('./package.json').version")
+    - echo $VERSION
     - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
     - docker manifest push mgarnier11/$PROJECT_NAME
   <<: *rules-template
@@ -42,7 +43,7 @@
 image: docker:24.0.7
 
 include:
-  - 'apps/**/.gitlab-ci.yml'
+  - 'apps/autosaver/.gitlab-ci.yml'
   - 'libs/**/.gitlab-ci.yml'
 
 stages:
