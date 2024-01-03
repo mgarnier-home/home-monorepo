@@ -17,5 +17,6 @@
     "systeminformation": "^5.21.11",
     "nodesight-types": "workspace:*",
     "utils": "workspace:*"
-  }
+  },
+  "version": "1.0.0"
 }

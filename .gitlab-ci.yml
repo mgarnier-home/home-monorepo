@@ -11,10 +11,13 @@
   script:
     - docker build -t mgarnier11/$PROJECT_NAME:$TAG_NAME -f apps/$PROJECT_NAME/docker/Dockerfile . --push
   <<: *rules-template
+  needs:
+    - increment versions
 
-.manifest-template: &manifest-template
-  stage: manifest apps
+.publish-template: &publish-template
+  stage: publish apps
   script:
+    - export VERSION=$(docker run --rm -v "apps/$PROJECT_NAME":/app:ro -w /app node:slim node -p "require('./package.json').version")
     - docker manifest create mgarnier11/$PROJECT_NAME mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
     - docker manifest push mgarnier11/$PROJECT_NAME
   <<: *rules-template
@@ -44,8 +47,9 @@ include:
 
 stages:
   - install dependencies
+  - increment versions
   - build apps
-  - manifest apps
+  - publish apps
 
 before_script:
   - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
@@ -67,3 +71,20 @@ install dependencies arm64:
     - arm64
   variables:
     TAG_NAME: arm64
+
+increment versions:
+  stage: increment versions
+  image: node:18
+  before_script:
+    - apt-get update && apt-get install -y git
+    - git config user.name "CI 🤖"
+    - git config user.email "mgarnier11@gmail.com"
+  script:
+    - git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^apps/.*' | xargs -I {} dirname {} | sort -u | xargs -I {} sh -c 'cd {} && npm version patch -m "ci:bump version to %s [skip ci]"'
+    - git remote remove origin
+    - git remote add origin "https://oauth2:${CI_JOB_TOKEN}@gitlab.com/mgarnier-home/home-monorepo.git"
+    - git push origin HEAD:master
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - apps/**/*

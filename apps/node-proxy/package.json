@@ -24,5 +24,6 @@
     "ntfy-utils": "workspace:*",
     "ping": "^0.4.2",
     "wol": "^1.0.7"
-  }
+  },
+  "version": "1.0.0"
 }

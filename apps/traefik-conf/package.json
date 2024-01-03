@@ -18,5 +18,6 @@
     "express": "^4.18.2",
     "js-yaml": "^4.1.0",
     "utils": "workspace:*"
-  }
+  },
+  "version": "1.0.0"
 }
