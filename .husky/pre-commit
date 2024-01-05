@@ -1,21 +1,7 @@
 #!/usr/bin/env sh
 
-# Check if apps/**/package.json files have been modified
-PACKAGE_JSON_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/.*/package.json$')
-
 echo "Running pre-commit hook"
-
-echo "PACKAGE_JSON_MODIFIED: $PACKAGE_JSON_MODIFIED"
 
 npx nx affected -t patch-version --base=master
 
 git add .
-
-# Set a flag or create a temporary file based on the check
-if [ -z "$PACKAGE_JSON_MODIFIED" ]; then
-  echo "No changes to package.json files"
-  touch .git/SKIP_DEPS
-else
-  echo "package.json files have been modified"
-  rm -f .git/SKIP_DEPS
-fi

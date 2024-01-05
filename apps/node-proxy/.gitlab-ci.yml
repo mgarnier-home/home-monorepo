@@ -1,28 +1,21 @@
-.rules-node-proxy: &rules-node-proxy
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - apps/node-proxy/**/*
 build node-proxy amd64:
-  stage: build apps
-  script:
-    - docker build -t mgarnier11/node-proxy:amd64 -f apps/node-proxy/docker/Dockerfile . --push
-  <<: *rules-node-proxy
+  extends: .build-template
+  variables:
+    PROJECT_NAME: node-proxy
+    TAG_NAME: amd64
 
 build node-proxy arm64:
-  stage: build apps
+  extends: .build-template
   tags:
     - arm64
-  script:
-    - docker build -t mgarnier11/node-proxy:arm64 -f apps/node-proxy/docker/Dockerfile . --push
-  <<: *rules-node-proxy
+  variables:
+    PROJECT_NAME: node-proxy
+    TAG_NAME: arm64
 
-manifest node-proxy:
-  stage: manifest apps
-  script:
-    - docker manifest create mgarnier11/node-proxy mgarnier11/node-proxy:amd64 mgarnier11/node-proxy:arm64
-    - docker manifest push mgarnier11/node-proxy
-  <<: *rules-node-proxy
+publish node-proxy:
+  extends: .publish-template
+  variables:
+    PROJECT_NAME: node-proxy
   needs:
     - build node-proxy amd64
     - build node-proxy arm64
