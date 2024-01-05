@@ -33,5 +33,5 @@
     "nodemailer": "^6.9.3",
     "ntfy-utils": "workspace:*"
   },
-  "version": "1.0.6"
+  "version": "1.0.7"
 }

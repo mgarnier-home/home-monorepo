@@ -15,9 +15,8 @@
 .publish-template: &publish-template
   stage: publish apps
   script:
-    - cat apps/$PROJECT_NAME/package.json
     - 'export VERSION=$(cat apps/$PROJECT_NAME/package.json | grep version | head -1 | awk -F: ''{ print $2 }'' | sed ''s/[",]//g'' | tr -d ''[[:space:]]'')'
-    - echo $VERSION
+    - echo "Publishing $PROJECT_NAME version $VERSION"
     - docker buildx imagetools create --tag mgarnier11/$PROJECT_NAME:latest --tag mgarnier11/$PROJECT_NAME:$VERSION mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64
   <<: *rules-template
 
