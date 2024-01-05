@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "shx rm -rf dist/ && tsc",
-    "start": "npm run build && node dist/main.js"
+    "start": "npm run build && node dist/main.js",
+    "patch-version": "npm version patch"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.0",
@@ -32,5 +33,5 @@
     "nodemailer": "^6.9.3",
     "ntfy-utils": "workspace:*"
   },
-  "version": "1.0.5"
+  "version": "1.0.6"
 }

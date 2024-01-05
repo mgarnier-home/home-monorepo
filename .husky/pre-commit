@@ -1,25 +1,21 @@
 #!/usr/bin/env sh
 
-# Check if any .ts files in apps/* are modified
-TS_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/.*\.ts$')
 # Check if apps/**/package.json files have been modified
 PACKAGE_JSON_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/.*/package.json$')
 
 echo "Running pre-commit hook"
 
-# If .ts files are modified, run the commands
-if [ ! -z "$TS_MODIFIED" ]; then
-    # List all files that will be committed and increment versions if they are in apps/*
-    git diff-tree --no-commit-id --name-only -r HEAD | grep -E '^apps/.*' | xargs -I {} dirname {} | sort -u | xargs -I {} sh -c 'cd {} && npm version patch'
+echo "PACKAGE_JSON_MODIFIED: $PACKAGE_JSON_MODIFIED"
 
-    # Add the updated package.json files
-    git add .
-fi
+npx nx affected -t patch-version --base=master
 
+git add .
 
 # Set a flag or create a temporary file based on the check
 if [ -z "$PACKAGE_JSON_MODIFIED" ]; then
-    rm -f .git/SKIP_DEPS
+  echo "No changes to package.json files"
+  touch .git/SKIP_DEPS
 else
-    touch .git/SKIP_DEPS
+  echo "package.json files have been modified"
+  rm -f .git/SKIP_DEPS
 fi
