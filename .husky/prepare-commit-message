@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+COMMIT_MSG_FILE=$1
+SKIP_DEPS_FILE=".git/SKIP_DEPS"
+
+# Check if the SKIP_DEPS file exists
+if [ -f "$SKIP_DEPS_FILE" ]; then
+    # Append [skip deps] to the commit message
+    echo "[skip deps]" >> "$COMMIT_MSG_FILE"
+    rm -f "$SKIP_DEPS_FILE"
+fi
+
+exit 0
