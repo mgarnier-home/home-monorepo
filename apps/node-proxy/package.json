@@ -3,6 +3,7 @@
   "name": "node-proxy",
   "type": "module",
   "scripts": {
+    "patch-version": "npm version patch",
     "build": "shx rm -rf dist/ && tsc"
   },
   "devDependencies": {
@@ -25,5 +26,5 @@
     "ping": "^0.4.2",
     "wol": "^1.0.7"
   },
-  "version": "1.0.0"
+  "version": "1.0.1"
 }

@@ -2,6 +2,7 @@
   "private": true,
   "name": "stats-api",
   "scripts": {
+    "patch-version": "npm version patch",
     "esbuild": "tsx scripts/build.ts",
     "lint": "tsc --noEmit",
     "build": "npm run lint && npm run esbuild -- build",
@@ -19,5 +20,5 @@
     "nodesight-types": "workspace:*",
     "utils": "workspace:*"
   },
-  "version": "1.0.0"
+  "version": "1.0.1"
 }
