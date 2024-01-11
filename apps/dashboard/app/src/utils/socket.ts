@@ -51,7 +51,7 @@ class Socket {
   }
 
   public connect() {
-    this.socket.connect();
+    // this.socket.connect();
   }
 
   public dispose() {

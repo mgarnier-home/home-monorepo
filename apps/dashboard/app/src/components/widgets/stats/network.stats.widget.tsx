@@ -46,7 +46,7 @@ function NetworkStatsWidget(props: NetworkStatsWidgetProps) {
 
   return (
     <ResponsiveContainer width='100%' height='100%'>
-      <LineChart margin={{ left: -40, bottom: -15, top: 5, right: 20 }} data={sanitizedData} syncId={host.name}>
+      <LineChart margin={{ left: -40, bottom: -15, top: 5, right: 20 }} data={sanitizedData} syncId={host.id}>
         <XAxis
           dataKey='timestamp'
           type='number'

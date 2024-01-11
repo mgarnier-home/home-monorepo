@@ -33,7 +33,7 @@ function RamStatsWidget(props: RamStatsWidgetProps) {
 
   return (
     <ResponsiveContainer width='100%' height='100%'>
-      <LineChart margin={{ left: -40, bottom: -15, top: 5, right: 20 }} data={data} syncId={host.name}>
+      <LineChart margin={{ left: -40, bottom: -15, top: 5, right: 20 }} data={data} syncId={host.id}>
         <XAxis
           dataKey='timestamp'
           type='number'

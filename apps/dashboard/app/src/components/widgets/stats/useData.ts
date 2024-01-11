@@ -24,7 +24,7 @@ export function useData<T>(
 
       try {
         if (options.time === WidgetInterfaces.Stats.OptionsTime.Live) {
-          const history = await StatsApi.getHistory<T[]>(config.globalConfig.statsApiUrl, options, host.name);
+          const history = await StatsApi.getHistory<T[]>(config.globalConfig.statsApiUrl, options, host.id);
           setData(history);
 
           liveInterval = setInterval(async () => {
@@ -37,7 +37,7 @@ export function useData<T>(
             }
           }, 15000);
         } else if (options.time === WidgetInterfaces.Stats.OptionsTime.History) {
-          const historyData = await StatsApi.getHistory<T[]>(config.globalConfig.statsApiUrl, options, host.name);
+          const historyData = await StatsApi.getHistory<T[]>(config.globalConfig.statsApiUrl, options, host.id);
           setData(historyData);
         }
       } catch (err: any) {

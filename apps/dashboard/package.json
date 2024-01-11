@@ -15,9 +15,7 @@
     "dev:app": "run-p dev:app:*",
     "dev:app:esbuild": "npm run esbuild:app -- dev",
     "dev:app:tailwind": "npm run build:app:tailwind -- -w",
-    "dev:server": "run-p dev:server:*",
-    "dev:server:node": "node --watch server-dist/main.js",
-    "dev:server:esbuild": "npm run esbuild:server -- dev",
+    "dev:server": "tsx watch --tsconfig server/tsconfig.json server/src/main.ts",
     "start:app": "run-p \"esbuild:app -- serve\" dev:app:tailwind",
     "start:server": "npm run build:server && node server-dist/main.js"
   },
@@ -40,5 +38,5 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
-  "version": "1.0.1"
+  "version": "1.0.4"
 }

@@ -21,6 +21,7 @@ export namespace AppInterfaces {
 
   export interface Host {
     name: string;
+    id: string;
     icon: string;
     ip: string;
     enablePing: boolean;

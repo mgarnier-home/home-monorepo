@@ -2,6 +2,13 @@
 
 echo "Running pre-commit hook"
 
-npx nx affected -t patch-version --base=master
+# Check if any .ts files in apps/* are modified
+TS_FILES_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/.*\.ts(x)?$')
 
-git add .
+# If .ts files are modified, run the commands
+if [ ! -z "$TS_FILES_MODIFIED" ]; then
+  # List all files that will be committed and increment versions if they are in apps/*
+  
+  echo "$TS_FILES_MODIFIED" | grep -E '^apps/.*' | xargs -I {} dirname {} | cut -d/ -f1-2 | sort -u | xargs -I {} sh -c 'cd {} && echo "{}" && npm run patch-version && git add package.json'
+fi
+

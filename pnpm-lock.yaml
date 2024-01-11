@@ -246,6 +246,18 @@ importers:
         specifier: workspace:*
         version: link:../../libs/utils
 
+  apps/stats-aggregator:
+    dependencies:
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      nodesight-types:
+        specifier: workspace:*
+        version: link:../../libs/nodesight-types
+      utils:
+        specifier: workspace:*
+        version: link:../../libs/utils
+
   apps/stats-api:
     dependencies:
       '@influxdata/influxdb-client':

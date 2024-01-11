@@ -79,13 +79,13 @@ function Host(props: HostProps) {
 
       <div className='flex flex-wrap p-2'>
         {(services || []).map((service, index) => (
-          <Service key={`${host.name}${service.name}${index}`} service={service} />
+          <Service key={`${host.id}${service.name}${index}`} service={service} />
         ))}
       </div>
       <div className='p-2'>
         <WidgetContext.Provider value={host}>
           {(widgets || []).map((widget, index) => (
-            <div key={`${host.name}${widget.name}${index}`}>{getWidget(widget)}</div>
+            <div key={`${host.id}${widget.name}${index}`}>{getWidget(widget)}</div>
           ))}
         </WidgetContext.Provider>
       </div>

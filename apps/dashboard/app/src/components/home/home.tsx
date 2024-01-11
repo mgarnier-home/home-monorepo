@@ -13,7 +13,7 @@ function HomeComponent(props: HomeProps) {
     <div className=''>
       <div className='grid grid-cols-1 tablet:grid-cols-2 laptop:grid-cols-3 desktop:grid-cols-4 tv:grid-cols-5'>
         {hosts?.map((host, index) => (
-          <HostComponent key={`${host.name}${index}`} host={host} />
+          <HostComponent key={`${host.id}${index}`} host={host} />
         ))}
       </div>
     </div>
