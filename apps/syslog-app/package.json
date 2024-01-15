@@ -1,0 +1,34 @@
+{
+  "private": true,
+  "name": "syslog-app",
+  "scripts": {
+    "patch-version": "npm version patch",
+    "build": "run-s build:*",
+    "dev": "run-p dev:*",
+    "esbuild:app": "tsx scripts/app.ts",
+    "esbuild:server": "tsx scripts/server.ts",
+    "lint:app": "tsc --project app/tsconfig.json",
+    "lint:server": "tsc --project server/tsconfig.json --noEmit",
+    "build:app": "npm run esbuild:app -- build && npm run build:app:tailwind",
+    "build:app:tailwind": "tailwindcss -i ./app/src/index.css -o ./app-dist/tailwind.css -c ./app/tailwind.config.ts",
+    "build:server": "npm run lint:server && npm run esbuild:server -- build",
+    "dev:app": "run-p dev:app:*",
+    "dev:app:esbuild": "npm run esbuild:app -- dev",
+    "dev:app:tailwind": "npm run build:app:tailwind -- -w",
+    "dev:server": "tsx watch --tsconfig server/tsconfig.json server/src/main.ts",
+    "start:app": "run-p \"esbuild:app -- serve\" dev:app:tailwind",
+    "start:server": "npm run build:server && node server-dist/main.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "tailwindcss": "^3.4.0",
+    "@types/express": "^4.17.21",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "utils": "workspace:*"
+  },
+  "version": "0.0.2"
+}
