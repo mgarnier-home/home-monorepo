@@ -31,7 +31,8 @@
     "js-yaml": "^4.1.0",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.3",
-    "ntfy-utils": "workspace:*"
+    "ntfy-utils": "workspace:*",
+    "utils": "workspace:*"
   },
-  "version": "1.0.8"
+  "version": "1.0.9"
 }

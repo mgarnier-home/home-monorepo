@@ -14,6 +14,10 @@ export namespace Utils {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  export function padStart(value: number, length: number, padChar: string = '0') {
+    return value.toString().padStart(length, padChar);
+  }
+
   export enum Unit {
     B = 'B',
     KB = 'KB',

@@ -1,7 +1,7 @@
 import path from 'path';
+import { Utils } from 'utils';
 
 import { UptoboxApi } from '../uptobox/uptoboxApi.js';
-import { Utils } from '../utils/utils.js';
 import { UploadApi } from './uploadApi.js';
 
 export class UploadApiUptobox implements UploadApi {

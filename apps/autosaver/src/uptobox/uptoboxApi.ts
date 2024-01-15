@@ -2,11 +2,12 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { blobFromSync } from 'fetch-blob/from.js';
 import fs from 'fs';
 import path from 'path';
+import { Utils } from 'utils';
 
 import { config } from '../utils/config.js';
 import { UptoboxFile, UptoboxFolder } from '../utils/interfaces.js';
 import { ProgressBlob } from '../utils/progressBlob.js';
-import { Utils } from '../utils/utils.js';
+import { Utils as AutosaverUtils } from '../utils/utils.js';
 
 class UptoboxApiError extends Error {
   public response: AxiosResponse | Response;
@@ -160,7 +161,7 @@ export class UptoboxApi {
   }
 
   static async protectFile(uptoboxFileUrl: string, usePassword: boolean = false): Promise<string> {
-    const password = Utils.generatePassword();
+    const password = AutosaverUtils.generatePassword();
 
     if (usePassword) {
       await UptoboxApi.updateFile(uptoboxFileUrl, { newPassword: password, newPublic: false });

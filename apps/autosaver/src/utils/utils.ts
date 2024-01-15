@@ -8,14 +8,6 @@ export class Utils {
     return generator.generate({ length, numbers: true });
   }
 
-  static padStart(value: number, length: number, padChar: string = '0') {
-    return value.toString().padStart(length, padChar);
-  }
-
-  static timeout(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
   static printRecapTable(foldersToBackup: FolderToBackup[]) {
     const table = new Table({
       columns: [
