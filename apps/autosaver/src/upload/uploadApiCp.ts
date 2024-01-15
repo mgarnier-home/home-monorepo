@@ -1,8 +1,8 @@
 import cpy from 'cpy';
 import fs from 'fs';
 import path from 'path';
+import { Utils } from 'utils';
 
-import { Utils } from '../utils/utils.js';
 import { UploadApi } from './uploadApi.js';
 
 export class UploadApiCp implements UploadApi {

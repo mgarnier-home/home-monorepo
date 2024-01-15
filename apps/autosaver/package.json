@@ -34,5 +34,5 @@
     "ntfy-utils": "workspace:*",
     "utils": "workspace:*"
   },
-  "version": "1.0.9"
+  "version": "1.0.10"
 }
