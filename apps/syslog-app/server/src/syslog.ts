@@ -44,12 +44,14 @@ export class SyslogServer {
     });
 
     this.socket.on('message', (msg, rinfo) => {
+      console.time('handleSyslogMessage');
       this.handleSyslogMessage({
         date: new Date(),
         host: config.hostsMap[rinfo.address] || rinfo.address,
         message: msg.toString('utf8'),
         protocol: rinfo.family,
       });
+      console.timeEnd('handleSyslogMessage');
     });
 
     this.socket.on('close', () => {
