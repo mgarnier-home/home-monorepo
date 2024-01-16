@@ -30,5 +30,5 @@
     "react-dom": "^18.2.0",
     "utils": "workspace:*"
   },
-  "version": "0.0.2"
+  "version": "0.0.3"
 }

@@ -1,7 +1,7 @@
 export interface SyslogMessage {
   date: Date;
   host: string;
-  dockerMessage: DockerMessage | undefined;
+  dockerMessage?: DockerMessage;
   message: string;
   protocol: string;
 }
