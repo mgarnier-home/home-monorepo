@@ -2,7 +2,7 @@ import { configDotenv } from 'dotenv';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
-import type { ServerConfig } from './interfaces.js';
+import type { ServerConfig } from './interfaces';
 
 configDotenv();
 
@@ -20,6 +20,7 @@ const resolvePath = (pathToResolve: string): string => {
 
 const loadConfigFromEnv = (): ServerConfig => {
   const config: ServerConfig = {
+    devMode: process.env.NODE_ENV !== 'production',
     storagePath: resolvePath(process.env.STORAGE_PATH || '../storage'),
     hostsMap: JSON.parse(process.env.HOSTS_MAP || '{}'),
     maxLogFileSize: Number(process.env.MAX_LOG_FILE_SIZE) || 1024 * 1024 * 256,

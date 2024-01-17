@@ -3,12 +3,13 @@ import type { DockerMessage, SyslogMessage } from '@shared/interfaces';
 import fs from 'fs';
 import path from 'path';
 
-import { config } from './config.js';
-import { SyslogServer } from './syslog.js';
+import { config } from './config';
+import { SyslogServer } from './syslog';
+import { log } from './utils';
 
 const main = async () => {
-  console.log('Starting syslog server');
-  console.log(config);
+  log('Starting syslog server');
+  log(config);
 
   const syslogServer = new SyslogServer();
 

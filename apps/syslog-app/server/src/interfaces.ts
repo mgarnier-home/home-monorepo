@@ -6,6 +6,7 @@ export interface ServerConfig {
   maxLogFileSize: number;
   serverPort: number;
   syslogPort: number;
+  devMode: boolean;
 }
 
 export interface WriteStream {

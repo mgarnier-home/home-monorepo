@@ -6,9 +6,10 @@ import { SimpleCache } from 'utils';
 
 import { getDockerMessage, getMessageKey } from '@shared/utils';
 
-import { config } from './config.js';
+import { config } from './config';
+import { log, time, timeEnd } from './utils';
 
-import type { WriteStream } from './interfaces.js';
+import type { WriteStream } from './interfaces';
 export class SyslogServer {
   private socket: Socket;
   private fileWatcher: NodeJS.Timeout;
@@ -21,13 +22,13 @@ export class SyslogServer {
     this.socket = createSocket('udp4');
 
     this.fileWatcher = setInterval(() => {
-      console.log('Checking file streams');
+      log('Checking file streams');
 
       for (const key in this.fileStreams) {
         const fileStream = this.fileStreams[key];
 
         if (Date.now() - fileStream!.lastWrite > 30 * 1000) {
-          console.log(`Closing file stream for ${key}`);
+          log(`Closing file stream for ${key}`);
 
           fileStream!.stream.end();
           delete this.fileStreams[key];
@@ -38,32 +39,34 @@ export class SyslogServer {
 
   public start(port: number) {
     this.socket.on('listening', () => {
-      console.log(`Syslog server listening on port ${port}`);
+      log(`Syslog server listening on port ${port}`);
     });
 
     this.socket.on('error', (err) => {
-      console.log('Syslog server error', err);
+      log('Syslog server error', err);
     });
 
     this.socket.on('message', (msg, rinfo) => {
-      // if (Date.now() - this.lastMessageDate < 10000) {
-      //   return;
-      // }
+      if (config.devMode) {
+        if (Date.now() - this.lastMessageDate < 10000) {
+          return;
+        }
+      }
 
-      console.time('handleSyslogMessage');
+      time('handleSyslogMessage');
       this.handleSyslogMessage({
         date: new Date(),
         host: config.hostsMap[rinfo.address] || rinfo.address,
         message: msg.toString('utf8'),
         protocol: rinfo.family,
       });
-      console.timeEnd('handleSyslogMessage');
+      timeEnd('handleSyslogMessage');
 
-      // this.lastMessageDate = Date.now();
+      this.lastMessageDate = Date.now();
     });
 
     this.socket.on('close', () => {
-      console.log('Syslog server closed');
+      log('Syslog server closed');
     });
 
     this.socket.bind(port);
@@ -84,7 +87,7 @@ export class SyslogServer {
 
     this.writeMessage(msg);
 
-    console.log(msg);
+    log(msg);
   };
 
   private writeMessage = (msg: SyslogMessage) => {
@@ -104,7 +107,7 @@ export class SyslogServer {
     const logFilePath = this.getLogFilePath(msg);
 
     if (!this.fileStreams[logFilePath]) {
-      console.log(`Creating file stream for ${logFilePath}`);
+      log(`Creating file stream for ${logFilePath}`);
 
       const logDir = path.dirname(logFilePath);
 
