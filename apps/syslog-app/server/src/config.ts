@@ -2,7 +2,7 @@ import { configDotenv } from 'dotenv';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
-import type { ServerConfig } from './interfaces';
+import type { ServerConfig } from './interfaces.js';
 
 configDotenv();
 

@@ -6,14 +6,16 @@ import { SimpleCache } from 'utils';
 
 import { getDockerMessage, getMessageKey } from '@shared/utils';
 
-import { config } from './config';
+import { config } from './config.js';
 
-import type { WriteStream } from './interfaces';
+import type { WriteStream } from './interfaces.js';
 export class SyslogServer {
   private socket: Socket;
   private fileWatcher: NodeJS.Timeout;
   private fileStreams: { [key: string]: WriteStream } = {}; // key = full path of the file
-  private filePathCache = new SimpleCache<string>(10 * 1); // key = messageKey => value = full path of the file
+  private filePathCache = new SimpleCache<string>(60); // key = messageKey => value = full path of the file
+
+  private lastMessageDate: number = 0; // timestamp of the last message received to slow down the spam in dev mode
 
   constructor() {
     this.socket = createSocket('udp4');
@@ -24,7 +26,7 @@ export class SyslogServer {
       for (const key in this.fileStreams) {
         const fileStream = this.fileStreams[key];
 
-        if (Date.now() - fileStream!.lastWrite > 30 * 100) {
+        if (Date.now() - fileStream!.lastWrite > 30 * 1000) {
           console.log(`Closing file stream for ${key}`);
 
           fileStream!.stream.end();
@@ -44,6 +46,10 @@ export class SyslogServer {
     });
 
     this.socket.on('message', (msg, rinfo) => {
+      if (Date.now() - this.lastMessageDate < 10000) {
+        return;
+      }
+
       console.time('handleSyslogMessage');
       this.handleSyslogMessage({
         date: new Date(),
@@ -52,6 +58,8 @@ export class SyslogServer {
         protocol: rinfo.family,
       });
       console.timeEnd('handleSyslogMessage');
+
+      this.lastMessageDate = Date.now();
     });
 
     this.socket.on('close', () => {
@@ -75,12 +83,14 @@ export class SyslogServer {
     }
 
     this.writeMessage(msg);
+
+    // console.log(msg);
   };
 
   private writeMessage = (msg: SyslogMessage) => {
     const fileStream = this.getFileStream(msg);
 
-    const msgStr = JSON.stringify(msg);
+    const msgStr = JSON.stringify({ ...msg, message: undefined });
 
     fileStream.stream.write(msgStr + '\n');
     fileStream.lastWrite = Date.now();

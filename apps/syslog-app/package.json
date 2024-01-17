@@ -12,6 +12,7 @@
     "build:app": "npm run esbuild:app -- build && npm run build:app:tailwind",
     "build:app:tailwind": "tailwindcss -i ./app/src/index.css -o ./app-dist/tailwind.css -c ./app/tailwind.config.ts",
     "build:server": "npm run lint:server && npm run esbuild:server -- build",
+    "new:build:server": "shx rm -rf server-dist && tsc --project server/tsconfig.json --outDir server-dist",
     "dev:app": "run-p dev:app:*",
     "dev:app:esbuild": "npm run esbuild:app -- dev",
     "dev:app:tailwind": "npm run build:app:tailwind -- -w",
@@ -30,5 +31,5 @@
     "react-dom": "^18.2.0",
     "utils": "workspace:*"
   },
-  "version": "0.0.4"
+  "version": "0.0.5"
 }

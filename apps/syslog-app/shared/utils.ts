@@ -18,15 +18,15 @@ export const getMessageKey = (msg: SyslogMessage): string => {
 };
 
 export const getDockerMessage = (msg: string): DockerMessage => {
-  const [datePart, msgPart1] = msg.split('DCMSG:') as [string, string];
+  const [datePart, msgPart] = msg.split('DCMSG:') as [string, string];
 
   const [, dateStr] = datePart.split('>') as [string, string];
 
-  const [containerNameAndId, msgPart2] = msgPart1.split('[') as [string, string];
+  const [containerNameAndId, ...rest] = msgPart.split('[') as [string, string];
 
   const [containerName, containerId] = containerNameAndId.split(':') as [string, string];
 
-  const [, message] = msgPart2.split(']:') as [string, string];
+  const [, message] = rest.join('[').split(']:') as [string, string];
 
   return {
     date: new Date(`${new Date().getFullYear()} ${dateStr} UTC`),
