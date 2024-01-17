@@ -21,13 +21,13 @@ export class SyslogServer {
     this.socket = createSocket('udp4');
 
     this.fileWatcher = setInterval(() => {
-      console.log('Checking file streams');
+      // console.log('Checking file streams');
 
       for (const key in this.fileStreams) {
         const fileStream = this.fileStreams[key];
 
         if (Date.now() - fileStream!.lastWrite > 30 * 1000) {
-          console.log(`Closing file stream for ${key}`);
+          // console.log(`Closing file stream for ${key}`);
 
           fileStream!.stream.end();
           delete this.fileStreams[key];
@@ -50,14 +50,14 @@ export class SyslogServer {
       //   return;
       // }
 
-      console.time('handleSyslogMessage');
+      // console.time('handleSyslogMessage');
       this.handleSyslogMessage({
         date: new Date(),
         host: config.hostsMap[rinfo.address] || rinfo.address,
         message: msg.toString('utf8'),
         protocol: rinfo.family,
       });
-      console.timeEnd('handleSyslogMessage');
+      // console.timeEnd('handleSyslogMessage');
 
       // this.lastMessageDate = Date.now();
     });
@@ -104,7 +104,7 @@ export class SyslogServer {
     const logFilePath = this.getLogFilePath(msg);
 
     if (!this.fileStreams[logFilePath]) {
-      console.log(`Creating file stream for ${logFilePath}`);
+      // console.log(`Creating file stream for ${logFilePath}`);
 
       const logDir = path.dirname(logFilePath);
 
