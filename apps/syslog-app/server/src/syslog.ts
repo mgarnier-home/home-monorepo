@@ -46,9 +46,9 @@ export class SyslogServer {
     });
 
     this.socket.on('message', (msg, rinfo) => {
-      if (Date.now() - this.lastMessageDate < 10000) {
-        return;
-      }
+      // if (Date.now() - this.lastMessageDate < 10000) {
+      //   return;
+      // }
 
       console.time('handleSyslogMessage');
       this.handleSyslogMessage({
@@ -59,7 +59,7 @@ export class SyslogServer {
       });
       console.timeEnd('handleSyslogMessage');
 
-      this.lastMessageDate = Date.now();
+      // this.lastMessageDate = Date.now();
     });
 
     this.socket.on('close', () => {
