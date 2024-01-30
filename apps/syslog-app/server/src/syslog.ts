@@ -7,7 +7,7 @@ import { SimpleCache } from 'utils';
 import { getDockerMessage, getMessageKey } from '@shared/utils';
 
 import { config } from './config';
-import { log, time, timeEnd } from './utils';
+import { log } from './utils';
 
 import type { WriteStream } from './interfaces';
 export class SyslogServer {
@@ -22,13 +22,13 @@ export class SyslogServer {
     this.socket = createSocket('udp4');
 
     this.fileWatcher = setInterval(() => {
-      log('Checking file streams');
+      // log('Checking file streams');
 
       for (const key in this.fileStreams) {
         const fileStream = this.fileStreams[key];
 
         if (Date.now() - fileStream!.lastWrite > 30 * 1000) {
-          log(`Closing file stream for ${key}`);
+          // log(`Closing file stream for ${key}`);
 
           fileStream!.stream.end();
           delete this.fileStreams[key];
@@ -53,14 +53,12 @@ export class SyslogServer {
         }
       }
 
-      time('handleSyslogMessage');
       this.handleSyslogMessage({
         date: new Date(),
         host: config.hostsMap[rinfo.address] || rinfo.address,
         message: msg.toString('utf8'),
         protocol: rinfo.family,
       });
-      timeEnd('handleSyslogMessage');
 
       this.lastMessageDate = Date.now();
     });
@@ -87,7 +85,7 @@ export class SyslogServer {
 
     this.writeMessage(msg);
 
-    log(msg);
+    // log(msg);
   };
 
   private writeMessage = (msg: SyslogMessage) => {
@@ -107,7 +105,7 @@ export class SyslogServer {
     const logFilePath = this.getLogFilePath(msg);
 
     if (!this.fileStreams[logFilePath]) {
-      log(`Creating file stream for ${logFilePath}`);
+      // log(`Creating file stream for ${logFilePath}`);
 
       const logDir = path.dirname(logFilePath);
 
