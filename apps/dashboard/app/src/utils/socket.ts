@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { io } from 'socket.io-client';
 
 import { ServerRoutes } from '../../../shared/routes';
@@ -23,13 +24,13 @@ class Socket {
   }
 
   private onConnect() {
-    console.log(`Socket connected: ${this.socket.id}`);
+    logger.info(`Socket connected: ${this.socket.id}`);
 
     this._connected = true;
   }
 
   private onDisconnect() {
-    console.log(`Socket disconnected: ${this.socket.id}`);
+    logger.info(`Socket disconnected: ${this.socket.id}`);
 
     this._connected = false;
   }

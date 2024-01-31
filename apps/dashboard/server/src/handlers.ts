@@ -1,4 +1,5 @@
 import jsYaml from 'js-yaml';
+import { logger } from 'logger';
 import fs from 'node:fs';
 import ping from 'ping';
 import { Utils } from 'utils';
@@ -7,7 +8,7 @@ import { config } from './utils/config';
 
 import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
 const log = (...args: any[]) => {
-  console.log(`[Handlers]`, ...args);
+  logger.info(`[Handlers]`, ...args);
 };
 
 export namespace Handlers {
@@ -132,7 +133,7 @@ export namespace Handlers {
 
       code = response.status;
     } catch (error) {
-      console.log(error);
+      logger.error(error);
 
       code = 500;
     }

@@ -6,6 +6,14 @@ export enum LogLevel {
   VERBOSE = 5,
 }
 
+export const logLevels = {
+  [LogLevel.ERROR]: 'ERROR',
+  [LogLevel.WARN]: 'WARN',
+  [LogLevel.INFO]: 'INFO',
+  [LogLevel.DEBUG]: 'DEBUG',
+  [LogLevel.VERBOSE]: 'VERBOSE',
+};
+
 export enum Color {
   DEFAULT = '',
   BLACK = '\x1b[30m',

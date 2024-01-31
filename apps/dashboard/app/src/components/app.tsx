@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { useEffect, useState } from 'react';
 
 import { Api } from '../utils/api';
@@ -11,7 +12,7 @@ function App() {
   const [config, setConfig] = useState({} as AppInterfaces.AppConfig);
 
   useEffect(() => {
-    console.log('App mounted');
+    logger.info('App mounted');
 
     socket.connect();
 
@@ -26,7 +27,7 @@ function App() {
     getConfig();
 
     return () => {
-      console.log('App unmounted');
+      logger.info('App unmounted');
       socket.dispose();
     };
   }, []);

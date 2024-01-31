@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { useContext, useEffect, useState } from 'react';
 
 import { WidgetInterfaces } from '@shared/interfaces/widgetInterfaces';
@@ -6,7 +7,6 @@ import { StatsApi } from '../../../utils/statsApi';
 import { WidgetContext } from '../widgetContext';
 
 import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
-
 export function useData<T>(
   config: AppInterfaces.AppConfig,
   options: WidgetInterfaces.Stats.Options
@@ -33,7 +33,7 @@ export function useData<T>(
 
               setData((oldData) => [...oldData.slice(1), current]);
             } catch (err: any) {
-              console.error(err);
+              logger.error(err);
             }
           }, 15000);
         } else if (options.time === WidgetInterfaces.Stats.OptionsTime.History) {
@@ -41,7 +41,7 @@ export function useData<T>(
           setData(historyData);
         }
       } catch (err: any) {
-        console.error(err);
+        logger.error(err);
       }
     };
 

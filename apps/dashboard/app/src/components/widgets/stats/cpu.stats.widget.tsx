@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { HwCpu } from 'nodesight-types';
 import { useContext, useMemo } from 'react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -38,7 +39,7 @@ function CpuStatsWidget(props: CpuStatsWidgetProps) {
   const [data] = useData<HwCpu.History.Value>(appConfig, options);
 
   const sanitizedData = useMemo(() => {
-    console.log(data);
+    logger.info(data);
     return data.map((d) => ({
       temp: parseFloat(d.temp.toFixed(1)),
       load: parseFloat(d.load.toFixed(1)),

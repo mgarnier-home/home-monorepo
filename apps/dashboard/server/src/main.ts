@@ -1,5 +1,6 @@
 import express from 'express';
 import http from 'http';
+import { logger } from 'logger';
 
 import { ServerRoutes } from '@shared/routes';
 
@@ -7,8 +8,10 @@ import { RestControllers } from './restControllers';
 import { config } from './utils/config';
 import { bindSocketIOServer } from './wsControllers';
 
+logger.setAppName('dashboard-server');
+
 const log = (...args: any[]) => {
-  console.log(`[API]`, ...args);
+  logger.info(`[API]`, ...args);
 };
 
 const expressApp = express();
@@ -29,7 +32,7 @@ expressApp.use((req, res, next) => {
 expressApp.use(express.urlencoded({ extended: true }));
 
 expressApp.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
+  logger.error(err.stack);
 
   res.status(500).send(err.message);
 });
@@ -44,5 +47,5 @@ expressApp.post(ServerRoutes.MAKE_REQUEST, RestControllers.postMakeRequest);
 bindSocketIOServer(httpServer);
 
 httpServer.listen(config.serverPort, () => {
-  console.log(`Server listening on port ${config.serverPort}`);
+  logger.info(`Server listening on port ${config.serverPort}`);
 });

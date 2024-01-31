@@ -1,4 +1,5 @@
 import http from 'http';
+import { logger } from 'logger';
 import { Server } from 'socket.io';
 
 import { ServerRoutes } from '@shared/routes';
@@ -6,14 +7,14 @@ import { ServerRoutes } from '@shared/routes';
 import { Handlers } from './handlers';
 
 const log = (...args: any[]) => {
-  console.log(`[WS]`, ...args);
+  logger.info(`[WS]`, ...args);
 };
 
 export const bindSocketIOServer = (httpServer: http.Server) => {
   const socketIoServer = new Server(httpServer, { cors: { origin: '*' } });
 
   socketIoServer.on('connection', (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
+    log(`Socket connected: ${socket.id}`);
 
     socket.on('apiRequest', async (params, callback) => {
       const { data, route } = params;
@@ -40,7 +41,7 @@ export const bindSocketIOServer = (httpServer: http.Server) => {
     });
 
     socket.on('disconnect', () => {
-      console.log(`Socket disconnected: ${socket.id}`);
+      log(`Socket disconnected: ${socket.id}`);
     });
   });
 };

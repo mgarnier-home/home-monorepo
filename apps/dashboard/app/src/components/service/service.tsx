@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { useContext, useEffect, useState } from 'react';
 
 import { Api } from '../../utils/api';
@@ -79,7 +80,7 @@ const useStatusChecks = (service: AppInterfaces.HostService, statusCheckInterval
 
       updateStatusChecks(updatedStatusChecks);
     } catch (error) {
-      console.error('Error refreshing status checks:', error);
+      logger.error('Error refreshing status checks:', error);
       // Handle any errors - maybe set all statusChecks to an error state, or show a notification.
     }
   };
