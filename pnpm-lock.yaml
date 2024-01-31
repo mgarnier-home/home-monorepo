@@ -290,6 +290,9 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.18.2
+      logger:
+        specifier: workspace:*
+        version: link:../../libs/logger
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -326,6 +329,8 @@ importers:
       utils:
         specifier: workspace:*
         version: link:../../libs/utils
+
+  libs/logger: {}
 
   libs/nodesight-types: {}
 

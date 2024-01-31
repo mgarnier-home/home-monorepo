@@ -28,6 +28,7 @@ setInterval(updateAll, config.updateInterval);
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
+
   next();
 });
 

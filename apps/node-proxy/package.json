@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "patch-version": "npm version patch",
+    "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
     "build": "shx rm -rf dist/ && tsc"
   },
   "devDependencies": {

@@ -6,9 +6,7 @@
     "esbuild": "tsx scripts/build.ts",
     "lint": "tsc --noEmit",
     "build": "npm run lint && npm run esbuild -- build",
-    "dev": "run-p dev:*",
-    "dev:node": "node --watch dist/main.js",
-    "dev:esbuild": "npm run esbuild -- dev",
+    "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
     "start": "npm run build && node dist/main.js"
   },
   "dependencies": {
@@ -19,5 +17,5 @@
     "nodesight-types": "workspace:*",
     "utils": "workspace:*"
   },
-  "version": "1.0.1"
+  "version": "1.0.3"
 }

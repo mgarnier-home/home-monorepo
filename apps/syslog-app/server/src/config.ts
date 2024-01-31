@@ -2,9 +2,9 @@ import { configDotenv } from 'dotenv';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
-import type { ServerConfig } from './interfaces';
-
 configDotenv();
+
+import type { ServerConfig } from './interfaces';
 
 const configFilePath = process.env.CONFIG_FILE || path.resolve(__dirname, '../../config.json');
 

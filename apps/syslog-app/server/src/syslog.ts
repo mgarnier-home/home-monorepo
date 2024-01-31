@@ -1,17 +1,18 @@
 import type { DockerMessage, SyslogMessage } from '@shared/interfaces';
 import { createSocket, Socket } from 'dgram';
 import fs from 'fs';
+import { logger } from 'logger';
 import path from 'path';
 import { SimpleCache } from 'utils';
 
 import { getDockerMessage, getMessageKey } from '@shared/utils';
 
 import { config } from './config';
-import { log } from './utils';
 
 import type { WriteStream } from './interfaces';
 export class SyslogServer {
   private socket: Socket;
+
   private fileWatcher: NodeJS.Timeout;
   private fileStreams: { [key: string]: WriteStream } = {}; // key = full path of the file
   private filePathCache = new SimpleCache<string>(60); // key = messageKey => value = full path of the file
@@ -39,11 +40,11 @@ export class SyslogServer {
 
   public start(port: number) {
     this.socket.on('listening', () => {
-      log(`Syslog server listening on port ${port}`);
+      logger.info(`Syslog server listening on port ${port}`);
     });
 
     this.socket.on('error', (err) => {
-      log('Syslog server error', err);
+      logger.info('Syslog server error', err);
     });
 
     this.socket.on('message', (msg, rinfo) => {
@@ -64,7 +65,7 @@ export class SyslogServer {
     });
 
     this.socket.on('close', () => {
-      log('Syslog server closed');
+      logger.info('Syslog server closed');
     });
 
     this.socket.bind(port);
