@@ -1,5 +1,6 @@
 import cpy from 'cpy';
 import fs from 'fs';
+import { logger } from 'logger';
 import path from 'path';
 import { Utils } from 'utils';
 
@@ -19,12 +20,12 @@ export class UploadApiCp implements UploadApi {
       return diffInDays > 14;
     });
 
-    console.log('Folders to delete : ', foldersToDelete);
+    logger.info('Folders to delete : ', foldersToDelete);
 
     for (const folderToDelete of foldersToDelete) {
       await fs.promises.rmdir(path.join(backupFolder, folderToDelete), { recursive: true });
 
-      console.log(`Folder ${folderToDelete} deleted`);
+      logger.info(`Folder ${folderToDelete} deleted`);
     }
   }
 
@@ -64,7 +65,7 @@ export class UploadApiCp implements UploadApi {
 
       if (actualPercentage > intPercentage) {
         intPercentage = actualPercentage;
-        console.log(`copying file : ${actualMb}Mb / ${totalMb}Mb (${actualPercentage}%)`);
+        logger.info(`copying file : ${actualMb}Mb / ${totalMb}Mb (${actualPercentage}%)`);
       }
     });
 

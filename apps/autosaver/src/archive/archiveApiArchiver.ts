@@ -1,6 +1,7 @@
 import archiver from 'archiver';
 import fs from 'fs';
 import gracefulFs from 'graceful-fs';
+import { logger } from 'logger';
 import path from 'path';
 
 import { OsUtils } from '../utils/osUtils.js';
@@ -13,19 +14,19 @@ export class ArchiveApiArchiver extends ArchiveApi {
     const zipFileName = `${folderName}.zip`;
     const zipPath = path.join(backupFolder, zipFileName);
 
-    console.log(`Zipping ${folderName} to ${zipPath}`);
+    logger.info(`Zipping ${folderName} to ${zipPath}`);
 
     const output = fs.createWriteStream(zipPath);
 
     output.on('close', function () {
-      console.log(`${folderName} in progress : ${(archive.pointer() / 1024 / 1024).toFixed(0)} MB`);
+      logger.info(`${folderName} in progress : ${(archive.pointer() / 1024 / 1024).toFixed(0)} MB`);
     });
 
-    console.log('Getting files in folder...');
+    logger.info('Getting files in folder...');
 
     const files = await OsUtils.getFilesInFolder(folderToBackupPath);
 
-    console.log('Files in folder : ', files.length);
+    logger.info('Files in folder : ', files.length);
 
     const archive = archiver.create('zip', {
       zlib: { level: 9 }, // Sets the compression level.
@@ -34,7 +35,7 @@ export class ArchiveApiArchiver extends ArchiveApi {
     archive.pipe(output);
 
     archive.on('progress', (progress) => {
-      console.log(
+      logger.info(
         `file added to archive : ${progress.entries.processed}/${files.length} : ${(
           (progress.entries.processed / files.length) *
           100

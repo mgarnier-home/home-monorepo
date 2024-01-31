@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { blobFromSync } from 'fetch-blob/from.js';
 import fs from 'fs';
+import { logger } from 'logger';
 import path from 'path';
 import { Utils } from 'utils';
 
@@ -17,8 +18,6 @@ class UptoboxApiError extends Error {
 
     this.response = response;
     this.name = 'UptoboxApiError';
-
-    console.error('UptoboxApiError', response);
   }
 }
 
@@ -59,8 +58,8 @@ export class UptoboxApi {
       return uploadedFile;
     } catch (error) {
       if (retry < nbRetries) {
-        console.log('caught error  : ', error);
-        console.log(`retrying upload in 10s (${retry + 1}/${nbRetries})`);
+        logger.error('caught error  : ', error);
+        logger.info(`retrying upload in 10s (${retry + 1}/${nbRetries})`);
 
         await Utils.timeout(10000);
 
@@ -89,7 +88,7 @@ export class UptoboxApi {
         if (actualPercentage > intPercentage) {
           intPercentage = actualPercentage;
 
-          console.log(`uploading file : ${streamActualMb}Mb / ${streamTotalMb}Mb (${intPercentage}%)`);
+          logger.info(`uploading file : ${streamActualMb}Mb / ${streamTotalMb}Mb (${intPercentage}%)`);
         }
       });
 
@@ -97,7 +96,7 @@ export class UptoboxApi {
 
       formData.append('files', blob, path.basename(filePath));
 
-      console.log('uploadFile : starting upload');
+      logger.info('uploadFile : starting upload');
 
       const response = await fetch(uploadUrl, {
         method: 'POST',
@@ -107,7 +106,7 @@ export class UptoboxApi {
       if (response.status === 200) {
         const data = (await response.json()) as any;
 
-        console.log('uploadFile : response', data, path.basename(filePath));
+        logger.info('uploadFile : response', data, path.basename(filePath));
 
         if (data.files.length > 0) {
           const uploadedFile = data.files[0];

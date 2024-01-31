@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import fs from 'fs';
+import { logger } from 'logger';
 import path from 'path';
 
 import { config } from './config.js';
@@ -7,7 +8,7 @@ import { config } from './config.js';
 export class OsUtils {
   static async rmFiles(filePaths: string[]) {
     if (config.deleteFiles === false) {
-      console.log('not deleting files : ', filePaths);
+      logger.info('not deleting files : ', filePaths);
       return;
     }
 
@@ -15,10 +16,10 @@ export class OsUtils {
       for (const path of filePaths) {
         await fs.promises.unlink(path);
 
-        console.log(`File ${path} deleted`);
+        logger.info(`File ${path} deleted`);
       }
     } catch (error) {
-      console.error(`Error while deleting [${filePaths.join(', ')}] : `, error);
+      logger.error(`Error while deleting [${filePaths.join(', ')}] : `, error);
     }
   }
 

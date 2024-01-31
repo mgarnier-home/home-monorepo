@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
+import { logger } from 'logger';
 
 export class RsyncApi {
   static async rsyncFolder(source: string, destination: string) {
@@ -18,7 +19,7 @@ export class RsyncApi {
         {}
       );
 
-      console.log(`Rsync ${source} to ${destination}`);
+      logger.info(`Rsync ${source} to ${destination}`);
 
       const dataRegex = /\s*(\d+(?:,\d{3})*)\s+(\d+)%\s+([\d.]+[KMGTPEZY]B\/s)/;
       let lastPercent = 0;
@@ -36,17 +37,17 @@ export class RsyncApi {
 
             lastPercent = parseInt(percent, 10);
 
-            console.log(`Rsync  ${percent}% - ${Math.ceil(transferredInt / 1024 / 1024)}MB ${speed}`);
+            logger.info(`Rsync  ${percent}% - ${Math.ceil(transferredInt / 1024 / 1024)}MB ${speed}`);
           }
         }
       });
 
       rsyncSpawn.stderr.on('data', (data) => {
-        console.log(`rsync stderr: ${data}`);
+        logger.error(`rsync stderr: ${data}`);
       });
 
       rsyncSpawn.on('close', (code) => {
-        console.log(`rsync process exited with code ${code}`);
+        logger.info(`rsync process exited with code ${code}`);
 
         if (code !== 0) {
           reject(new Error(`rsync process exited with code ${code}`));

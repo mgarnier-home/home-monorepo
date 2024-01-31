@@ -1,5 +1,8 @@
 import { Color, LogLevel } from './interfaces';
 
+const envLogLevel = parseInt(process.env.LOG_LEVEL);
+const logLevel = isNaN(envLogLevel) ? LogLevel.INFO : envLogLevel;
+
 interface ILogger {
   // log(color: Color, ...args: any[]): void;
   info(...args: any[]): void;
@@ -23,28 +26,44 @@ class Logger implements ILogger {
     console.log(color, `[${date}] [${level}] [${this.appName}] `, ...args, '\x1b[0m');
   }
 
+  private errorLog(color: Color, level: LogLevel, ...args: any[]) {
+    const date = new Date().toISOString();
+
+    console.error(color, `[${date}] [${level}] [${this.appName}] `, ...args, '\x1b[0m');
+  }
+
   setAppName(appName: string) {
     this.appName = appName;
   }
 
   info(...args: any[]) {
-    this.log(Logger.getColor(Color.DEFAULT, args[0]), LogLevel.INFO, ...args);
+    if (logLevel <= LogLevel.INFO) {
+      this.log(Logger.getColor(Color.DEFAULT, args[0]), LogLevel.INFO, ...args);
+    }
   }
 
   debug(...args: any[]) {
-    this.log(Logger.getColor(Color.BLUE, args[0]), LogLevel.DEBUG, ...args);
+    if (logLevel <= LogLevel.DEBUG) {
+      this.log(Logger.getColor(Color.BLUE, args[0]), LogLevel.DEBUG, ...args);
+    }
   }
 
   warn(...args: any[]) {
-    this.log(Logger.getColor(Color.YELLOW, args[0]), LogLevel.WARN, ...args);
+    if (logLevel <= LogLevel.WARN) {
+      this.log(Logger.getColor(Color.YELLOW, args[0]), LogLevel.WARN, ...args);
+    }
   }
 
   error(...args: any[]) {
-    this.log(Logger.getColor(Color.RED, args[0]), LogLevel.ERROR, ...args);
+    if (logLevel <= LogLevel.ERROR) {
+      this.errorLog(Logger.getColor(Color.RED, args[0]), LogLevel.ERROR, ...args);
+    }
   }
 
   verbose(...args: any[]) {
-    this.log(Logger.getColor(Color.GRAY, args[0]), LogLevel.VERBOSE, ...args);
+    if (logLevel <= LogLevel.VERBOSE) {
+      this.log(Logger.getColor(Color.GRAY, args[0]), LogLevel.VERBOSE, ...args);
+    }
   }
 }
 

@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
+import { logger } from 'logger';
 
 import { SmbConfig } from '../utils/interfaces';
 
@@ -13,7 +14,7 @@ export class SmbApi {
 
         await SmbApi.mountSmbFolder(smbHost.ip, smbHost.user, smbHost.password, `${root}${src}`, dest);
 
-        console.log(`Successfully mounted smb`);
+        logger.info(`Successfully mounted smb`);
       }
     }
   }
@@ -35,13 +36,13 @@ export class SmbApi {
   ) {
     const options = `rw,username=${smbUser},password=${smbPassword},iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777`;
 
-    console.log(`Mounting smb folder from ${smbHost}${smbFolder} to ${destFolder}`);
+    logger.info(`Mounting smb folder from ${smbHost}${smbFolder} to ${destFolder}`);
 
     if (fs.existsSync(destFolder)) {
       try {
         await SmbApi.unmountSmbFolder(destFolder);
       } catch (error) {
-        console.log(`Error unmounting folder ${destFolder}: ${error}`);
+        logger.error(`Error unmounting folder ${destFolder}: ${error}`);
       }
     }
     await fs.promises.mkdir(destFolder, { recursive: true });
@@ -50,17 +51,17 @@ export class SmbApi {
       const smbMountSpawn = spawn('mount', ['-t', 'cifs', '-o', options, `//${smbHost}${smbFolder}`, destFolder], {});
 
       smbMountSpawn.stdout.on('data', (data) => {
-        console.log(`smbMountSpawn stdout: ${data}`);
+        logger.info(`smbMountSpawn stdout: ${data}`);
       });
 
       smbMountSpawn.stderr.on('data', (data) => {
-        console.log(`smbMountSpawn stderr: ${data}`);
+        logger.error(`smbMountSpawn stderr: ${data}`);
 
         smbMountSpawn.kill(1);
       });
 
       smbMountSpawn.on('close', (code) => {
-        console.log(`smbMountSpawn process exited with code ${code}`);
+        logger.info(`smbMountSpawn process exited with code ${code}`);
 
         if (code !== 0) {
           reject(new Error(`smbMountSpawn process exited with code ${code}`));
@@ -72,23 +73,23 @@ export class SmbApi {
   }
 
   static async unmountSmbFolder(destFolder: string): Promise<void> {
-    console.log(`Unmounting smb folder from ${destFolder}`);
+    logger.info(`Unmounting smb folder from ${destFolder}`);
 
     await new Promise<void>((resolve, reject) => {
       const smbUnmountSpawn = spawn('umount', [destFolder], {});
 
       smbUnmountSpawn.stdout.on('data', (data) => {
-        console.log(`smbUnmountSpawn stdout: ${data}`);
+        logger.info(`smbUnmountSpawn stdout: ${data}`);
       });
 
       smbUnmountSpawn.stderr.on('data', (data) => {
-        console.log(`smbUnmountSpawn stderr: ${data}`);
+        logger.error(`smbUnmountSpawn stderr: ${data}`);
 
         smbUnmountSpawn.kill(1);
       });
 
       smbUnmountSpawn.on('close', (code) => {
-        console.log(`smbUnmountSpawn process exited with code ${code}`);
+        logger.info(`smbUnmountSpawn process exited with code ${code}`);
 
         if (code !== 0) {
           reject(new Error(`smbUnmountSpawn process exited with code ${code}`));

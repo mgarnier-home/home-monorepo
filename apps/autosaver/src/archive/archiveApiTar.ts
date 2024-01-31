@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { logger } from 'logger';
 import path from 'path';
 
 import { ArchiveApi } from './archiveApi.js';
@@ -10,9 +11,9 @@ export class ArchiveApiTar extends ArchiveApi {
     const tarFileName = `${folderName}.tar.gz`;
     const tarPath = path.join(backupFolder, tarFileName);
 
-    console.log(`Tarring ${totalNbFiles} files ${folderName} to ${tarPath}`);
+    logger.info(`Tarring ${totalNbFiles} files ${folderName} to ${tarPath}`);
 
-    console.log('Tar command args : ', ['-c', '-z', '-v', '-f', tarFileName, folderName]);
+    logger.debug('Tar command args : ', ['-c', '-z', '-v', '-f', tarFileName, folderName]);
 
     let commandArgs = ['-c', '-z', '-v', '-f', tarFileName, folderName];
 
@@ -30,14 +31,14 @@ export class ArchiveApiTar extends ArchiveApi {
           const percent = Math.floor((filesNb / totalNbFiles) * 100);
 
           if (percent > lastPercent) {
-            console.log(`Tarring ${filesNb}/${totalNbFiles} files: ${percent.toFixed(2)}%`);
+            logger.info(`Tarring ${filesNb}/${totalNbFiles} files: ${percent.toFixed(2)}%`);
             lastPercent = percent;
           }
         }
       });
 
       tarSpawn.stderr.on('data', (data) => {
-        console.error(`tar stderr: ${data}`);
+        logger.error(`tar stderr: ${data}`);
 
         tarSpawn.kill();
 

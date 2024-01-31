@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
+import { logger } from 'logger';
 import path from 'path';
 
 import { OsUtils } from '../utils/osUtils.js';
@@ -13,14 +14,14 @@ export abstract class ArchiveApi {
 
     let archivePath = await this.archive(folderToBackupPath, nbFiles);
 
-    console.log(`Archive created : ${archivePath}`);
+    logger.info(`Archive created : ${archivePath}`);
 
     if (archivePassword) {
-      console.log(`Encrypting archive : ${archivePath}...`);
+      logger.info(`Encrypting archive : ${archivePath}...`);
 
       archivePath = await this.encryptArchive(archivePath, archivePassword);
 
-      console.log(`Archive encrypted : ${archivePath}`);
+      logger.info(`Archive encrypted : ${archivePath}`);
 
       await OsUtils.rmFiles([archivePath.replace('.gpg', '')]);
     }
@@ -37,7 +38,7 @@ export abstract class ArchiveApi {
       const encryptedArchivePath = `${archivePath}.gpg`;
 
       if (fs.existsSync(encryptedArchivePath)) {
-        console.log(`Encrypted archive ${encryptedArchivePath} already exists, skipping`);
+        logger.info(`Encrypted archive ${encryptedArchivePath} already exists, skipping`);
 
         resolve(encryptedArchivePath);
 
@@ -49,11 +50,11 @@ export abstract class ArchiveApi {
       });
 
       gpg.stdout.on('data', (data) => {
-        console.log(`gpg stdout: ${data}`);
+        logger.debug(`gpg stdout: ${data}`);
       });
 
       gpg.stderr.on('data', (data) => {
-        console.error(`gpg stderr: ${data}`);
+        logger.error(`gpg stderr: ${data}`);
 
         gpg.kill();
 

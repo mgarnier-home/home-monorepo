@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import path from 'path';
 import { Utils } from 'utils';
 
@@ -18,7 +19,7 @@ export class UploadApiUptobox implements UploadApi {
       return diffInDays > 14;
     });
 
-    console.log(
+    logger.info(
       'Folders to delete : ',
       foldersToDelete.map((f) => f.fld_name)
     );
@@ -26,7 +27,7 @@ export class UploadApiUptobox implements UploadApi {
     for (const folderToDelete of foldersToDelete) {
       await UptoboxApi.deleteFolder(folderToDelete);
 
-      console.log(`Folder ${folderToDelete.fld_name} deleted`);
+      logger.info(`Folder ${folderToDelete.fld_name} deleted`);
     }
   }
 

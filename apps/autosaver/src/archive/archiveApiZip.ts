@@ -1,4 +1,5 @@
 import { spawn } from 'child_process';
+import { logger } from 'logger';
 import path from 'path';
 
 import { ArchiveApi } from './archiveApi.js';
@@ -10,7 +11,7 @@ export class ArchiveApiZip extends ArchiveApi {
     const zipFileName = `${folderName}.zip`;
     const zipPath = path.join(backupFolder, zipFileName);
 
-    console.log(`Zipping ${totalNbFiles} files from ${folderName} to ${zipPath}`);
+    logger.info(`Zipping ${totalNbFiles} files from ${folderName} to ${zipPath}`);
 
     let commandArgs = ['a', '-bt', '-bb3', '-tzip', '-mmt=on', zipPath, folderToBackupPath];
 
@@ -37,14 +38,14 @@ export class ArchiveApiZip extends ArchiveApi {
         if (newFiles) {
           filesNb += newFiles.length;
 
-          console.log(`Zipping ${filesNb}/${totalNbFiles} files: ${((filesNb / totalNbFiles) * 100).toFixed(2)}%`);
+          logger.info(`Zipping ${filesNb}/${totalNbFiles} files: ${((filesNb / totalNbFiles) * 100).toFixed(2)}%`);
         } else {
-          console.log('stdout: ', dataStr);
+          logger.info('stdout: ', dataStr);
         }
       });
 
       zipSpawn.stderr.on('data', (data) => {
-        console.error(`zip stderr: ${data}`);
+        logger.error(`zip stderr: ${data}`);
 
         zipSpawn.kill();
 

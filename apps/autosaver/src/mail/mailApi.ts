@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import nodemailer from 'nodemailer';
 
 import { config } from '../utils/config.js';
@@ -32,7 +33,7 @@ export class MailApi {
 
       return response;
     } catch (error) {
-      console.error('Cannot send mail : ', error);
+      logger.error('Cannot send mail : ', error);
     }
   }
 
