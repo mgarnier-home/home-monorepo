@@ -6,7 +6,7 @@
     - docker:24.0.7-dind
   variables:
     DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ''
+    DOCKER_TLS_CERTDIR: ""
   before_script:
     - docker login -u mgarnier11 -p $DOCKER_HUB_TOKEN
     - docker buildx create --use
@@ -28,6 +28,7 @@
   extends: .docker-template
   stage: publish apps
   script:
+    # Get the version from the package.json file
     - |
       export VERSION=$(cat apps/$PROJECT_NAME/package.json | grep '"version"' | awk -F: '{ print $2 }' | sed 's/[", ]//g')
     - echo "Publishing $PROJECT_NAME version $VERSION"
@@ -40,10 +41,10 @@
   rules:
     - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_MESSAGE !~ /\[skip deps\]/'
       changes:
-        - 'docker/**'
-        - '**/package.json'
-        - '**/.gitlab-ci.yml'
-        - 'pnpm-lock.yaml'
+        - "docker/**"
+        - "**/package.json"
+        - "**/.gitlab-ci.yml"
+        - "pnpm-lock.yaml"
 
 .install-deps-template: &install-deps-template
   extends: .docker-template
@@ -55,8 +56,8 @@
 #endregion
 
 include:
-  - 'apps/**/.gitlab-ci.yml'
-  - 'libs/**/.gitlab-ci.yml'
+  - "apps/**/.gitlab-ci.yml"
+  - "libs/**/.gitlab-ci.yml"
 
 stages:
   - install dependencies
