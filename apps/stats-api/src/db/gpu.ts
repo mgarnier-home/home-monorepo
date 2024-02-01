@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { HwGpu } from 'nodesight-types';
 
 import { Point } from '@influxdata/influxdb-client';
@@ -40,10 +41,8 @@ class DatabaseGpu extends Database<HwGpu.History.Value, HwGpu.Load> {
       }
 
       await writeApi.close();
-
-      console.log(`Logged Gpu load for ${host} at ${timestamp.toISOString()}`);
     } catch (e) {
-      console.error(e);
+      logger.error(`Error GPU load for ${host}`, e);
     }
   }
 

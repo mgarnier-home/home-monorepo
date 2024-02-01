@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { HwCpu, HwGpu, HwNetwork, HwRam } from 'nodesight-types';
 
 import { config } from './utils/config.js';
@@ -19,7 +20,7 @@ const postToStatsApi = async (type: string, body: string) => {
 
     return { code: response.status, text, type };
   } catch (e: any) {
-    console.error(e);
+    logger.error(e);
     return { code: 0, text: e.message, type };
   }
 };
@@ -50,8 +51,6 @@ const sendNetworkToStatsApi = (network: HwNetwork.Load) => {
 
 export const sendToStatsApi = async (data: Current): Promise<boolean> => {
   try {
-    console.log(`Sending data Stats api`);
-
     const responses = await Promise.all([
       sendCpuToStatsApi(data.cpu),
       sendGpuToStatsApi(data.gpu),
@@ -59,11 +58,11 @@ export const sendToStatsApi = async (data: Current): Promise<boolean> => {
       sendNetworkToStatsApi(data.network),
     ]);
 
-    console.log(responses);
+    logger.info(responses);
 
     return responses.every((response) => response.code === 200);
   } catch (e) {
-    console.error(e);
+    logger.error(e);
 
     return false;
   }

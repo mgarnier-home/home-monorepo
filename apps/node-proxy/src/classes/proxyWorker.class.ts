@@ -1,4 +1,5 @@
 import colors from 'colors';
+import { logger } from 'logger';
 import { parentPort, threadId } from 'worker_threads';
 
 import {
@@ -28,9 +29,7 @@ export class ProxyWorker {
   }
 
   public log(...args: any[]) {
-    const color = (colors as any)[colorList[threadId % colorList.length] as string];
-
-    console.log(color(`[${this.hostName}:${threadId}]`), ...args.map((s) => color(s)));
+    logger.info(`[${this.hostName}:${threadId}]`, ...args);
   }
 
   private handleManagerMessage(message: ManagerThreadMessage) {

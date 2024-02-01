@@ -1,5 +1,6 @@
 import { Express, Request, Response } from 'express';
 import { body, ValidationChain } from 'express-validator';
+import { logger } from 'logger';
 
 import { Database } from '../db/database.js';
 import { ApiUtils } from './utils.js';
@@ -24,7 +25,7 @@ const postEndpoint =
   async (req: Request<{}, {}, L>, res: Response<any, ApiUtils.Hostname>) => {
     const { hostname } = res.locals;
 
-    console.log(`Received load for ${hostname}`);
+    logger.info(`Received load for ${hostname}`);
 
     await database.logLoad(hostname.toLowerCase(), req.body);
 

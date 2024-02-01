@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { HwNetwork } from 'nodesight-types';
 
 import { Point } from '@influxdata/influxdb-client';
@@ -30,10 +31,8 @@ class DatabaseNetwork extends Database<HwNetwork.History.Value, HwNetwork.Load> 
       );
 
       await writeApi.close();
-
-      console.log(`Logged network load for ${host} at ${timestamp.toISOString()}`);
     } catch (e) {
-      console.error(e);
+      logger.error(`Error Network load for ${host}`, e);
     }
   }
 

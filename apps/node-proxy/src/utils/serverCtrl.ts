@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { NodeSSH } from 'node-ssh';
 import Ping from 'ping';
 import { Client } from 'ssh2';
@@ -110,10 +111,10 @@ export class ServerControl {
       sshPassword,
       (connection) => {
         return new Promise<string>((resolve, reject) => {
-          console.log(`[${serverIp}] Executing command : ${command}`);
+          logger.info(`[${serverIp}] Executing command : ${command}`);
 
           connection.exec(command, (error, channel) => {
-            console.log(`[${serverIp}] Command executed`, error);
+            logger.info(`[${serverIp}] Command executed`, error);
 
             if (error) {
               return reject(error);
@@ -129,11 +130,11 @@ export class ServerControl {
             channel.on('data', (chunk: any) => {
               data += chunk.toString();
 
-              console.log(`[${serverIp}] Command output : ${chunk.toString()}`);
+              logger.info(`[${serverIp}] Command output : ${chunk.toString()}`);
             });
 
             channel.on('exit', () => {
-              console.log(`[${serverIp}] Command exited`);
+              logger.info(`[${serverIp}] Command exited`);
 
               clearTimeout(to);
               channel.destroy();
@@ -141,7 +142,7 @@ export class ServerControl {
             });
 
             channel.on('close', () => {
-              console.log(`[${serverIp}] Command closed`);
+              logger.info(`[${serverIp}] Command closed`);
 
               clearTimeout(to);
               channel.destroy();

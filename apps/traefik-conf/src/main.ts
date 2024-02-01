@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs';
+import { logger } from 'logger';
 
 import { changeRedirection } from './freeboxApi.js';
 import { config } from './utils/config.js';
@@ -7,6 +8,8 @@ import { AppData, TraefikService } from './utils/interfaces.js';
 import { listFiles, readFiles } from './utils/osUtils.js';
 import { getComposeStacksPaths, getTraefikDynamicConf, getTraefikServices } from './utils/traefikUtils.js';
 import { mergeYamls } from './utils/utils.js';
+
+logger.setAppName('traefik-conf');
 
 const saveData = async (data: AppData) => {
   await fs.promises.writeFile(config.saveDataFile, JSON.stringify(data, null, 4));
@@ -29,17 +32,16 @@ const loadData = async (): Promise<AppData> => {
 const main = async () => {
   let appData = await loadData();
 
-  console.log('appData : ', appData);
+  logger.info('appData : ', appData);
 
   const app = express();
 
   app.use((err: any, req: any, res: any, next: any) => {
-    console.error(err.stack);
+    logger.error(err.stack);
     res.status(500).send('Something broke!');
   });
 
   app.get('/', (req, res) => {
-    console.log('root');
     res.status(200).send('OK');
   });
 
@@ -71,7 +73,7 @@ const main = async () => {
   });
 
   app.get('/proxy-enable/:proxyIndex', async (req, res) => {
-    console.log('proxy-enable');
+    logger.info('proxy-enable');
 
     const proxyIndex = Number(req.params.proxyIndex);
     const proxy = appData.proxies[proxyIndex];
@@ -92,7 +94,7 @@ const main = async () => {
   });
 
   app.get('/proxy-status/:proxyIndex', async (req, res) => {
-    console.log('proxy-status');
+    logger.info('proxy-status');
 
     const proxyIndex = Number(req.params.proxyIndex);
     const proxy = appData.proxies[proxyIndex];
@@ -109,7 +111,7 @@ const main = async () => {
   });
 
   app.listen(config.serverPort, () => {
-    console.log('Server started on port ' + config.serverPort);
+    logger.info('Server started on port ' + config.serverPort);
   });
 };
 

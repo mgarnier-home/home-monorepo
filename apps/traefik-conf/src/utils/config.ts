@@ -7,8 +7,6 @@ import { Config } from './interfaces.js';
 
 dotenv.config();
 
-console.log(process.env);
-
 const configFilePath = process.env.CONFIG_FILE || Path.resolve(__dirname, '../../config.json');
 
 const loadConfigFromFile = (): Config => {

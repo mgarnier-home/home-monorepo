@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { HwRam } from 'nodesight-types';
 
 import { Point } from '@influxdata/influxdb-client';
@@ -28,10 +29,8 @@ class DatabaseRam extends Database<HwRam.History.Value, HwRam.Load> {
       );
 
       await writeApi.close();
-
-      console.log(`Logged RAM load for ${host} at ${timestamp.toISOString()}`);
     } catch (e) {
-      console.error(e);
+      logger.error(`Error RAM load for ${host}`, e);
     }
   }
 

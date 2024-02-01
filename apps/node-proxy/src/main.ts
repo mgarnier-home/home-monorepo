@@ -1,9 +1,12 @@
 import { watch as watchFile } from 'chokidar';
 import Express, { NextFunction, Request, Response } from 'express';
+import { logger } from 'logger';
 
 import { HostServer } from './classes/hostServer.class.js';
 import { configFilePath, loadConfig } from './utils/config.js';
 import { Config } from './utils/interfaces.js';
+
+logger.setAppName('node-proxy');
 
 let config: Config | undefined = undefined;
 
@@ -12,7 +15,7 @@ const apiPort = process.env.API_PORT || 9090;
 let hostServers: HostServer[] = [];
 
 const log = (...args: any[]) => {
-  console.log(`[API]`, ...args);
+  logger.info(`[API]`, ...args);
 };
 
 const reloadConfig = async () => {
@@ -96,7 +99,7 @@ const main = async () => {
   const app = Express();
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    console.error(err.stack);
+    logger.error(err.stack);
 
     res.status(500).send(err.message);
   });
@@ -153,7 +156,7 @@ const main = async () => {
   app.get('/control/:host/autostop', (req, res) => {
     const host = res.locals.host as HostServer;
 
-    console.log('Autostop : ', host.getAutoStop());
+    log('Autostop : ', host.getAutoStop());
 
     if (host.getAutoStop()) {
       host.disableAutoStop();

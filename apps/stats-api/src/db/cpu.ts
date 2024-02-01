@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import { HwCpu } from 'nodesight-types';
 
 import { Point } from '@influxdata/influxdb-client';
@@ -45,10 +46,8 @@ class DatabaseCpu extends Database<HwCpu.History.Value, HwCpu.Load> {
       );
 
       await writeApi.close();
-
-      console.log(`Logged CPU load for ${host} at ${timestamp.toISOString()}`);
     } catch (e) {
-      console.error(e);
+      logger.error(`Error CPU load for ${host}`, e);
     }
   }
 

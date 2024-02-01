@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import { body } from 'express-validator';
+import { logger } from 'logger';
 
 import { setupApiRoutes } from './api/setupApi.js';
 import { ApiUtils } from './api/utils.js';
@@ -9,6 +10,7 @@ import { databaseNetwork } from './db/network.js';
 import { databaseRam } from './db/ram.js';
 import { config } from './utils/config.js';
 
+logger.setAppName('stats-api');
 const app = express();
 
 app.use(express.json());
@@ -17,7 +19,7 @@ app.use((req, res, next) => {
   next();
 });
 app.use((err: any, req: Request, res: Response, next: any) => {
-  console.error(err.stack);
+  logger.error(err.stack);
   res.status(500).send('Something broke!');
 });
 
@@ -75,5 +77,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(config.serverPort, () => {
-  console.log(`Server listening on port ${config.serverPort}`);
+  logger.info(`Server listening on port ${config.serverPort}`);
 });

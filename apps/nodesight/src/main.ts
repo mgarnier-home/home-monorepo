@@ -1,4 +1,5 @@
 import express from 'express';
+import { logger } from 'logger';
 
 import { Cpu } from './hwInfo/cpu.js';
 import { Gpu } from './hwInfo/gpu.js';
@@ -9,6 +10,8 @@ import { Storage } from './hwInfo/storage.js';
 import { sendToStatsApi } from './statsApi.js';
 import { config } from './utils/config.js';
 import { Current } from './utils/interfaces.js';
+
+logger.setAppName('nodesight');
 
 const app = express();
 
@@ -76,5 +79,5 @@ app.get('/all', async (req, res) => {
 });
 
 app.listen(config.serverPort, () => {
-  console.log(`Server listening on port ${config.serverPort}`);
+  logger.info(`Server listening on port ${config.serverPort}`);
 });

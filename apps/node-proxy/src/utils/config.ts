@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 //the config is coming from a file name config.json
 import Fs from 'node:fs';
 import Path from 'node:path';
@@ -17,7 +18,7 @@ const loadConfig = (): Config | undefined => {
 
     return JSON.parse(config) as Config;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
 
     return undefined;
   }
@@ -29,7 +30,7 @@ const saveConfig = (config: Config): boolean => {
 
     return true;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
 
     return false;
   }

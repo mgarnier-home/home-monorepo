@@ -1,5 +1,7 @@
+import { logger } from 'logger';
+
 import { ProxyWorker } from '../classes/proxyWorker.class.js';
 
 const proxyWorker = new ProxyWorker();
 
-console.log('Proxy worker started');
+logger.info('Proxy worker started');

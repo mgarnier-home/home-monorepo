@@ -1,3 +1,4 @@
+import { logger } from 'logger';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { Worker } from 'worker_threads';
@@ -44,7 +45,7 @@ export class HostServer {
   }
 
   private log(...args: any[]) {
-    console.log(`[${this.config.name}]`, ...args);
+    logger.info(`[${this.config.name}]`, ...args);
   }
 
   private async setupHost() {
