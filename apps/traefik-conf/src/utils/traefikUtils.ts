@@ -44,12 +44,13 @@ export const getTraefikServices = (stackInfos: StackInfos, yaml: string): Traefi
   for (const serviceName in yamlObj.services) {
     const service = yamlObj.services[serviceName];
     const traefikPorts: string[] = (service.annotations?.['traefik-ports'] || '').split(',');
+    const serviceNameOverride = service.annotations?.['traefik-name'];
 
     if (traefikPorts.length > 0 && traefikPorts[0] !== '') {
       for (const port of traefikPorts) {
         services.push({
           host: stackInfos.host,
-          serviceName,
+          serviceName: serviceNameOverride || serviceName,
           stackName: stackInfos.stack,
           portVariable: port.trim(),
         });
