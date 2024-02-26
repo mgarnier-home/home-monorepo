@@ -8,8 +8,8 @@ const main = async () => {
     bundle: true,
     outdir: 'dist',
     logLevel: 'info',
-    format: 'esm',
     platform: 'node',
+    tsconfig: 'tsconfig.json',
   };
 
   console.log('Args are :', args);

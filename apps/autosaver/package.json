@@ -1,10 +1,17 @@
 {
   "private": true,
   "name": "autosaver",
-  "type": "module",
   "scripts": {
+    "patch-version": "npm version patch",
+    "build": "npm run lint && npm run esbuild -- build",
+    "dev": "tsx watch --tsconfig tsconfig.json --clear-screen=false src/main.ts ",
+    "esbuild": "tsx scripts/server.ts",
+    "lint": "tsc --project tsconfig.json --noEmit",
+    "start": "npm run build && node dist/main.js"
+  },
+  "scripts-old": {
     "build": "shx rm -rf dist/ && tsc",
-    "start": "npm run build && node dist/main.js",
+    "start": "nx run build && node dist/main.js",
     "patch-version": "npm version patch"
   },
   "devDependencies": {
@@ -33,7 +40,8 @@
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.3",
     "ntfy-utils": "workspace:*",
-    "utils": "workspace:*"
+    "utils": "workspace:*",
+    "yaml": "^2.4.0"
   },
   "version": "1.0.11"
 }
