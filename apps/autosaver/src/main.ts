@@ -113,6 +113,7 @@ const run = async () => {
     } else {
       logger.info('BackupDest is not a cifs directory');
     }
+
     logger.info('BackupDestPath : ', backupDestPath);
 
     for (const directory of directoriesToBackup) {
