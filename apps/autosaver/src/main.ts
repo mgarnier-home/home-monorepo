@@ -30,6 +30,7 @@ const getMountPath = (cifsDirectory: CifsDirectory) =>
 const run = async () => {
   if (isExecuting) {
     logger.info('Autosaver already running');
+
     return;
   }
 
