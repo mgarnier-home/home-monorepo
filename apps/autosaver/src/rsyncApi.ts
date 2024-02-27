@@ -2,8 +2,8 @@ import { spawn } from 'child_process';
 import fs from 'fs';
 import { logger } from 'logger';
 
-export class RsyncApi {
-  static async rsyncFolder(source: string, destination: string) {
+export namespace RsyncApi {
+  export const rsyncFolder = async (source: string, destination: string) => {
     let firstTime = false;
 
     if (!fs.existsSync(destination)) {
@@ -11,6 +11,9 @@ export class RsyncApi {
 
       firstTime = true;
     }
+
+    logger.info(`Rsync ${source} to ${destination}`);
+    logger.debug(`running command: rsync -a --info=progress2 --inplace --no-i-r --delete ${source} ${destination}`);
 
     return new Promise<void>((resolve, reject) => {
       const rsyncSpawn = spawn(
@@ -21,13 +24,12 @@ export class RsyncApi {
 
       logger.info(`Rsync ${source} to ${destination}`);
 
-      const dataRegex = /\s*(\d+(?:,\d{3})*)\s+(\d+)%\s+([\d.]+[KMGTPEZY]B\/s)/;
       let lastPercent = 0;
 
       rsyncSpawn.stdout.on('data', (data: Buffer) => {
         const dataString = data.toString();
 
-        const matches = dataString.match(dataRegex);
+        const matches = dataString.match(/\s*(\d+(?:,\d{3})*)\s+(\d+)%\s+([\d.]+[KMGTPEZY]B\/s)/);
 
         if (matches) {
           const [, transferred, percent, speed] = matches as [string, string, string, string];
@@ -42,19 +44,23 @@ export class RsyncApi {
         }
       });
 
-      rsyncSpawn.stderr.on('data', (data) => {
-        logger.error(`rsync stderr: ${data}`);
+      const errorBuffers: Buffer[] = [];
+
+      rsyncSpawn.stderr.on('data', (data: Buffer) => {
+        errorBuffers.push(data);
       });
 
-      rsyncSpawn.on('close', (code) => {
-        logger.info(`rsync process exited with code ${code}`);
+      rsyncSpawn.on('close', (code, signal) => {
+        logger.debug(`rsync process exited with code ${code}, signal ${signal}`);
 
         if (code !== 0) {
-          reject(new Error(`rsync process exited with code ${code}`));
+          const error = Buffer.concat(errorBuffers).toString();
+
+          reject({ message: `rsync process exited with code ${code}`, code, error });
         } else {
           resolve();
         }
       });
     });
-  }
+  };
 }

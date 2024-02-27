@@ -1,8 +1,8 @@
 import { NtfyUtils } from 'ntfy-utils';
 
-import { FolderToBackup } from './interfaces';
+import { DirectoryToBackup } from './types';
 
-export const sendBackupRecap = async (folders: FolderToBackup[]) => {
+export const sendBackupRecap = async (folders: DirectoryToBackup[]) => {
   const success = folders.every((f) => f.success);
   const failure = folders.every((f) => !f.success);
 
@@ -23,7 +23,7 @@ export const sendBackupRecap = async (folders: FolderToBackup[]) => {
   const message = success
     ? `Backup done
     
-    ${recaptable}`
+${recaptable}`
     : failure
     ? `Backup failed`
     : `Backup partially failed

@@ -1,134 +1,191 @@
-import archiver from 'archiver';
 import express from 'express';
 import fs from 'fs';
 import { Color, logger } from 'logger';
 import cron from 'node-cron';
 import path from 'path';
 
-import { getArchiveApi } from './archive/index.js';
-import { MailApi } from './mail/mailApi.js';
-import { RsyncApi } from './rsync/rsyncApi.js';
-import { SmbApi } from './smb/smbApi.js';
-import { getUploadApi } from './upload/index.js';
-import { config } from './utils/config.js';
-import { FolderToBackup } from './utils/interfaces.js';
-import { sendBackupRecap, sendError } from './utils/ntfy.js';
-import { OsUtils } from './utils/osUtils.js';
-import { Utils } from './utils/utils.js';
-
-if (!process.env.TZ) {
-  process.env.TZ = 'Europe/Paris';
-}
+import { ArchiveApi } from './archiveApi';
+import { CifsApi } from './cifsApi';
+import { MailApi } from './mailApi';
+import { RsyncApi } from './rsyncApi';
+import { SaveApi } from './saveApi';
+import { config } from './utils/config';
+import { sendBackupRecap } from './utils/ntfy';
+import { OsUtils } from './utils/osUtils';
+import { CifsDirectory, DirectoryToBackup, DirectoryType } from './utils/types';
 
 logger.setAppName('autosaver');
 
-logger.debug(process.env);
-logger.debug(config);
+const { backupConfig } = config;
 
 let lastExecutionSuccess = false;
 let isExecuting = false;
 
-const { uploadApi, uploadDestFolder } = getUploadApi(config.uploadStrategy, config.uploadDestFolder);
-const archiveApi = getArchiveApi(config.archiveStrategy);
-const backupsFolder = config.folderToBackup;
-const rsyncDestFolderRoot = config.rsyncDestFolder;
-
-let foldersToBackup: FolderToBackup[] = [];
+const getMountPath = (cifsDirectory: CifsDirectory) =>
+  cifsDirectory.mountPath.startsWith('/')
+    ? cifsDirectory.mountPath
+    : `${backupConfig.backupPath}/${cifsDirectory.mountPath}`;
 
 const run = async () => {
-  if (!isExecuting) {
-    logger.info('Starting backup script');
-    isExecuting = true;
+  if (isExecuting) {
+    logger.info('Autosaver already running');
+    return;
+  }
 
-    try {
-      await SmbApi.mountSmbFolders(config.smbConfig);
-
-      foldersToBackup = fs
-        .readdirSync(backupsFolder)
-        .filter((f) => fs.lstatSync(path.join(backupsFolder, f)).isDirectory())
-        .map((f) => ({ name: f, path: path.join(backupsFolder, f) }));
-
-      logger.info('Folders to backup : ', foldersToBackup);
-
-      if (config.enableRsync) {
-        for (const folderToBackup of foldersToBackup) {
-          const folderToBackupPath = path.join(backupsFolder, folderToBackup.name);
-
-          logger.info(`Rsyncing folder ${folderToBackupPath} to ${rsyncDestFolderRoot}`);
-
-          await RsyncApi.rsyncFolder(folderToBackupPath, rsyncDestFolderRoot);
-
-          folderToBackup.path = path.join(rsyncDestFolderRoot, folderToBackup.name);
-
-          logger.info(`Rsync of the folder ${folderToBackup.name} done`);
-        }
-      }
-
-      for (const folderToBackup of foldersToBackup) {
-        try {
-          const archivePassword = Utils.generatePassword();
-
-          const { nbFilesArchived, archiveSize, archivePath } = await archiveApi.archiveFolder(
-            folderToBackup.path,
-            archivePassword
-          );
-
-          const uploadedFile = await uploadApi.uploadFile(archivePath, uploadDestFolder);
-
-          const filePassword = await uploadApi.protectFile(uploadedFile);
-
-          await MailApi.sendFileInfos(filePassword, archivePassword, uploadedFile, `${folderToBackup.name}.zip`);
-
-          await OsUtils.rmFiles([archivePath]);
-
-          logger.colored.info(Color.GREEN, `Backup of the folder ${folderToBackup.name} done`);
-
-          folderToBackup.success = true;
-          folderToBackup.filesNb = nbFilesArchived;
-          folderToBackup.size = archiveSize;
-        } catch (err) {
-          logger.error(err);
-
-          await MailApi.sendError(`An error happened during the backup of the file ${folderToBackup}.zip : ${err}`);
-
-          folderToBackup.success = false;
-        }
-      }
-
-      await uploadApi.cleanOldFolders(config.uploadDestFolder);
-
-      sendBackupRecap(foldersToBackup);
-
-      lastExecutionSuccess = foldersToBackup.filter((f) => !f.success).length === 0;
-    } catch (err) {
-      logger.error(err);
-
-      await MailApi.sendError(`An error happened reading the folders to backup : ${err}`);
-
-      sendError(err);
-
-      lastExecutionSuccess = false;
-    } finally {
-      logger.info('Backup script finished');
-
-      Utils.printRecapTable(foldersToBackup);
-
-      await SmbApi.unmountSmbFolders(config.smbConfig);
-
-      isExecuting = false;
-
-      foldersToBackup = [];
+  logger.info('Backup script started');
+  isExecuting = true;
+  try {
+    logger.info('Step 1');
+    if (backupConfig.rsync && backupConfig.rsync.type === DirectoryType.cifs) {
+      logger.info('Mounting rsync');
+      await CifsApi.mountCifsFolder(
+        backupConfig.rsync.ip,
+        backupConfig.rsync.user,
+        backupConfig.rsync.password,
+        backupConfig.rsync.hostPath,
+        backupConfig.rsync.mountPath,
+        backupConfig.rsync.port
+      );
+    } else {
+      logger.info('Rsync is not a cifs directory');
     }
-  } else {
-    logger.warn('Backup script already running');
+
+    logger.info('Step 2');
+    if (backupConfig.cifsDirectories && backupConfig.cifsDirectories.length > 0) {
+      logger.info('Mounting cifsDirectories');
+      for (const cifsDirectory of backupConfig.cifsDirectories) {
+        await CifsApi.mountCifsFolder(
+          cifsDirectory.ip,
+          cifsDirectory.user,
+          cifsDirectory.password,
+          cifsDirectory.hostPath,
+          getMountPath(cifsDirectory),
+          cifsDirectory.port
+        );
+      }
+    } else {
+      logger.info('No cifsDirectories to mount');
+    }
+
+    logger.info('Step 3');
+
+    let rsyncPath = null;
+
+    if (backupConfig.rsync) {
+      logger.info('Running rsync');
+
+      rsyncPath =
+        backupConfig.rsync.type === DirectoryType.local ? backupConfig.rsync.path : backupConfig.rsync.mountPath;
+
+      await RsyncApi.rsyncFolder(backupConfig.backupPath, rsyncPath);
+    } else {
+      logger.info('Rsync is not enabled');
+    }
+    logger.info('RsycPath : ', rsyncPath);
+
+    logger.info('Step 4');
+    const backupPath = rsyncPath ? path.join(rsyncPath, 'backup') : backupConfig.backupPath;
+    logger.info('BackupPath : ', backupPath);
+
+    const directoriesToBackup: DirectoryToBackup[] = fs
+      .readdirSync(backupPath)
+      .filter((file) => fs.lstatSync(path.join(backupPath, file)).isDirectory())
+      .map((directory) => ({ name: directory, path: path.join(backupPath, directory) }));
+
+    logger.info('Folders to backup : ', directoriesToBackup);
+
+    logger.info('Step 5');
+    const backupDestPath =
+      backupConfig.backupDest.type === DirectoryType.local
+        ? backupConfig.backupDest.path
+        : backupConfig.backupDest.mountPath;
+    if (backupConfig.backupDest.type === DirectoryType.cifs) {
+      logger.info('Mounting backupDest');
+      await CifsApi.mountCifsFolder(
+        backupConfig.backupDest.ip,
+        backupConfig.backupDest.user,
+        backupConfig.backupDest.password,
+        backupConfig.backupDest.hostPath,
+        backupConfig.backupDest.mountPath,
+        backupConfig.backupDest.port
+      );
+    } else {
+      logger.info('BackupDest is not a cifs directory');
+    }
+    logger.info('BackupDestPath : ', backupDestPath);
+
+    for (const directory of directoriesToBackup) {
+      logger.info('Step 6');
+
+      const archivePassword = 'password';
+
+      logger.info(`Archiving ${directory.path}`);
+      const { nbFilesArchived, archiveSize, archivePath } = await ArchiveApi.archiveFolder(
+        directory.path,
+        archivePassword
+      );
+
+      logger.info(`Archived ${nbFilesArchived} files (${archiveSize} bytes) to ${archivePath}`);
+
+      logger.info('Step 7');
+
+      await SaveApi.cpFile(archivePath, backupDestPath);
+
+      await OsUtils.rmFiles([archivePath]);
+
+      await MailApi.sendFileInfos(archivePassword, archivePath, `${directory.name}`);
+
+      logger.colored.info(Color.GREEN, `Backup of the directory ${directory.name} done`);
+
+      directory.success = true;
+      directory.filesNb = nbFilesArchived;
+      directory.size = archiveSize;
+    }
+
+    logger.info('Step 8');
+    await SaveApi.cleanOldDirectories(backupDestPath);
+
+    logger.info('Step 9');
+    sendBackupRecap(directoriesToBackup);
+    lastExecutionSuccess = directoriesToBackup.filter((f) => !f.success).length === 0;
+
+    logger.info('Step 10');
+    if (backupConfig.backupDest.type === DirectoryType.cifs) {
+      logger.info('Unmounting backupDest');
+      await CifsApi.unmountSmbFolder(backupConfig.backupDest.mountPath);
+    } else {
+      logger.info('BackupDest is not a cifs directory');
+    }
+
+    logger.info('Step 11');
+    if (backupConfig.cifsDirectories && backupConfig.cifsDirectories.length > 0) {
+      logger.info('Unmounting cifsDirectories');
+      for (const cifsDirectory of backupConfig.cifsDirectories) {
+        await CifsApi.unmountSmbFolder(getMountPath(cifsDirectory));
+      }
+    } else {
+      logger.info('No cifsDirectories to unmount');
+    }
+
+    logger.info('Step 12');
+    if (backupConfig.rsync && backupConfig.rsync.type === DirectoryType.cifs) {
+      logger.info('Unmounting rsync');
+      await CifsApi.unmountSmbFolder(backupConfig.rsync.mountPath);
+    } else {
+      logger.info('Rsync is not a cifs directory');
+    }
+
+    logger.info('Backup script finished');
+  } catch (error) {
+    logger.error('Error running autosaver');
+    logger.error(error);
   }
 };
 
-cron.schedule(config.cronSchedule, run);
+cron.schedule(config.backupConfig.cronSchedule, run);
 
-logger.info('Script scheduled with the following cron schedule : ', config.cronSchedule);
+logger.info('Script scheduled with the following cron schedule : ', config.backupConfig.cronSchedule);
 
-//start an express server
 const app = express();
 
 app.get('/', (req, res) => {

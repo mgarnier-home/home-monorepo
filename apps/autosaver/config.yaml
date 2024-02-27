@@ -1,0 +1,26 @@
+default-cifs: &default-cifs
+  type: cifs
+  user: mgarnier
+  password: password
+  ip: 127.0.0.1
+  port: 4201
+
+config:
+  cronSchedule: 15 4 * * *
+  backupPath: /test/backup
+  backupDest:
+    type: local
+    path: /test/dest-backup
+    # hostPath: /share/dest
+    # mountPath: /test/patate
+    # <<: *default-cifs
+  cifsDirectories:
+    - hostPath: /share/home
+      mountPath: test-2
+      <<: *default-cifs
+  # rsync:
+  #   # hostPath: /share/rsync
+  #   # mountPath: /test/rsync
+  #   # <<: *default-cifs
+  #   type: local
+  #   path: /test/rsync
