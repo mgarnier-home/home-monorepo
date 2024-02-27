@@ -5,8 +5,7 @@ export enum DirectoryType {
 
 export type LocalDirectory = {
   type: DirectoryType.local;
-  srcPath: string;
-  destPath: string;
+  path: string;
 };
 
 export type CifsDirectory = {
@@ -22,17 +21,19 @@ export type CifsDirectory = {
 export type Directory = LocalDirectory | CifsDirectory;
 
 export type BackupConfig = {
-  directories: Directory[];
+  backupPath: string;
+  backupDest: Directory;
+  cifsDirectories: CifsDirectory[] | undefined;
   rsync: Directory | undefined;
   mail:
     | {
-        mailHost: string;
-        mailPort: number;
-        mailSecure: boolean;
-        infoMailTo: string;
-        errorMailTo: string;
-        mailLogin: string;
-        mailPassword: string;
+        host: string;
+        port: number;
+        secure: boolean;
+        infoTo: string;
+        errorTo: string;
+        login: string;
+        password: string;
       }
     | undefined;
   cronSchedule: string;
@@ -42,4 +43,12 @@ export type BackupConfig = {
 export type Config = {
   serverPort: number;
   backupConfig: BackupConfig;
+};
+
+export type DirectoryToBackup = {
+  name: string;
+  path: string;
+  success?: boolean;
+  filesNb?: number;
+  size?: number;
 };

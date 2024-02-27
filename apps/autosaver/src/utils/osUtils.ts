@@ -3,15 +3,8 @@ import fs from 'fs';
 import { logger } from 'logger';
 import path from 'path';
 
-import { config } from './config.js';
-
-export class OsUtils {
-  static async rmFiles(filePaths: string[]) {
-    if (config.deleteFiles === false) {
-      logger.info('not deleting files : ', filePaths);
-      return;
-    }
-
+export namespace OsUtils {
+  export const rmFiles = async (filePaths: string[]) => {
     try {
       for (const path of filePaths) {
         await fs.promises.unlink(path);
@@ -21,12 +14,12 @@ export class OsUtils {
     } catch (error) {
       logger.error(`Error while deleting [${filePaths.join(', ')}] : `, error);
     }
-  }
+  };
 
-  static async getFilesInFolder(
+  export const getFilesInFolder = async (
     folderPath: string,
     foldersToIgnore: string[] = []
-  ): Promise<{ path: string; stat: fs.Stats }[]> {
+  ): Promise<{ path: string; stat: fs.Stats }[]> => {
     const files: { path: string; stat: fs.Stats }[] = [];
 
     const filesInFolder = await fs.promises.readdir(folderPath);
@@ -52,9 +45,9 @@ export class OsUtils {
     }
 
     return files;
-  }
+  };
 
-  static async osCountFiles(dir: string) {
+  export const osCountFiles = (dir: string) => {
     return new Promise<number>((resolve, reject) => {
       exec(`find "${dir}" -type f | wc -l`, (error, stdout, stderr) => {
         if (error) {
@@ -67,11 +60,11 @@ export class OsUtils {
         resolve(filesNb);
       });
     });
-  }
+  };
 
-  static async countFiles(dir: string) {
+  export const countFiles = async (dir: string) => {
     const files = await OsUtils.getFilesInFolder(dir);
 
     return files.length;
-  }
+  };
 }

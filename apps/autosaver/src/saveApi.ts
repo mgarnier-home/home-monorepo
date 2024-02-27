@@ -4,10 +4,8 @@ import { logger } from 'logger';
 import path from 'path';
 import { Utils } from 'utils';
 
-import { UploadApi } from './uploadApi.js';
-
-export class UploadApiCp implements UploadApi {
-  async cleanOldFolders(backupFolder: string): Promise<void> {
+export namespace SaveApi {
+  export const cleanOldDirectories = async (backupFolder: string): Promise<void> => {
     const folderList = (await fs.promises.readdir(backupFolder)).filter((f) =>
       fs.lstatSync(path.join(backupFolder, f)).isDirectory()
     );
@@ -27,13 +25,9 @@ export class UploadApiCp implements UploadApi {
 
       logger.info(`Folder ${folderToDelete} deleted`);
     }
-  }
+  };
 
-  async protectFile(fileLocation: string): Promise<string> {
-    return 'can not protect file with cp';
-  }
-
-  async uploadFile(filePath: string, destFolder: string): Promise<string> {
+  export const cpFile = async (filePath: string, destFolder: string): Promise<string> => {
     const archiveFileName = path.basename(filePath);
 
     const date = new Date();
@@ -59,16 +53,20 @@ export class UploadApiCp implements UploadApi {
 
     let intPercentage = 0;
 
+    logger.info(`Copying ${filePath} to ${destFilePath}`);
+
     await cpy(filePath, folderPath).on('progress', (progress) => {
       const actualPercentage = Math.floor((progress.completedSize / fileSize) * 100);
       const actualMb = Math.floor(progress.completedSize / 1024 / 1024);
 
       if (actualPercentage > intPercentage) {
         intPercentage = actualPercentage;
-        logger.info(`copying file : ${actualMb}Mb / ${totalMb}Mb (${actualPercentage}%)`);
+        logger.info(`Copying file : ${actualMb}Mb / ${totalMb}Mb (${actualPercentage}%)`);
       }
     });
 
+    logger.info(`File copied to ${destFilePath}`);
+
     return destFilePath;
-  }
+  };
 }

@@ -76,31 +76,31 @@ class Logger implements ILogger {
   }
 
   info(...args: any[]) {
-    if (this.logLevel <= LogLevel.INFO) {
+    if (this.logLevel >= LogLevel.INFO) {
       this.log(Logger.getColor(Color.DEFAULT, args[0]), LogLevel.INFO, ...args);
     }
   }
 
   debug(...args: any[]) {
-    if (this.logLevel <= LogLevel.DEBUG) {
+    if (this.logLevel >= LogLevel.DEBUG) {
       this.log(Logger.getColor(Color.BLUE, args[0]), LogLevel.DEBUG, ...args);
     }
   }
 
   warn(...args: any[]) {
-    if (this.logLevel <= LogLevel.WARN) {
+    if (this.logLevel >= LogLevel.WARN) {
       this.log(Logger.getColor(Color.YELLOW, args[0]), LogLevel.WARN, ...args);
     }
   }
 
   error(...args: any[]) {
-    if (this.logLevel <= LogLevel.ERROR) {
+    if (this.logLevel >= LogLevel.ERROR) {
       this.errorLog(Logger.getColor(Color.RED, args[0]), LogLevel.ERROR, ...args);
     }
   }
 
   verbose(...args: any[]) {
-    if (this.logLevel <= LogLevel.VERBOSE) {
+    if (this.logLevel >= LogLevel.VERBOSE) {
       this.log(Logger.getColor(Color.GRAY, args[0]), LogLevel.VERBOSE, ...args);
     }
   }
