@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs';
+import generator from 'generate-password';
 import { Color, logger } from 'logger';
 import cron from 'node-cron';
 import path from 'path';
@@ -117,7 +118,7 @@ const run = async () => {
     for (const directory of directoriesToBackup) {
       logger.info('Step 6');
 
-      const archivePassword = 'password';
+      const archivePassword = generator.generate({ length: 12, numbers: true });
 
       logger.info(`Archiving ${directory.path}`);
       const { nbFilesArchived, archiveSize, archivePath } = await ArchiveApi.archiveFolder(

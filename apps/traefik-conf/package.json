@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "home-monorepo",
+  "name": "traefik-conf",
   "scripts": {
     "patch-version": "npm version patch",
     "esbuild": "tsx scripts/build.ts",
