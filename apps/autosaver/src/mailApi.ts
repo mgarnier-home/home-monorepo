@@ -1,50 +1,54 @@
 import { logger } from 'logger';
 import nodemailer from 'nodemailer';
 
-import { config } from './utils/config';
+import { BackupConfig } from './utils/types';
 
-export namespace MailApi {
-  const getTransporter = () =>
-    nodemailer.createTransport({
-      host: config.backupConfig.mail?.host,
-      port: config.backupConfig.mail?.port,
-      secure: config.backupConfig.mail?.secure,
-      auth: {
-        user: config.backupConfig.mail?.login,
-        pass: config.backupConfig.mail?.password,
-      },
-    });
-
-  const sendMail = async (subject: string, text: string, to?: string) => {
-    try {
-      if (!config.backupConfig.mail) throw new Error('Mail is not enabled');
-
-      const transporter = getTransporter();
-
-      const response = await transporter.sendMail({
-        from: config.backupConfig.mail.login,
-        to,
-        subject,
-        text,
+export const mailApi = {
+  withBackupConfig: (backupConfig: BackupConfig) => {
+    const getTransporter = () =>
+      nodemailer.createTransport({
+        host: backupConfig.mail?.host,
+        port: backupConfig.mail?.port,
+        secure: backupConfig.mail?.secure,
+        auth: {
+          user: backupConfig.mail?.login,
+          pass: backupConfig.mail?.password,
+        },
       });
 
-      transporter.close();
+    const sendMail = async (subject: string, text: string, to?: string) => {
+      try {
+        if (!backupConfig.mail) throw new Error('Mail is not enabled');
 
-      return response;
-    } catch (error) {
-      logger.error('Cannot send mail : ', error);
-    }
-  };
+        const transporter = getTransporter();
 
-  export const sendFileInfos = async (archivePassword: string, fileUrl: string, fileName: string) => {
-    return await sendMail(
-      `Infos for : ${fileName}`,
-      `Archive password : ${archivePassword}\nUrl : ${fileUrl}`,
-      config.backupConfig.mail?.infoTo
-    );
-  };
+        const response = await transporter.sendMail({
+          from: backupConfig.mail.login,
+          to,
+          subject,
+          text,
+        });
 
-  export const sendError = async (error: string) => {
-    return await sendMail(`MySaveCLI Error`, error, config.backupConfig.mail?.errorTo);
-  };
-}
+        transporter.close();
+
+        return response;
+      } catch (error) {
+        logger.error('Cannot send mail : ', error);
+      }
+    };
+
+    return {
+      sendFileInfos: async (archivePassword: string, fileUrl: string, fileName: string) => {
+        return await sendMail(
+          `Infos for : ${fileName}`,
+          `Archive password : ${archivePassword}\nUrl : ${fileUrl}`,
+          backupConfig.mail?.infoTo
+        );
+      },
+
+      sendError: async (error: string) => {
+        return await sendMail(`MySaveCLI Error`, error, backupConfig.mail?.errorTo);
+      },
+    };
+  },
+};

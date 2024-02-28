@@ -1,9 +1,8 @@
 import dotenv from 'dotenv';
 import Fs from 'node:fs';
 import Path from 'node:path';
-import { parse as ymlParse } from 'yaml';
 
-import { BackupConfig, Config } from './types';
+import { Config } from './types';
 
 dotenv.config();
 
@@ -20,12 +19,11 @@ const loadConfigFromEnv = (): Config => {
   const fullBackupConfigPath = backupConfigPath.startsWith('/')
     ? backupConfigPath
     : Path.join(__dirname, '../../', backupConfigPath);
-  const backupConfigYml = Fs.readFileSync(fullBackupConfigPath, 'utf-8');
-  const backupConfigJson: BackupConfig = ymlParse(backupConfigYml, { merge: true }).config as BackupConfig;
 
   const config: Config = {
     serverPort: Number(process.env.SERVER_PORT) || 3000,
-    backupConfig: backupConfigJson,
+    backupConfigPath: fullBackupConfigPath,
+    cronSchedule: process.env.CRON_SCHEDULE || '0 0 * * *',
   };
 
   return config;

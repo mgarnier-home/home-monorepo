@@ -4,28 +4,22 @@ import generator from 'generate-password';
 import { Color, logger } from 'logger';
 import cron from 'node-cron';
 import path from 'path';
+import { parse as ymlParse } from 'yaml';
 
 import { ArchiveApi } from './archiveApi';
 import { CifsApi } from './cifsApi';
-import { MailApi } from './mailApi';
+import { mailApi } from './mailApi';
 import { RsyncApi } from './rsyncApi';
 import { SaveApi } from './saveApi';
 import { config } from './utils/config';
 import { sendBackupRecap, sendError } from './utils/ntfy';
 import { OsUtils } from './utils/osUtils';
-import { CifsDirectory, DirectoryToBackup, DirectoryType } from './utils/types';
+import { BackupConfig, CifsDirectory, DirectoryToBackup, DirectoryType } from './utils/types';
 
 logger.setAppName('autosaver');
 
-const { backupConfig } = config;
-
 let lastExecutionSuccess = false;
 let isExecuting = false;
-
-const getMountPath = (cifsDirectory: CifsDirectory) =>
-  cifsDirectory.mountPath.startsWith('/')
-    ? cifsDirectory.mountPath
-    : `${backupConfig.backupPath}/${cifsDirectory.mountPath}`;
 
 const run = async () => {
   if (isExecuting) {
@@ -33,6 +27,16 @@ const run = async () => {
 
     return;
   }
+
+  const backupConfigYml = fs.readFileSync(config.backupConfigPath, 'utf-8');
+  const backupConfig: BackupConfig = ymlParse(backupConfigYml, { merge: true }).config as BackupConfig;
+
+  logger.info('BackupConfig : ', backupConfig);
+
+  const getMountPath = (cifsDirectory: CifsDirectory) =>
+    cifsDirectory.mountPath.startsWith('/')
+      ? cifsDirectory.mountPath
+      : `${backupConfig.backupPath}/${cifsDirectory.mountPath}`;
 
   logger.info('Backup script started');
   isExecuting = true;
@@ -139,7 +143,7 @@ const run = async () => {
 
         await OsUtils.rmFiles([archivePath]);
 
-        await MailApi.sendFileInfos(archivePassword, archivePath, `${directory.name}`);
+        await mailApi.withBackupConfig(backupConfig).sendFileInfos(archivePassword, archivePath, `${directory.name}`);
 
         logger.colored.info(Color.GREEN, `Backup of the directory ${directory.name} done`);
 
@@ -191,7 +195,9 @@ const run = async () => {
     logger.error('Error running autosaver');
     logger.error(error);
 
-    MailApi.sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
+    mailApi
+      .withBackupConfig(backupConfig)
+      .sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
     sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
 
     lastExecutionSuccess = false;
@@ -199,9 +205,9 @@ const run = async () => {
   isExecuting = false;
 };
 
-cron.schedule(config.backupConfig.cronSchedule, run);
+cron.schedule(config.cronSchedule, run);
 
-logger.info('Script scheduled with the following cron schedule : ', config.backupConfig.cronSchedule);
+logger.info('Script scheduled with the following cron schedule : ', config.cronSchedule);
 
 const app = express();
 

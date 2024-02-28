@@ -36,13 +36,13 @@ export type BackupConfig = {
         password: string;
       }
     | undefined;
-  cronSchedule: string;
   deleteFiles: boolean;
 };
 
 export type Config = {
   serverPort: number;
-  backupConfig: BackupConfig;
+  backupConfigPath: string;
+  cronSchedule: string;
 };
 
 export type DirectoryToBackup = {
