@@ -114,7 +114,7 @@ const run = async () => {
 
           await RsyncApi.rsyncFolder(directory.path, rsyncPath);
 
-          directory.path = rsyncPath;
+          directory.path = path.join(rsyncPath, directory.name);
         } else {
           logger.info('Rsync is not enabled');
         }
