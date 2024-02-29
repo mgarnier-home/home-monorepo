@@ -41,7 +41,7 @@ const run = async () => {
   logger.info('Backup script started');
   isExecuting = true;
   try {
-    logger.info('Step 1');
+    logger.info('Step 1 => Mounting rsync');
     if (backupConfig.rsync && backupConfig.rsync.type === DirectoryType.cifs) {
       logger.info('Mounting rsync');
       await CifsApi.mountCifsFolder(
@@ -56,7 +56,7 @@ const run = async () => {
       logger.info('Rsync is not a cifs directory');
     }
 
-    logger.info('Step 2');
+    logger.info('Step 2 => Mounting cifsDirectories');
     if (backupConfig.cifsDirectories && backupConfig.cifsDirectories.length > 0) {
       logger.info('Mounting cifsDirectories');
       for (const cifsDirectory of backupConfig.cifsDirectories) {
@@ -73,36 +73,15 @@ const run = async () => {
       logger.info('No cifsDirectories to mount');
     }
 
-    logger.info('Step 3');
-
-    let rsyncPath = null;
-
-    if (backupConfig.rsync) {
-      logger.info('Running rsync');
-
-      rsyncPath =
-        backupConfig.rsync.type === DirectoryType.local ? backupConfig.rsync.path : backupConfig.rsync.mountPath;
-
-      await RsyncApi.rsyncFolder(backupConfig.backupPath, rsyncPath);
-    } else {
-      logger.info('Rsync is not enabled');
-    }
-    logger.info('RsyncPath : ', rsyncPath);
-
-    logger.info('Step 4');
-    const backupPath = rsyncPath
-      ? path.join(rsyncPath, path.basename(backupConfig.backupPath))
-      : backupConfig.backupPath;
-    logger.info('BackupPath : ', backupPath);
-
+    logger.info('Step 3 => Listing directories to backup');
     const directoriesToBackup: DirectoryToBackup[] = fs
-      .readdirSync(backupPath)
-      .filter((file) => fs.lstatSync(path.join(backupPath, file)).isDirectory())
-      .map((directory) => ({ name: directory, path: path.join(backupPath, directory) }));
+      .readdirSync(backupConfig.backupPath)
+      .filter((file) => fs.lstatSync(path.join(backupConfig.backupPath, file)).isDirectory())
+      .map((directory) => ({ name: directory, path: path.join(backupConfig.backupPath, directory) }));
 
     logger.info('Folders to backup : ', directoriesToBackup);
 
-    logger.info('Step 5');
+    logger.info('Step 4 => Mounting backupDest');
     const backupDestPath =
       backupConfig.backupDest.type === DirectoryType.local
         ? backupConfig.backupDest.path
@@ -125,7 +104,22 @@ const run = async () => {
 
     for (const directory of directoriesToBackup) {
       try {
-        logger.info('Step 6');
+        logger.info(`Backup of the directory ${directory.name}`);
+        logger.info('Step 5 => Running rsync');
+        if (backupConfig.rsync) {
+          logger.info('Running rsync');
+
+          const rsyncPath =
+            backupConfig.rsync.type === DirectoryType.local ? backupConfig.rsync.path : backupConfig.rsync.mountPath;
+
+          await RsyncApi.rsyncFolder(directory.path, rsyncPath);
+
+          directory.path = rsyncPath;
+        } else {
+          logger.info('Rsync is not enabled');
+        }
+
+        logger.info('Step 6 => Archiving');
 
         const archivePassword = generator.generate({ length: 12, numbers: true });
 
@@ -137,7 +131,7 @@ const run = async () => {
 
         logger.info(`Archived ${nbFilesArchived} files (${archiveSize} bytes) to ${archivePath}`);
 
-        logger.info('Step 7');
+        logger.info('Step 7 => Copying archive to backupDest and sending mail');
 
         await SaveApi.cpFile(archivePath, backupDestPath);
 
@@ -157,14 +151,14 @@ const run = async () => {
       }
     }
 
-    logger.info('Step 8');
+    logger.info('Step 8 => Cleaning old directories');
     await SaveApi.cleanOldDirectories(backupDestPath);
 
-    logger.info('Step 9');
+    logger.info('Step 9 => Sending backup recap');
     sendBackupRecap(directoriesToBackup);
     lastExecutionSuccess = directoriesToBackup.filter((f) => !f.success).length === 0;
 
-    logger.info('Step 10');
+    logger.info('Step 10 => Unmounting cifsDirectories');
     if (backupConfig.cifsDirectories && backupConfig.cifsDirectories.length > 0) {
       logger.info('Unmounting cifsDirectories');
       for (const cifsDirectory of backupConfig.cifsDirectories) {
@@ -174,7 +168,7 @@ const run = async () => {
       logger.info('No cifsDirectories to unmount');
     }
 
-    logger.info('Step 11');
+    logger.info('Step 11 => Unmounting backupDest');
     if (backupConfig.backupDest.type === DirectoryType.cifs) {
       logger.info('Unmounting backupDest');
       await CifsApi.unmountSmbFolder(backupConfig.backupDest.mountPath);
@@ -182,7 +176,7 @@ const run = async () => {
       logger.info('BackupDest is not a cifs directory');
     }
 
-    logger.info('Step 12');
+    logger.info('Step 12 => Unmounting rsync');
     if (backupConfig.rsync && backupConfig.rsync.type === DirectoryType.cifs) {
       logger.info('Unmounting rsync');
       await CifsApi.unmountSmbFolder(backupConfig.rsync.mountPath);
