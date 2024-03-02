@@ -47,23 +47,13 @@ class Logger implements ILogger {
     }
   }
 
-  private log(color: Color, level: LogLevel, ...args: any[]) {
+  private getLog(color: Color, level: LogLevel, ...args: any[]) {
     const date = new Date().toISOString();
 
     if (inBrowser) {
-      console.log(`%c[${date}] [${logLevels[level]}] [${this.appName}] `, Logger.getCSSColor(color), ...args);
+      return [`%c[${date}] [${logLevels[level]}] [${this.appName}] `, Logger.getCSSColor(color), ...args];
     } else {
-      console.log(color, `[${date}] [${logLevels[level]}] [${this.appName}] `, ...args, '\x1b[0m');
-    }
-  }
-
-  private errorLog(color: Color, level: LogLevel, ...args: any[]) {
-    const date = new Date().toISOString();
-
-    if (inBrowser) {
-      console.error(`%c[${date}] [${logLevels[level]}] [${this.appName}] `, Logger.getCSSColor(color), ...args);
-    } else {
-      console.error(color, `[${date}] [${logLevels[level]}] [${this.appName}] `, ...args, '\x1b[0m');
+      return [color, `[${date}] [${logLevels[level]}] [${this.appName}] `, ...args, '\x1b[0m'];
     }
   }
 
@@ -77,31 +67,31 @@ class Logger implements ILogger {
 
   info(...args: any[]) {
     if (this.logLevel >= LogLevel.INFO) {
-      this.log(Logger.getColor(Color.DEFAULT, args[0]), LogLevel.INFO, ...args);
+      console.info(...this.getLog(Logger.getColor(Color.DEFAULT, args[0]), LogLevel.INFO, ...args));
     }
   }
 
   debug(...args: any[]) {
     if (this.logLevel >= LogLevel.DEBUG) {
-      this.log(Logger.getColor(Color.BLUE, args[0]), LogLevel.DEBUG, ...args);
+      console.debug(...this.getLog(Logger.getColor(Color.BLUE, args[0]), LogLevel.DEBUG, ...args));
     }
   }
 
   warn(...args: any[]) {
     if (this.logLevel >= LogLevel.WARN) {
-      this.log(Logger.getColor(Color.YELLOW, args[0]), LogLevel.WARN, ...args);
+      console.warn(...this.getLog(Logger.getColor(Color.YELLOW, args[0]), LogLevel.WARN, ...args));
     }
   }
 
   error(...args: any[]) {
     if (this.logLevel >= LogLevel.ERROR) {
-      this.errorLog(Logger.getColor(Color.RED, args[0]), LogLevel.ERROR, ...args);
+      console.error(...this.getLog(Logger.getColor(Color.RED, args[0]), LogLevel.ERROR, ...args));
     }
   }
 
   verbose(...args: any[]) {
     if (this.logLevel >= LogLevel.VERBOSE) {
-      this.log(Logger.getColor(Color.GRAY, args[0]), LogLevel.VERBOSE, ...args);
+      console.log(...this.getLog(Logger.getColor(Color.DEFAULT, args[0]), LogLevel.VERBOSE, ...args));
     }
   }
 }

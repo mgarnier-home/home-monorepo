@@ -10,6 +10,9 @@
     "dev": {
       "dependsOn": ["^build"]
     },
+    "start": {
+      "dependsOn": ["^build"]
+    },
     "test": {
       "inputs": ["noMarkdown", "^noMarkdown"]
     }

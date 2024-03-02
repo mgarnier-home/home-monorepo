@@ -40,9 +40,7 @@ export namespace ArchiveApi {
 
     logger.info(`Tarring ${totalNbFiles} files ${folderName} to ${tarPath}`);
 
-    logger.debug('Tar command args : ', ['-c', '-z', '-v', '-f', tarFileName, folderName]);
-
-    let commandArgs = ['-c', '-z', '-v', '-f', tarFileName, folderName];
+    let commandArgs = ['--ignore-failed-read', '-c', '-z', '-v', '-f', tarFileName, folderName];
 
     return new Promise<string>((resolve, reject) => {
       let filesNb = 0;
@@ -53,6 +51,8 @@ export namespace ArchiveApi {
       const tarSpawn = spawn(`tar`, commandArgs, { cwd: backupFolder });
       tarSpawn.stdout.on('data', (data: Buffer) => {
         const dataStr = data.toString();
+
+        logger.debug(dataStr);
 
         if (!dataStr.endsWith('/\n')) {
           filesNb++;
