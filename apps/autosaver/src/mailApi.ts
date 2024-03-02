@@ -1,9 +1,10 @@
 import { logger } from 'logger';
 import nodemailer from 'nodemailer';
 
+import { getBackupConfig } from './utils/config';
 import { BackupConfig } from './utils/types';
 
-export const mailApi = {
+const mail = {
   withBackupConfig: (backupConfig: BackupConfig) => {
     const getTransporter = () =>
       nodemailer.createTransport({
@@ -52,3 +53,5 @@ export const mailApi = {
     };
   },
 };
+
+export const mailApi = mail.withBackupConfig(getBackupConfig());

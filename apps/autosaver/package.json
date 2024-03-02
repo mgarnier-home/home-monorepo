@@ -4,7 +4,7 @@
   "scripts": {
     "patch-version": "npm version patch",
     "build": "npm run lint && npm run esbuild -- build",
-    "dev": "tsx watch --tsconfig tsconfig.json --inspect-brk --clear-screen=false src/main.ts ",
+    "dev": "tsx watch --tsconfig tsconfig.json --inspect --clear-screen=false src/main.ts ",
     "esbuild": "tsx scripts/server.ts",
     "lint": "tsc --project tsconfig.json --noEmit",
     "start": "npm run build && node dist/main.js"
@@ -32,5 +32,5 @@
     "utils": "workspace:*",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.8"
+  "version": "2.0.9"
 }

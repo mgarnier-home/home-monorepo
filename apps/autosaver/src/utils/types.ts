@@ -3,6 +3,11 @@ export enum DirectoryType {
   cifs = 'cifs',
 }
 
+export enum ArchiveApiType {
+  TAR = 'tar',
+  ZIP = 'zip',
+}
+
 export type LocalDirectory = {
   type: DirectoryType.local;
   path: string;
@@ -43,6 +48,7 @@ export type Config = {
   serverPort: number;
   backupConfigPath: string;
   cronSchedule: string;
+  archiveApiType: ArchiveApiType;
 };
 
 export type DirectoryToBackup = {

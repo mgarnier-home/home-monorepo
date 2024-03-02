@@ -1,25 +1,50 @@
+import { Table } from 'console-table-printer';
 import express from 'express';
 import fs from 'fs';
 import generator from 'generate-password';
 import { Color, logger } from 'logger';
 import cron from 'node-cron';
 import path from 'path';
-import { parse as ymlParse } from 'yaml';
 
-import { ArchiveApi } from './archiveApi';
+import { archiveApi } from './archiveApi';
 import { CifsApi } from './cifsApi';
 import { mailApi } from './mailApi';
 import { RsyncApi } from './rsyncApi';
 import { SaveApi } from './saveApi';
-import { config } from './utils/config';
+import { config, getBackupConfig } from './utils/config';
 import { sendBackupRecap, sendError } from './utils/ntfy';
 import { OsUtils } from './utils/osUtils';
-import { BackupConfig, CifsDirectory, DirectoryToBackup, DirectoryType } from './utils/types';
+import { CifsDirectory, DirectoryToBackup, DirectoryType } from './utils/types';
 
 logger.setAppName('autosaver');
 
 let lastExecutionSuccess = false;
 let isExecuting = false;
+
+const printRecapTable = (foldersToBackup: DirectoryToBackup[]) => {
+  const table = new Table({
+    columns: [
+      { name: 'name', title: 'Folder name' },
+      { name: 'filesNb', title: 'Nb files' },
+      { name: 'size', title: 'Zip size' },
+    ],
+  });
+
+  for (const folderToBackup of foldersToBackup) {
+    table.addRow(
+      {
+        name: folderToBackup.name,
+        filesNb: folderToBackup.filesNb,
+        size: folderToBackup.size !== undefined ? (folderToBackup.size / 1024 / 1024).toFixed(2) + ' MB' : '',
+      },
+      {
+        color: folderToBackup.success ? 'green' : 'red',
+      }
+    );
+  }
+
+  table.printTable();
+};
 
 const run = async () => {
   if (isExecuting) {
@@ -28,8 +53,7 @@ const run = async () => {
     return;
   }
 
-  const backupConfigYml = fs.readFileSync(config.backupConfigPath, 'utf-8');
-  const backupConfig: BackupConfig = ymlParse(backupConfigYml, { merge: true }).config as BackupConfig;
+  const backupConfig = getBackupConfig();
 
   logger.info('BackupConfig : ', backupConfig);
 
@@ -124,7 +148,7 @@ const run = async () => {
         const archivePassword = generator.generate({ length: 12, numbers: true });
 
         logger.info(`Archiving ${directory.path}`);
-        const { nbFilesArchived, archiveSize, archivePath } = await ArchiveApi.archiveFolder(
+        const { nbFilesArchived, archiveSize, archivePath } = await archiveApi.archiveFolder(
           directory.path,
           archivePassword
         );
@@ -137,7 +161,7 @@ const run = async () => {
 
         await OsUtils.rmFiles([archivePath]);
 
-        await mailApi.withBackupConfig(backupConfig).sendFileInfos(archivePassword, archivePath, `${directory.name}`);
+        await mailApi.sendFileInfos(archivePassword, archivePath, `${directory.name}`);
 
         logger.colored.info(Color.GREEN, `Backup of the directory ${directory.name} done`);
 
@@ -147,9 +171,7 @@ const run = async () => {
       } catch (error: any) {
         logger.error(`Error during backup of ${directory.name}`);
         logger.error(error);
-        mailApi
-          .withBackupConfig(backupConfig)
-          .sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
+        mailApi.sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
         directory.success = false;
       }
     }
@@ -159,6 +181,7 @@ const run = async () => {
 
     logger.info('Step 9 => Sending backup recap');
     sendBackupRecap(directoriesToBackup);
+    printRecapTable(directoriesToBackup);
     lastExecutionSuccess = directoriesToBackup.filter((f) => !f.success).length === 0;
 
     logger.info('Step 10 => Unmounting cifsDirectories');
@@ -192,9 +215,7 @@ const run = async () => {
     logger.error('Error running autosaver');
     logger.error(error);
 
-    mailApi
-      .withBackupConfig(backupConfig)
-      .sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
+    mailApi.sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
     sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
 
     lastExecutionSuccess = false;

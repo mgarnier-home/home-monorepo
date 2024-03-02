@@ -4,85 +4,161 @@ import { logger } from 'logger';
 import path from 'path';
 
 import { EncryptApi } from './encryptApi';
+import { config } from './utils/config';
 import { OsUtils } from './utils/osUtils';
+import { ArchiveApiType } from './utils/types';
 
-export namespace ArchiveApi {
-  export const archiveFolder = async (
-    folderToBackupPath: string,
-    archivePassword?: string
-  ): Promise<{ archivePath: string; nbFilesArchived: number; archiveSize: number }> => {
-    const nbFiles = await OsUtils.osCountFiles(folderToBackupPath);
+export type ArchiveFn = (folderToBackupPath: string, totalNbFiles: number) => Promise<string>;
 
-    let archivePath = await archive(folderToBackupPath, nbFiles);
+const archiveTar: ArchiveFn = (folderToBackupPath: string, totalNbFiles: number) => {
+  const folderName = path.basename(folderToBackupPath);
+  const backupFolder = path.join(folderToBackupPath, '../');
+  const tarFileName = `${folderName}.tar.gz`;
+  const tarPath = path.join(backupFolder, tarFileName);
 
-    logger.info(`Archive created : ${archivePath}`);
+  logger.info(`Tarring ${totalNbFiles} files ${folderName} to ${tarPath}`);
 
-    if (archivePassword) {
-      logger.info(`Encrypting archive : ${archivePath}...`);
+  let commandArgs = [
+    '--ignore-failed-read',
+    '--warning=no-file-changed',
+    '-c',
+    '-z',
+    '-v',
+    '-f',
+    tarFileName,
+    folderName,
+  ];
 
-      archivePath = await EncryptApi.encryptFile(archivePath, archivePassword);
+  return new Promise<string>((resolve, reject) => {
+    let filesNb = 0;
+    let lastPercent = 0;
 
-      logger.info(`Archive encrypted : ${archivePath}`);
+    logger.debug(`running command: tar ${commandArgs.join(' ')}`);
 
-      await OsUtils.rmFiles([archivePath.replace('.gpg', '')]);
-    }
+    const tarSpawn = spawn(`tar`, commandArgs, { cwd: backupFolder });
+    tarSpawn.stdout.on('data', (data: Buffer) => {
+      const dataStr = data.toString();
 
-    const archiveSize = (await fs.promises.stat(archivePath)).size;
+      logger.debug(dataStr);
 
-    return { archivePath, nbFilesArchived: nbFiles, archiveSize };
-  };
+      if (!dataStr.endsWith('/\n')) {
+        filesNb++;
 
-  const archive = (folderToBackupPath: string, totalNbFiles: number) => {
-    const folderName = path.basename(folderToBackupPath);
-    const backupFolder = path.join(folderToBackupPath, '../');
-    const tarFileName = `${folderName}.tar.gz`;
-    const tarPath = path.join(backupFolder, tarFileName);
+        const percent = Math.floor((filesNb / totalNbFiles) * 100);
 
-    logger.info(`Tarring ${totalNbFiles} files ${folderName} to ${tarPath}`);
-
-    let commandArgs = ['--ignore-failed-read', '-c', '-z', '-v', '-f', tarFileName, folderName];
-
-    return new Promise<string>((resolve, reject) => {
-      let filesNb = 0;
-      let lastPercent = 0;
-
-      logger.debug(`running command: tar ${commandArgs.join(' ')}`);
-
-      const tarSpawn = spawn(`tar`, commandArgs, { cwd: backupFolder });
-      tarSpawn.stdout.on('data', (data: Buffer) => {
-        const dataStr = data.toString();
-
-        logger.debug(dataStr);
-
-        if (!dataStr.endsWith('/\n')) {
-          filesNb++;
-
-          const percent = Math.floor((filesNb / totalNbFiles) * 100);
-
-          if (percent > lastPercent) {
-            logger.info(`Tarring ${filesNb}/${totalNbFiles} files: ${percent.toFixed(2)}%`);
-            lastPercent = percent;
-          }
+        if (percent > lastPercent) {
+          logger.info(`Tarring ${filesNb}/${totalNbFiles} files: ${percent.toFixed(2)}%`);
+          lastPercent = percent;
         }
-      });
-
-      const errorBuffers: Buffer[] = [];
-
-      tarSpawn.stderr.on('data', (data: Buffer) => {
-        errorBuffers.push(data);
-
-        tarSpawn.kill();
-      });
-
-      tarSpawn.on('close', (code) => {
-        if (code !== 0) {
-          const error = Buffer.concat(errorBuffers).toString();
-
-          reject({ message: `tar process exited with code ${code}`, code, error });
-        } else {
-          resolve(tarPath);
-        }
-      });
+      }
     });
-  };
-}
+
+    const errorBuffers: Buffer[] = [];
+
+    tarSpawn.stderr.on('data', (data: Buffer) => {
+      errorBuffers.push(data);
+
+      tarSpawn.kill();
+    });
+
+    tarSpawn.on('close', (code) => {
+      if (code !== 0) {
+        const error = Buffer.concat(errorBuffers).toString();
+
+        reject({ message: `tar process exited with code ${code}`, code, error });
+      } else {
+        resolve(tarPath);
+      }
+    });
+  });
+};
+
+const archiveZip: ArchiveFn = async (folderToBackupPath: string, totalNbFiles: number) => {
+  const folderName = path.basename(folderToBackupPath);
+  const backupFolder = path.join(folderToBackupPath, '../');
+  const zipFileName = `${folderName}.zip`;
+  const zipPath = path.join(backupFolder, zipFileName);
+
+  console.log(`Zipping ${totalNbFiles} files from ${folderName} to ${zipPath}`);
+
+  let commandArgs = ['a', '-bt', '-bb3', '-tzip', '-mmt=on', zipPath, folderToBackupPath];
+
+  return new Promise<string>((resolve, reject) => {
+    const zipSpawn = spawn('7z', commandArgs);
+    let filesNb = 0;
+
+    const newFileRegex = new RegExp(`(U|\\+) ${folderName}`, 'gm');
+
+    let lastLine = '';
+
+    // Live stdout logging
+    zipSpawn.stdout.on('data', (data: Buffer) => {
+      let dataStr = lastLine + data.toString();
+
+      if (!dataStr.endsWith('\n')) {
+        lastLine = dataStr.substring(dataStr.lastIndexOf('\n') + 1);
+        dataStr = dataStr.substring(0, dataStr.length - lastLine.length);
+      } else {
+        lastLine = '';
+      }
+
+      const newFiles = dataStr.match(newFileRegex);
+      if (newFiles) {
+        filesNb += newFiles.length;
+
+        console.log(`Zipping ${filesNb}/${totalNbFiles} files: ${((filesNb / totalNbFiles) * 100).toFixed(2)}%`);
+      } else {
+        console.log('stdout: ', dataStr);
+      }
+    });
+
+    zipSpawn.stderr.on('data', (data) => {
+      console.error(`zip stderr: ${data}`);
+
+      zipSpawn.kill();
+
+      reject(new Error(`7z process exited with error`));
+    });
+
+    zipSpawn.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`7z process exited with code ${code}`));
+      } else {
+        resolve(zipPath);
+      }
+    });
+  });
+};
+
+const archive = {
+  withFn: (archiveFn: ArchiveFn) => {
+    return {
+      archiveFolder: async (
+        folderToBackupPath: string,
+        archivePassword?: string
+      ): Promise<{ archivePath: string; nbFilesArchived: number; archiveSize: number }> => {
+        const nbFiles = await OsUtils.osCountFiles(folderToBackupPath);
+
+        let archivePath = await archiveFn(folderToBackupPath, nbFiles);
+
+        logger.info(`Archive created : ${archivePath}`);
+
+        if (archivePassword) {
+          logger.info(`Encrypting archive : ${archivePath}...`);
+
+          archivePath = await EncryptApi.encryptFile(archivePath, archivePassword);
+
+          logger.info(`Archive encrypted : ${archivePath}`);
+
+          await OsUtils.rmFiles([archivePath.replace('.gpg', '')]);
+        }
+
+        const archiveSize = (await fs.promises.stat(archivePath)).size;
+
+        return { archivePath, nbFilesArchived: nbFiles, archiveSize };
+      },
+    };
+  },
+};
+
+export const archiveApi = archive.withFn(config.archiveApiType === ArchiveApiType.TAR ? archiveTar : archiveZip);
