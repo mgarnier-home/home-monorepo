@@ -32,5 +32,5 @@
     "utils": "workspace:*",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.7"
+  "version": "2.0.8"
 }

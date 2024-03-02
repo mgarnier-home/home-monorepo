@@ -147,6 +147,9 @@ const run = async () => {
       } catch (error: any) {
         logger.error(`Error during backup of ${directory.name}`);
         logger.error(error);
+        mailApi
+          .withBackupConfig(backupConfig)
+          .sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
         directory.success = false;
       }
     }
