@@ -17,12 +17,15 @@ RUN pnpm deploy --filter=autosaver --prod /app
 # Use a multi-stage build to create a lean production image
 FROM node:18.11.0-buster AS runtime
 
-RUN apt update && apt install p7zip-full rsync cifs-utils -y
+RUN apt update && apt install p7zip-full rsync cifs-utils wget -y
 
 # Set the working directory
 WORKDIR /app
 
 COPY --from=build /app .
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3001 || exit 1
 
 # Define the command to run the app
 CMD ["node", "./dist/main.js"]
