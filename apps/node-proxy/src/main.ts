@@ -10,7 +10,7 @@ logger.setAppName('node-proxy');
 
 let config: Config | undefined = undefined;
 
-const apiPort = process.env.API_PORT || 9090;
+const apiPort = process.env.SERVER_PORT || 3000;
 
 let hostServers: HostServer[] = [];
 

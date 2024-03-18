@@ -14,13 +14,16 @@ RUN npx nx build node-proxy
 
 RUN pnpm deploy --filter=node-proxy --prod /app
 
-FROM node:18-alpine AS app
+FROM node:20-alpine AS app
 
 RUN apk add iputils
 
 WORKDIR /app
 
 COPY --from=build /app .
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3000 || exit 1
 
 CMD ["node", "./dist/main.js"]
 
