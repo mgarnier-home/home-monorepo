@@ -18,7 +18,7 @@ RUN pnpm deploy --filter=autosaver --prod /app
 FROM node:20-alpine AS runtime
 
 # RUN apt update && apt install p7zip-full rsync cifs-utils -y
-RUN apk add --no-cache p7zip rsync cifs-utils
+RUN apk add --no-cache p7zip rsync cifs-utils gpg
 
 # Set the working directory
 WORKDIR /app
