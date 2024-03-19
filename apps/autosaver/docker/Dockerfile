@@ -17,7 +17,7 @@ RUN pnpm deploy --filter=autosaver --prod /app
 # Use a multi-stage build to create a lean production image
 FROM node:20-buster AS runtime
 
-RUN apk add --no-cache p7zip rsync cifs-utils
+RUN apt update && apt install p7zip-full rsync cifs-utils -y
 
 # Set the working directory
 WORKDIR /app
