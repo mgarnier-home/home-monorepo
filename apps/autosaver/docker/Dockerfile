@@ -15,10 +15,9 @@ RUN npx nx build autosaver
 RUN pnpm deploy --filter=autosaver --prod /app
 
 # Use a multi-stage build to create a lean production image
-FROM node:20-alpine AS runtime
+FROM node:20-buster AS runtime
 
-# RUN apt update && apt install p7zip-full rsync cifs-utils -y
-RUN apk add --no-cache p7zip rsync cifs-utils gpg
+RUN apk add --no-cache p7zip rsync cifs-utils
 
 # Set the working directory
 WORKDIR /app
