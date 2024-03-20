@@ -11,7 +11,7 @@ export namespace CifsApi {
     mountPath: string,
     port: number = 445
   ): Promise<void> => {
-    logger.info(`Mounting smb folder from ${host}${hostPath} to ${mountPath}`);
+    logger.info(`Mounting smb folder from //${host}${hostPath} to ${mountPath}`);
 
     if (fs.existsSync(mountPath)) {
       try {
@@ -24,7 +24,7 @@ export namespace CifsApi {
 
     await fs.promises.mkdir(mountPath, { recursive: true });
 
-    const options = `rw,username=${user},password=${password},iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777,port=${port}`;
+    const options = `rw,vers=3.0,username=${user},password=${password},iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777,port=${port}`;
 
     logger.debug(`running command: mount -t cifs -o ${options} //${host}${hostPath} ${mountPath}`);
 

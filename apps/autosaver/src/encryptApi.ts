@@ -28,10 +28,19 @@ export namespace EncryptApi {
 
       const errorBuffers: Buffer[] = [];
 
-      gpg.stderr.on('data', (data) => {
-        errorBuffers.push(data);
+      gpg.stderr.on('data', (data: Buffer) => {
+        const stringError = data.toString();
 
-        gpg.kill();
+        if (
+          stringError.includes(`gpg: directory '/root/.gnupg' created`) ||
+          stringError.includes(`gpg: keybox '/root/.gnupg/pubring.kbx' created`)
+        ) {
+          logger.info('ignored error : ', stringError);
+        } else {
+          errorBuffers.push(data);
+
+          gpg.kill();
+        }
       });
 
       gpg.on('close', (code) => {

@@ -16,7 +16,7 @@ const loadConfigFromFile = (): Config => {
 };
 
 const loadConfigFromEnv = (): Config => {
-  const backupConfigPath = process.env.BACKUP_CONFIG_PATH || './config.yaml';
+  const backupConfigPath = process.env.BACKUP_CONFIG_PATH || './config.yml';
   const fullBackupConfigPath = backupConfigPath.startsWith('/')
     ? backupConfigPath
     : path.join(__dirname, '../../', backupConfigPath);
