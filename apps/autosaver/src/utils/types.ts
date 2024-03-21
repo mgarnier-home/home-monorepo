@@ -57,4 +57,5 @@ export type DirectoryToBackup = {
   success?: boolean;
   filesNb?: number;
   size?: number;
+  duration?: number;
 };

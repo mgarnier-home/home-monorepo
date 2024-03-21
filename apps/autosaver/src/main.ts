@@ -27,6 +27,7 @@ const printRecapTable = (foldersToBackup: DirectoryToBackup[]) => {
       { name: 'name', title: 'Folder name' },
       { name: 'filesNb', title: 'Nb files' },
       { name: 'size', title: 'Zip size' },
+      { name: 'duration', title: 'Duration' },
     ],
   });
 
@@ -36,6 +37,7 @@ const printRecapTable = (foldersToBackup: DirectoryToBackup[]) => {
         name: folderToBackup.name,
         filesNb: folderToBackup.filesNb,
         size: folderToBackup.size !== undefined ? (folderToBackup.size / 1024 / 1024).toFixed(2) + ' MB' : '',
+        duration: folderToBackup.duration !== undefined ? (folderToBackup.duration / 1000).toFixed(2) + ' s' : '',
       },
       {
         color: folderToBackup.success ? 'green' : 'red',
@@ -127,6 +129,8 @@ const run = async () => {
     logger.info('BackupDestPath : ', backupDestPath);
 
     for (const directory of directoriesToBackup) {
+      const startTime = Date.now();
+
       try {
         logger.info(`Backup of the directory ${directory.name}`);
         logger.info('Step 5 => Running rsync');
@@ -174,6 +178,8 @@ const run = async () => {
         mailApi.sendError(`code: ${error.code}, message: ${error.message}, error: ${error.error}`);
         directory.success = false;
       }
+
+      directory.duration = Date.now() - startTime;
     }
 
     logger.info('Step 8 => Cleaning old directories');
