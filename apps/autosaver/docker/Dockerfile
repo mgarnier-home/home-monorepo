@@ -17,7 +17,9 @@ RUN pnpm deploy --filter=autosaver --prod /app
 # Use a multi-stage build to create a lean production image
 FROM node:20-buster AS runtime
 
-RUN apt update && apt install p7zip-full rsync cifs-utils -y
+RUN apt update && apt install p7zip-full rsync cifs-utils gpg -y
+
+RUN mkdir -p /root/.gnupg && touch /root/.gnupg/pubring.kbx
 
 # Set the working directory
 WORKDIR /app
