@@ -19,7 +19,7 @@ FROM node:20-buster AS runtime
 
 RUN apt update && apt install p7zip-full rsync cifs-utils gpg -y
 
-RUN mkdir -p /root/.gnupg && touch /root/.gnupg/pubring.kbx
+RUN mkdir -p /root/.gnupg && touch /root/.gnupg/pubring.kbx && chmod 700 /root/.gnupg
 
 # Set the working directory
 WORKDIR /app
