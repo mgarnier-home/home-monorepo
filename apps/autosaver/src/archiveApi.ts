@@ -18,6 +18,11 @@ const archiveTar: ArchiveFn = (folderToBackupPath: string, totalNbFiles: number)
 
   logger.info(`Tarring ${totalNbFiles} files ${folderName} to ${tarPath}`);
 
+  if (fs.existsSync(tarPath)) {
+    logger.info(`Removing existing tar file ${tarPath}`);
+    fs.rmSync(tarPath);
+  }
+
   let commandArgs = [
     '--ignore-failed-read',
     '--warning=no-file-changed',
@@ -80,6 +85,11 @@ const archiveZip: ArchiveFn = async (folderToBackupPath: string, totalNbFiles: n
   const zipPath = path.join(backupFolder, zipFileName);
 
   logger.info(`Zipping ${totalNbFiles} files from ${folderName} to ${zipPath}`);
+
+  if (fs.existsSync(zipPath)) {
+    logger.info(`Removing existing zip file ${zipPath}`);
+    fs.rmSync(zipPath);
+  }
 
   let commandArgs = ['a', '-bt', '-bb3', '-tzip', '-mmt=on', zipPath, folderToBackupPath];
 
