@@ -12,6 +12,6 @@ export class AppComponent {
   title = 'my-app';
 
   constructor() {
-    console.log('Hello from AppComponent');
+    console.log('Hello from AppComponentTest');
   }
 }

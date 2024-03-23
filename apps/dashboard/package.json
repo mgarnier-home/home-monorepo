@@ -52,5 +52,5 @@
     "utils": "workspace:*",
     "zone.js": "~0.14.3"
   },
-  "version": "2.0.1"
+  "version": "2.0.2"
 }

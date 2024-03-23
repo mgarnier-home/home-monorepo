@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+FILES_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep 'package.json$')
+
+echo "Checking if [skip deps] should be added to commit message"
+
+if [ ! -z "$FILES_MODIFIED" ]; then
+  SHOULD_ADD_SKIP_DEPS=true
+
+  for file in $FILES_MODIFIED; do
+    echo "Checking file: $file"
+    # Get the file as it was BEFORE the commit
+    FILE_CONTENT_BEFORE_PRE_COMMIT=$(git show HEAD:$file)
+    FILE_CONTENT_AFTER_PRE_COMMIT=$(git show :0:$file)
+
+    DIFF=$(diff \
+      <(echo "$FILE_CONTENT_BEFORE_PRE_COMMIT" | jq --sort-keys .) \
+      <(echo "$FILE_CONTENT_AFTER_PRE_COMMIT" | jq --sort-keys .) \
+    )
+
+    
+
+    
+    IS_2ND_LINE_VERSION=$(echo "$DIFF" | sed -n '2p' | grep -E '^<   "version"')
+    IS_4TH_LINE_VERSION=$(echo "$DIFF" | sed -n '4p' | grep -E '^>   "version"')
+
+    # if there is more than 4 lines in the diff OR the second line doesnt starts with <   "version" OR the fourth line doesnt starts with >   "version"
+    # then we should not add [skip deps] to the commit message
+    if [ $(echo "$DIFF" | wc -l) -ne 4 ] || [ -z "$IS_2ND_LINE_VERSION" ] || [ -z "$IS_4TH_LINE_VERSION" ]; then
+      SHOULD_ADD_SKIP_DEPS=false
+      echo "File $file has changes that are not related to the version"
+    fi
+  done
+
+  if [ "$SHOULD_ADD_SKIP_DEPS" = true ]; then
+    echo "Adding [skip deps] to commit message"
+    sed -i.bak -e '$s/$/ [skip deps]/' "$1"
+  else
+    echo "Not adding [skip deps] to commit message"
+  fi
+fi
