@@ -3,7 +3,7 @@
   "name": "dashboard",
   "scripts": {
     "patch-version": "npm version patch",
-    "build": "run-s build:* !build:*watch*",
+    "build": "run-s build:*",
     "dev": "run-p dev:*",
     "esbuild:server": "tsx scripts/server.ts",
     "lint:server": "tsc --project server/tsconfig.json --noEmit",
@@ -52,5 +52,5 @@
     "utils": "workspace:*",
     "zone.js": "~0.14.3"
   },
-  "version": "1.0.7"
+  "version": "2.0.0"
 }
