@@ -158,14 +158,14 @@ export namespace Handlers {
     return { code, duration, data };
   };
 
-  export const getStatusChecks = async (statusChecks: ApiInterfaces.StatusChecks.RequestData) => {
+  export const getStatusChecks = async (statusChecks: ApiInterfaces.StatusChecks.RequestData[]) => {
     const promises = statusChecks.map((statusCheck) =>
       makeRequest(statusCheck.url, 'GET').then((response) => ({ statusCheck, response }))
     );
 
     const results = await Promise.all(promises);
 
-    const updatedStatusChecks: ApiInterfaces.StatusChecks.ResponseData = results.map((result) => {
+    const updatedStatusChecks: ApiInterfaces.StatusChecks.ResponseData[] = results.map((result) => {
       const { statusCheck, response } = result;
 
       let code = response.code;
