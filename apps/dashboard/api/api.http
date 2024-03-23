@@ -1,0 +1,20 @@
+POST http://localhost:3000/status-checks HTTP/1.1
+content-type: application/json
+
+{
+  "statusChecks": [
+    {
+      "id": "test",
+      "url": "https://google.fr"
+    }
+  ]
+}
+
+HTTP/1.1 200  - OK
+x-powered-by: Express
+access-control-allow-origin: *
+content-type: application/json; charset=utf-8
+content-length: 56
+etag: W/"38-qGHGqJHG2qNqsJuxAs1H64+3dr0"
+date: Fri, 22 Mar 2024 23:36:23 GMT
+connection: close

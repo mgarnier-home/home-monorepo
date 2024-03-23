@@ -1,13 +1,14 @@
-import { logger } from 'logger';
-import { useContext, useEffect, useState } from 'react';
+import { useContext } from 'react';
+
+import { AppInterfaces } from '@shared/interfaces/appInterfaces';
 
 import { Api } from '../../utils/api';
-import { ConfigContext } from '../../utils/configContext';
+import { StatusChecksContext } from '../../utils/contexts';
 import Icon from '../icon/icon';
 import StatusIndicator from '../statusIndicator/statusIndicator';
 
-import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
-//#region useStatusChecks hook
+// import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
+// //#region useStatusChecks hook
 type StatusCheckInfo =
   | {
       loading: true;
@@ -17,87 +18,86 @@ type StatusCheckInfo =
   | {
       loading: false;
       name: string;
-
       color: string;
       clickAction?: AppInterfaces.ClickAction;
     };
 
-const useStatusChecks = (service: AppInterfaces.HostService, statusCheckInterval: number) => {
-  const [statusChecks, setStatusChecks] = useState<StatusCheckInfo[]>(
-    service.statusChecks.map((statusCheck) => ({
-      loading: true,
-      name: statusCheck.name,
-      clickAction: statusCheck.clickAction as AppInterfaces.ClickAction,
-    }))
-  );
+// const useStatusChecks = (service: AppInterfaces.HostService, statusCheckInterval: number) => {
+//   const [statusChecks, setStatusChecks] = useState<StatusCheckInfo[]>(
+//     service.statusChecks.map((statusCheck) => ({
+//       loading: true,
+//       name: statusCheck.name,
+//       clickAction: statusCheck.clickAction as AppInterfaces.ClickAction,
+//     }))
+//   );
 
-  const [serviceStatusCheck, setServiceStatusCheck] = useState<StatusCheckInfo | null>(null);
+//   const [serviceStatusCheck, setServiceStatusCheck] = useState<StatusCheckInfo | null>(null);
 
-  const updateStatusChecks = (lst: StatusCheckInfo[]) => {
-    if (lst.length === 1) {
-      lst[0].name = 'Service';
-    }
+//   const updateStatusChecks = (lst: StatusCheckInfo[]) => {
+//     if (lst.length === 1) {
+//       lst[0].name = 'Service';
+//     }
 
-    const serviceStatusCheckIndex = lst.findIndex((statusCheck) => statusCheck.name === 'Service');
-    setServiceStatusCheck(lst[serviceStatusCheckIndex]);
+//     const serviceStatusCheckIndex = lst.findIndex((statusCheck) => statusCheck.name === 'Service');
+//     setServiceStatusCheck(lst[serviceStatusCheckIndex]);
 
-    if (serviceStatusCheckIndex !== -1) {
-      lst.splice(serviceStatusCheckIndex, 1);
-    }
+//     if (serviceStatusCheckIndex !== -1) {
+//       lst.splice(serviceStatusCheckIndex, 1);
+//     }
 
-    setStatusChecks(lst);
-  };
+//     setStatusChecks(lst);
+//   };
 
-  const refreshStatusChecks = async () => {
-    try {
-      const promises = service.statusChecks.map((statusCheck) =>
-        Api.makeServerRequest(statusCheck.url || service.url, 'GET').then((response) => ({ statusCheck, response }))
-      );
+//   const refreshStatusChecks = async () => {
+//     try {
+//       const promises = service.statusChecks.map((statusCheck) =>
+//         Api.makeServerRequest(statusCheck.url || service.url, 'GET').then((response) => ({ statusCheck, response }))
+//       );
 
-      const results = await Promise.all(promises);
+//       const results = await Promise.all(promises);
 
-      const updatedStatusChecks: StatusCheckInfo[] = results.map((result) => {
-        const { statusCheck, response } = result;
+//       const updatedStatusChecks: StatusCheckInfo[] = results.map((result) => {
+//         const { statusCheck, response } = result;
 
-        let color = 'bg-danger';
+//         let color = 'bg-danger';
 
-        if (statusCheck.type === 'singleCode') {
-          color = statusCheck.success === response.code ? statusCheck.color || 'bg-success' : 'bg-danger';
-        } else if (statusCheck.type === 'multipleCodes') {
-          const code = statusCheck.codes.find((c) => c.code === response.code);
-          if (code) {
-            color = code.color || 'bg-success';
-          }
-        }
+//         if (statusCheck.type === 'singleCode') {
+//           color = statusCheck.success === response.code ? statusCheck.color || 'bg-success' : 'bg-danger';
+//         } else if (statusCheck.type === 'multipleCodes') {
+//           const code = statusCheck.codes.find((c) => c.code === response.code);
+//           if (code) {
+//             color = code.color || 'bg-success';
+//           }
+//         }
 
-        return {
-          loading: false,
-          name: statusCheck.name,
-          color,
-          clickAction: statusCheck.clickAction as AppInterfaces.ClickAction,
-        };
-      });
+//         return {
+//           loading: false,
+//           name: statusCheck.name,
+//           color,
+//           clickAction: statusCheck.clickAction as AppInterfaces.ClickAction,
+//         };
+//       });
 
-      updateStatusChecks(updatedStatusChecks);
-    } catch (error) {
-      logger.error('Error refreshing status checks:', error);
-      // Handle any errors - maybe set all statusChecks to an error state, or show a notification.
-    }
-  };
+//       updateStatusChecks(updatedStatusChecks);
+//     } catch (error) {
+//       logger.error('Error refreshing status checks:', error);
+//       // Handle any errors - maybe set all statusChecks to an error state, or show a notification.
+//     }
+//   };
 
-  useEffect(() => {
-    updateStatusChecks(statusChecks);
+//   useEffect(() => {
+//     updateStatusChecks(statusChecks);
 
-    refreshStatusChecks();
+//     refreshStatusChecks();
 
-    const interval = setInterval(refreshStatusChecks, statusCheckInterval);
-    return () => clearInterval(interval);
-  }, []);
+//     const interval = setInterval(refreshStatusChecks, statusCheckInterval);
+//     return () => clearInterval(interval);
+//   }, []);
 
-  return { statusChecks, serviceStatusCheck };
-};
+//   return { statusChecks, serviceStatusCheck };
+// };
 
-//#endregion
+// //#endregion
 
 //#region StatusIndicators component
 
@@ -105,16 +105,18 @@ const renderStatusIndicator = (statusCheck: StatusCheckInfo) => {
   return <StatusIndicator color={statusCheck.loading ? 'bg-warning' : statusCheck.color} />;
 };
 
-const StatusIndicators = ({
-  statusChecks,
-  handleStatusIndicatorClick,
-}: {
-  statusChecks: StatusCheckInfo[];
-  handleStatusIndicatorClick: (e: React.MouseEvent<HTMLElement, MouseEvent>, statusCheck: StatusCheckInfo) => void;
-}) => {
+const StatusIndicators = ({ serviceStatusChecks }: { serviceStatusChecks: StatusCheckInfo[] }) => {
+  const statusChecksData = useContext(StatusChecksContext);
+
+  const handleStatusIndicatorClick = (e: React.MouseEvent<HTMLElement, MouseEvent>, statusCheck: StatusCheckInfo) => {
+    e.stopPropagation();
+
+    if (statusCheck.clickAction) Api.handleClickAction(statusCheck.clickAction as AppInterfaces.ClickAction);
+  };
+
   return (
     <div className='grid grid-rows-3 grid-cols-2 grid-flow-col' style={{ direction: 'rtl' }}>
-      {statusChecks.map((statusCheck, index) => {
+      {serviceStatusChecks.map((statusCheck, index) => {
         const hoverClassNames = statusCheck.clickAction ? 'hover:underline cursor-pointer' : '';
 
         return (
@@ -139,23 +141,18 @@ const StatusIndicators = ({
 
 type ServiceProps = {
   service: AppInterfaces.HostService;
+  serviceId: string;
 };
 
 const Service = (props: ServiceProps) => {
   const { service } = props;
 
-  const appConfig = useContext(ConfigContext);
+  const statusChecks = useContext(StatusChecksContext);
 
-  const { statusChecks, serviceStatusCheck } = useStatusChecks(service, appConfig.globalConfig.statusCheckInterval);
+  const serviceStatusCheckResponse = statusChecks[`${props.serviceId}_Service`];
 
   const handleServiceClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     if (service.clickAction) Api.handleClickAction(service.clickAction as AppInterfaces.ClickAction);
-  };
-
-  const handleStatusIndicatorClick = (e: React.MouseEvent<HTMLElement, MouseEvent>, statusCheck: StatusCheckInfo) => {
-    e.stopPropagation();
-
-    if (statusCheck.clickAction) Api.handleClickAction(statusCheck.clickAction as AppInterfaces.ClickAction);
   };
 
   const serviceClickableClassNames =
@@ -177,7 +174,7 @@ const Service = (props: ServiceProps) => {
               {serviceStatusCheck && <div className='mt-0.5'>{renderStatusIndicator(serviceStatusCheck)}</div>}
             </div>
 
-            <StatusIndicators statusChecks={statusChecks} handleStatusIndicatorClick={handleStatusIndicatorClick} />
+            {/* <StatusIndicators statusChecks={statusChecks} handleStatusIndicatorClick={handleStatusIndicatorClick} /> */}
           </div>
         </div>
       </div>

@@ -1,16 +1,4 @@
 export namespace ApiInterfaces {
-  export namespace StatusCheck {
-    export type Request = {
-      url: string;
-      method: string;
-    };
-
-    export type Response = {
-      code: number;
-      duration: number;
-    };
-  }
-
   export namespace PingHost {
     export type Request = {
       ip: string;
@@ -34,6 +22,20 @@ export namespace ApiInterfaces {
       code: number;
       duration: number;
       data?: Data;
+    };
+  }
+
+  export namespace StatusChecks {
+    export type RequestData = { id: string; url: string };
+
+    export type Request = {
+      statusChecks: RequestData[];
+    };
+
+    export type ResponseData = { id: string; code: number; duration: number };
+
+    export type Response = {
+      statusChecks: ResponseData[];
     };
   }
 }

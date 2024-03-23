@@ -2,9 +2,8 @@ import { HwRam } from 'nodesight-types';
 import { useContext } from 'react';
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { ConfigContext } from '../../../utils/configContext';
+import { ConfigContext, WidgetContext } from '../../../utils/contexts';
 import Utils from '../../../utils/utils';
-import { WidgetContext } from '../widgetContext';
 import CustomTooltip from './tooltip';
 import { useData } from './useData';
 

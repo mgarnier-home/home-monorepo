@@ -2,7 +2,7 @@ import http from 'http';
 import { logger } from 'logger';
 import { Server } from 'socket.io';
 
-import { ServerRoutes } from '@shared/routes';
+import { SERVER_ROUTES } from '@shared/routes';
 
 import { Handlers } from './handlers';
 
@@ -24,14 +24,17 @@ export const bindSocketIOServer = (httpServer: http.Server) => {
       let response = null;
 
       switch (route) {
-        case ServerRoutes.CONF:
+        case SERVER_ROUTES.CONF:
           response = await Handlers.getAppConf();
           break;
-        case ServerRoutes.PING_HOST:
+        case SERVER_ROUTES.PING_HOST:
           response = await Handlers.pingHost(data.ip);
           break;
-        case ServerRoutes.MAKE_REQUEST:
+        case SERVER_ROUTES.MAKE_REQUEST:
           response = await Handlers.makeRequest(data.url, data.method, data.body);
+          break;
+        case SERVER_ROUTES.STATUS_CHECKS:
+          response = await Handlers.getStatusChecks(data.statusChecks);
           break;
         default:
           break;

@@ -1,10 +1,10 @@
 import { logger } from 'logger';
 import { useContext, useEffect, useState } from 'react';
+import { WidgetContext } from 'src/utils/contexts';
 
 import { WidgetInterfaces } from '@shared/interfaces/widgetInterfaces';
 
 import { StatsApi } from '../../../utils/statsApi';
-import { WidgetContext } from '../widgetContext';
 
 import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
 export function useData<T>(
@@ -35,7 +35,7 @@ export function useData<T>(
             } catch (err: any) {
               logger.error(err);
             }
-          }, 15000);
+          }, 30000);
         } else if (options.time === WidgetInterfaces.Stats.OptionsTime.History) {
           const historyData = await StatsApi.getHistory<T[]>(config.globalConfig.statsApiUrl, options, host.id);
           setData(historyData);

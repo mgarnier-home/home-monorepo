@@ -21,4 +21,11 @@ export namespace RestControllers {
   ) => {
     res.send(await Handlers.makeRequest(req.body.url, req.body.method, req.body.body));
   };
+
+  export const postStatusChecks = async (
+    req: Request<{}, {}, Api.StatusChecks.Request>,
+    res: Response<Api.StatusChecks.Response>
+  ) => {
+    res.send(await Handlers.getStatusChecks(req.body.statusChecks));
+  };
 }

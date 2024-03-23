@@ -2,7 +2,7 @@ import { logger } from 'logger';
 import { useEffect, useState } from 'react';
 
 import { Api } from '../utils/api';
-import { ConfigContext } from '../utils/configContext';
+import { ConfigContext } from '../utils/contexts';
 import { socket } from '../utils/socket';
 import HomeComponent from './home/home';
 

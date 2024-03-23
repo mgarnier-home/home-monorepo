@@ -2,14 +2,17 @@ import jsYaml from 'js-yaml';
 import { logger } from 'logger';
 import fs from 'node:fs';
 import ping from 'ping';
-import { Utils } from 'utils';
+import { SimpleCache, Utils } from 'utils';
 
 import { config } from './utils/config';
 
 import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
+import type { ApiInterfaces } from '@shared/interfaces/apiInterfaces';
 const log = (...args: any[]) => {
   logger.info(`[Handlers]`, ...args);
 };
+
+const requestsCache = new SimpleCache<{ code: number; data: any }>(30);
 
 export namespace Handlers {
   const sanitizeAppConf = (appConf: AppInterfaces.AppConfig): AppInterfaces.AppConfig => {
@@ -55,7 +58,7 @@ export namespace Handlers {
     };
 
     appConf.globalConfig = {
-      ...{ statusCheckInterval: 10000, pingInterval: 10000, statsApiUrl: '' },
+      ...{ statusCheckInterval: 30000, pingInterval: 30000, statsApiUrl: '' },
       ...appConf.globalConfig,
     };
 
@@ -111,37 +114,69 @@ export namespace Handlers {
     method: string,
     body?: string
   ): Promise<{ code: number; duration: number; data?: Data }> => {
+    const cached = requestsCache.get(url);
+
     const startTime = Date.now();
 
     let code = 0;
     let data = undefined;
 
-    try {
-      const response = await Utils.fetchWithTimeout(url, 10000, {
-        method: method,
-        headers: {
-          Status: 'true',
-        },
-        body: body,
-      });
-
-      data = await response.text();
-
+    if (!cached) {
       try {
-        data = JSON.parse(data);
-      } catch (error) {}
+        const response = await Utils.fetchWithTimeout(url, 10000, {
+          method: method,
+          headers: {
+            Status: 'true',
+          },
+          body: body,
+        });
 
-      code = response.status;
-    } catch (error) {
-      logger.error(error);
+        data = await response.text();
 
-      code = 500;
+        try {
+          data = JSON.parse(data);
+        } catch (error) {}
+
+        code = response.status;
+      } catch (error) {
+        logger.error(error);
+
+        code = 500;
+      }
+    } else {
+      code = cached.code;
+      data = cached.data;
+      log(`[MakeRequest] using cached response for ${url}`);
     }
 
     const duration = Date.now() - startTime;
 
     log(`[MakeRequest] to ${url} in ${duration}ms, got ${code}`);
 
+    requestsCache.set(url, { code, data });
+
     return { code, duration, data };
+  };
+
+  export const getStatusChecks = async (statusChecks: ApiInterfaces.StatusChecks.RequestData) => {
+    const promises = statusChecks.map((statusCheck) =>
+      makeRequest(statusCheck.url, 'GET').then((response) => ({ statusCheck, response }))
+    );
+
+    const results = await Promise.all(promises);
+
+    const updatedStatusChecks: ApiInterfaces.StatusChecks.ResponseData = results.map((result) => {
+      const { statusCheck, response } = result;
+
+      let code = response.code;
+
+      return {
+        id: statusCheck.id,
+        duration: response.duration,
+        code,
+      };
+    });
+
+    return { statusChecks: updatedStatusChecks };
   };
 }

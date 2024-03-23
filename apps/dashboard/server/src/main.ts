@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import { logger } from 'logger';
 
-import { ServerRoutes } from '@shared/routes';
+import { SERVER_ROUTES } from '@shared/routes';
 
 import { RestControllers } from './restControllers';
 import { config } from './utils/config';
@@ -40,9 +40,10 @@ expressApp.use((err: Error, req: express.Request, res: express.Response, next: e
 expressApp.use(express.static(config.iconsPath));
 expressApp.use(express.static(config.appDistPath));
 
-expressApp.get(ServerRoutes.CONF, RestControllers.getConf);
-expressApp.post(ServerRoutes.PING_HOST, RestControllers.postPingHost);
-expressApp.post(ServerRoutes.MAKE_REQUEST, RestControllers.postMakeRequest);
+expressApp.get(SERVER_ROUTES.CONF, RestControllers.getConf);
+expressApp.post(SERVER_ROUTES.PING_HOST, RestControllers.postPingHost);
+expressApp.post(SERVER_ROUTES.MAKE_REQUEST, RestControllers.postMakeRequest);
+expressApp.post(SERVER_ROUTES.STATUS_CHECKS, RestControllers.postStatusChecks);
 
 bindSocketIOServer(httpServer);
 
