@@ -1,6 +1,6 @@
 export interface ServerConfig {
   appDistPath: string;
-  appConfPath: string;
+  appSetupPath: string;
   serverPort: number;
   iconsPath: string;
 }

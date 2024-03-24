@@ -1,13 +1,15 @@
 import express from 'express';
+import fs from 'fs';
 import http from 'http';
 import { logger } from 'logger';
+import { Server as SocketIOServer } from 'socket.io';
 
-import { SERVER_ROUTES } from '@shared/routes';
+import { DEFAULT_ROOM, SOCKET_EVENTS } from '@shared/interfaces/socket';
 
-import { RestControllers } from './restControllers';
+import { setup } from './setup.class';
 import { config } from './utils/config';
-import { bindSocketIOServer } from './wsControllers';
 
+import type { Setup } from '@shared/interfaces/setup';
 logger.setAppName('dashboard-server');
 
 const log = (...args: any[]) => {
@@ -40,13 +42,58 @@ expressApp.use((err: Error, req: express.Request, res: express.Response, next: e
 expressApp.use(express.static(config.iconsPath));
 expressApp.use(express.static(config.appDistPath));
 
-expressApp.get(SERVER_ROUTES.CONF, RestControllers.getConf);
-expressApp.post(SERVER_ROUTES.PING_HOST, RestControllers.postPingHost);
-expressApp.post(SERVER_ROUTES.MAKE_REQUEST, RestControllers.postMakeRequest);
-expressApp.post(SERVER_ROUTES.STATUS_CHECKS, RestControllers.postStatusChecks);
-
-bindSocketIOServer(httpServer);
-
 httpServer.listen(config.serverPort, () => {
   logger.info(`Server listening on port ${config.serverPort}`);
+});
+
+const socketIOServer = new SocketIOServer(httpServer, { cors: { origin: '*' } });
+
+let appStatus;
+let configInterval: NodeJS.Timeout | null = null;
+
+const loadAppSetup = async () => {
+  if (fs.existsSync(config.appSetupPath)) {
+    const appSetupContentStr = await fs.promises.readFile(config.appSetupPath, 'utf-8');
+
+    setup.reloadAppSetup(appSetupContentStr);
+
+    log('App setup reloaded');
+
+    logger.debug(setup);
+  } else {
+    logger.error('Config file not found');
+  }
+};
+
+const getNumberOfClients = () => {
+  return socketIOServer.sockets.adapter.rooms.get(DEFAULT_ROOM)?.size ?? 0;
+};
+
+const setupInterval = () => {
+  if (configInterval) {
+    return;
+  }
+
+  configInterval = setInterval(() => {}, setup.globalConfig.statusCheckInterval);
+};
+
+socketIOServer.on('connection', async (socket) => {
+  log(`Socket connected: ${socket.id}`);
+  socket.join(DEFAULT_ROOM);
+
+  loadAppSetup();
+
+  setupInterval();
+
+  socket.on(SOCKET_EVENTS.reloadAppSetup, loadAppSetup);
+
+  socket.on('disconnect', () => {
+    log(`Socket disconnected: ${socket.id}`);
+
+    if (getNumberOfClients() === 0 && configInterval) {
+      clearInterval(configInterval);
+
+      configInterval = null;
+    }
+  });
 });
