@@ -6,23 +6,19 @@ import { Server as SocketIOServer } from 'socket.io';
 
 import { DEFAULT_ROOM, SOCKET_EVENTS } from '@shared/interfaces/socket';
 
-import { setup } from './setup.class';
+import { state } from './state.class';
 import { config } from './utils/config';
 
 import type { Setup } from '@shared/interfaces/setup';
 logger.setAppName('dashboard-server');
 
-const log = (...args: any[]) => {
-  logger.info(`[API]`, ...args);
-};
-
 const expressApp = express();
 const httpServer = http.createServer(expressApp);
 
-log(config);
+logger.info(config);
 
 expressApp.use('/', (req, res, next) => {
-  log(`${req.method} ${req.url}`);
+  logger.info(`${req.method} ${req.url}`);
   next();
 });
 
@@ -48,52 +44,19 @@ httpServer.listen(config.serverPort, () => {
 
 const socketIOServer = new SocketIOServer(httpServer, { cors: { origin: '*' } });
 
-let appStatus;
-let configInterval: NodeJS.Timeout | null = null;
-
-const loadAppSetup = async () => {
-  if (fs.existsSync(config.appSetupPath)) {
-    const appSetupContentStr = await fs.promises.readFile(config.appSetupPath, 'utf-8');
-
-    setup.reloadAppSetup(appSetupContentStr);
-
-    log('App setup reloaded');
-
-    logger.debug(setup);
-  } else {
-    logger.error('Config file not found');
-  }
-};
-
 const getNumberOfClients = () => {
   return socketIOServer.sockets.adapter.rooms.get(DEFAULT_ROOM)?.size ?? 0;
 };
 
-const setupInterval = () => {
-  if (configInterval) {
-    return;
-  }
-
-  configInterval = setInterval(() => {}, setup.globalConfig.statusCheckInterval);
-};
-
 socketIOServer.on('connection', async (socket) => {
-  log(`Socket connected: ${socket.id}`);
+  logger.info(`Socket connected: ${socket.id}`);
   socket.join(DEFAULT_ROOM);
 
-  loadAppSetup();
+  state.reloadSetup();
 
-  setupInterval();
-
-  socket.on(SOCKET_EVENTS.reloadAppSetup, loadAppSetup);
+  socket.on(SOCKET_EVENTS.reloadAppSetup, state.reloadSetup);
 
   socket.on('disconnect', () => {
-    log(`Socket disconnected: ${socket.id}`);
-
-    if (getNumberOfClients() === 0 && configInterval) {
-      clearInterval(configInterval);
-
-      configInterval = null;
-    }
+    logger.info(`Socket disconnected: ${socket.id}`);
   });
 });
