@@ -8,6 +8,12 @@ export namespace App {
     url: string;
   };
 
+  export type Ping = {
+    ping: boolean;
+    duration: number;
+    ms: number;
+  };
+
   export namespace State {
     export type SuccessCode = {
       color: string;
@@ -15,6 +21,7 @@ export namespace App {
     };
 
     export type StatusCheck = {
+      id: string;
       name: string;
       successCodes: SuccessCode[];
       lastCheck: number;
@@ -33,7 +40,7 @@ export namespace App {
       name: string;
       icon: string;
       ip: string;
-      ping: number | null;
+      ping: Ping | null | undefined;
       services: Service[];
     };
   }
@@ -53,31 +60,33 @@ export namespace App {
       enablePing: boolean;
       nodesightUrl?: string;
       order?: number;
-      services: HostService[];
+      services: Service[];
       widgets: Widget[];
     };
 
-    export type HostService = {
+    export type Service = {
       name: string;
       icon: string;
       url: string;
       order?: number;
       clickAction?: ClickAction | ClickActionType;
-      statusChecks: HostServiceStatusCheck[];
+      statusChecks: StatusCheck[];
     };
 
-    export type HostServiceStatusCheck =
+    export type StatusCheck =
       | {
+          id: string;
           type: 'singleCode';
-          name: string;
+          name?: string;
           url: string;
           clickAction?: ClickAction | ClickActionType;
           success: number;
           color: string;
         }
       | {
+          id: string;
           type: 'multipleCodes';
-          name: string;
+          name?: string;
           url: string;
           clickAction?: ClickAction | ClickActionType;
           codes: { code: number; color: string }[];

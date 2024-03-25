@@ -58,4 +58,12 @@ export namespace Utils {
 
     return clone1;
   };
+
+  export const hash = (str: string) => {
+    return str.split('').reduce((prevHash, currVal) => ((prevHash << 5) - prevHash + currVal.charCodeAt(0)) | 0, 0);
+  };
+
+  export const hashCode = (str: string) => {
+    return hash(str).toString(16);
+  };
 }

@@ -9,7 +9,6 @@ import { DEFAULT_ROOM, SOCKET_EVENTS } from '@shared/interfaces/socket';
 import { state } from './state.class';
 import { config } from './utils/config';
 
-import type { Setup } from '@shared/interfaces/setup';
 logger.setAppName('dashboard-server');
 
 const expressApp = express();
@@ -52,11 +51,17 @@ socketIOServer.on('connection', async (socket) => {
   logger.info(`Socket connected: ${socket.id}`);
   socket.join(DEFAULT_ROOM);
 
-  state.reloadSetup();
+  await state.reloadSetup();
+  state.startTracking();
 
   socket.on(SOCKET_EVENTS.reloadAppSetup, state.reloadSetup);
 
   socket.on('disconnect', () => {
     logger.info(`Socket disconnected: ${socket.id}`);
+
+    if (getNumberOfClients() === 0) {
+      logger.info('No clients connected, stopping tracking');
+      state.stopTracking();
+    }
   });
 });
