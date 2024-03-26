@@ -1,3 +1,4 @@
+import type { MakeRequestResponse } from './utils';
 import type { Widget } from './widget';
 
 export namespace App {
@@ -24,8 +25,8 @@ export namespace App {
       id: string;
       name: string;
       successCodes: SuccessCode[];
-      lastCheck: number;
-      clickAction: ClickAction;
+      lastRequest: MakeRequestResponse<void>;
+      clickAction?: ClickAction;
     };
 
     export type Service = {
@@ -59,37 +60,26 @@ export namespace App {
       ip: string;
       enablePing: boolean;
       nodesightUrl?: string;
-      order?: number;
+      order: number;
       services: Service[];
-      widgets: Widget[];
+      // widgets: Widget[];
     };
 
     export type Service = {
       name: string;
       icon: string;
       url: string;
-      order?: number;
-      clickAction?: ClickAction | ClickActionType;
+      order: number;
+      clickAction?: ClickAction;
       statusChecks: StatusCheck[];
     };
 
-    export type StatusCheck =
-      | {
-          id: string;
-          type: 'singleCode';
-          name?: string;
-          url: string;
-          clickAction?: ClickAction | ClickActionType;
-          success: number;
-          color: string;
-        }
-      | {
-          id: string;
-          type: 'multipleCodes';
-          name?: string;
-          url: string;
-          clickAction?: ClickAction | ClickActionType;
-          codes: { code: number; color: string }[];
-        };
+    export type StatusCheck = {
+      id: string;
+      name: string;
+      url: string;
+      clickAction?: ClickAction;
+      successCodes: { code: number; color: string }[];
+    };
   }
 }

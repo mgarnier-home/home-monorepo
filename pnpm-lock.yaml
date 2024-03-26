@@ -202,6 +202,9 @@ importers:
       utils:
         specifier: workspace:*
         version: link:../../libs/utils
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
       zone.js:
         specifier: ~0.14.3
         version: 0.14.4
@@ -10335,6 +10338,10 @@ packages:
   /yocto-queue@1.0.0:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
+    dev: false
+
+  /zod@3.22.4:
+    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
     dev: false
 
   /zone.js@0.14.4:

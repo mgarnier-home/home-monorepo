@@ -25,6 +25,10 @@ export class SimpleCache<T> {
     return cached.value;
   }
 
+  has(key: string): boolean {
+    return this.data.has(key);
+  }
+
   invalidate(key: string): void {
     this.data.delete(key);
   }

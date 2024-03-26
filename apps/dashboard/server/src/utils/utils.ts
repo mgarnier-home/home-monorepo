@@ -3,6 +3,7 @@ import ping from 'ping';
 import { Utils } from 'utils';
 
 import type { App } from '@shared/interfaces/app';
+import type { MakeRequestResponse } from '@shared/interfaces/utils';
 export const pingHost = async (host: App.Setup.Host): Promise<App.Ping> => {
   const startTime = Date.now();
 
@@ -21,7 +22,7 @@ export const makeRequest = async <Data>(
   url: string,
   method: string,
   body?: string
-): Promise<{ code: number; duration: number; data?: Data }> => {
+): Promise<MakeRequestResponse<Data>> => {
   // const cached = requestsCache.get(url);
 
   const startTime = Date.now();
