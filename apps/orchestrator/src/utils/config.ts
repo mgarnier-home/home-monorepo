@@ -17,7 +17,6 @@ const loadConfigFromFile = (): Config => {
 };
 
 const loadConfigFromEnv = (): Config => {
-  console.log('dirname', __dirname);
   const dirname = __dirname;
   const config: Config = {
     serverPort: parseInt(process.env.SERVER_PORT || '3000'),

@@ -2,6 +2,14 @@
 
 echo "Running pre-commit hook"
 
+# Check if the commit message contains [skip ci]
+COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+if echo "$COMMIT_MESSAGE" | grep -q "\[skip ci\]"; then
+  echo "Skipping pre-commit hook due to [skip ci] in commit message"
+  exit 0
+fi
+
+
 # Check if any .ts or .html or DOCKERFILE files in apps/* are modified
 FILES_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^apps/.*\.ts(x)?$|^apps/.*\.html$|^apps/.*Dockerfile$')
 
