@@ -5,7 +5,7 @@
     "patch-version": "npm version patch",
     "build": "npm run lint && npm run esbuild -- build",
     "dev": "tsx watch --tsconfig tsconfig.json --inspect --clear-screen=false src/main.ts ",
-    "esbuild": "tsx scripts/server.ts",
+    "esbuild": "tsx scripts/build.ts",
     "lint": "tsc --project tsconfig.json --noEmit",
     "start": "npm run build && node dist/main.js"
   },

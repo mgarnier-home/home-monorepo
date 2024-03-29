@@ -22,10 +22,12 @@ expressApp.use('/', (req, res, next) => {
 });
 
 expressApp.use(express.json());
+
 expressApp.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   next();
 });
+
 expressApp.use(express.urlencoded({ extended: true }));
 
 expressApp.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

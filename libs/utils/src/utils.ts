@@ -1,3 +1,5 @@
+import path from 'path';
+
 export namespace Utils {
   export async function fetchWithTimeout(url: RequestInfo | URL, timeout = 5000, init?: RequestInit | undefined) {
     const controller = new AbortController();
@@ -65,5 +67,13 @@ export namespace Utils {
 
   export const hashCode = (str: string) => {
     return hash(str).toString(16);
+  };
+
+  export const resolveConfigPath = (pathToResolve: string, callerDirname?: string): string => {
+    console.log('pathToResolve', pathToResolve);
+    console.log('callerDirname', callerDirname);
+    return pathToResolve.startsWith('/')
+      ? pathToResolve
+      : path.resolve(callerDirname || __dirname, '../', pathToResolve);
   };
 }
