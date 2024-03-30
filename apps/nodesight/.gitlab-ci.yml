@@ -18,30 +18,10 @@ build nodesight arm64:
     PROJECT_NAME: nodesight
     TAG_NAME: arm64
 
-# publish nodesight:
-#   extends: .publish-template
-#   variables:
-#     PROJECT_NAME: nodesight
-#   needs:
-#     - build nodesight amd64
-#     - build nodesight arm64
-#     - build nodesight amd64-nvidia
-
 publish nodesight:
-  extends: .docker-template
-  stage: publish apps
+  extends: .publish-template
   variables:
     PROJECT_NAME: nodesight
-  script:
-    # Get the version from the package.json file
-    - |
-      export VERSION=$(cat apps/$PROJECT_NAME/package.json | grep '"version"' | awk -F: '{ print $2 }' | sed 's/[", ]//g')
-    - echo "Publishing $PROJECT_NAME version $VERSION"
-    - docker buildx imagetools create --tag mgarnier11/$PROJECT_NAME:latest --tag mgarnier11/$PROJECT_NAME:$VERSION mgarnier11/$PROJECT_NAME:amd64 mgarnier11/$PROJECT_NAME:arm64 mgarnier11/$PROJECT_NAME:amd64-nvidia
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "master" && $CI_PIPELINE_SOURCE == "push"'
-      changes:
-        - apps/$PROJECT_NAME/**/*
   needs:
     - build nodesight amd64
     - build nodesight arm64
