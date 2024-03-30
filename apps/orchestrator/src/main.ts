@@ -11,18 +11,12 @@ console.log(config);
 
 type Request = express.Request & { stackConfig?: Stack };
 
-const checkStackForHost = (stack: string, hostName: string) => {
-  //
-  // if a file config.composeFolderPath/${stack}/${host}.${stack}.yml exists then return true
-
-  return fs.existsSync(getStackHostPath(stack, hostName));
-};
+const checkStackForHost = (stack: string, hostName: string) => fs.existsSync(getStackHostPath(stack, hostName));
 
 const main = async () => {
   const app = express();
 
   app.use('/', (req: Request, res, next) => {
-    console.log('middleware');
     try {
       const stackConfig = getStack();
 
@@ -50,8 +44,6 @@ const main = async () => {
   (Object.keys(commands) as (keyof typeof commands)[]).forEach((command) => {
     app.get(`/${command}/:stack/:host`, async (req: Request, res) => {
       const { stack, host: hostName } = req.params;
-      console.log('stack', stack);
-      console.log('hostName', hostName);
       const stackConfig: Stack = req.stackConfig!;
 
       const host = stackConfig.hosts.find((host) => host.name === hostName)!;
@@ -72,9 +64,9 @@ const main = async () => {
         return res.status(400).send(`Stack ${stack} not found for host ${hostName}`);
       }
 
-      await commands[command](stack, host);
-
       res.send(`Running ${command} on ${stack} for host ${hostName}`);
+
+      await commands[command](stack, host);
     });
   });
 };

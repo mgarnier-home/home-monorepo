@@ -21,7 +21,7 @@ const loadConfigFromEnv = (): Config => {
   const config: Config = {
     serverPort: parseInt(process.env.SERVER_PORT || '3000'),
     composeEnvFilesPaths: process.env.COMPOSE_ENV_FILES?.split(',').map((file) =>
-      Utils.resolveConfigPath(file, dirname)
+      Utils.resolveConfigPath(file, path.resolve(dirname, '../'))
     ) || ['.env'],
     composeFolderPath: Utils.resolveConfigPath(process.env.COMPOSE_FOLDER || '../compose', dirname),
     stackFilePath: Utils.resolveConfigPath(process.env.STACK_FILE || '../stack.yml', dirname),

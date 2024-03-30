@@ -12,7 +12,7 @@ COPY --from=deps /apps/nodesight/node_modules ./apps/nodesight/node_modules
 
 RUN npx nx build nodesight
 
-FROM nvidia/cuda:12.2.0-base-ubuntu20.04 AS deps-amd64
+FROM nvidia/cuda:12.2.0-base-ubuntu20.04 AS deps-amd64-nvidia
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES="compute,video,utility"
@@ -24,6 +24,10 @@ RUN apt-get update && apt-get install -y ca-certificates curl gnupg && \
   apt-get update && apt-get install nodejs -y
 
 RUN apt-get install pciutils dmidecode util-linux lm-sensors -y
+
+FROM node:20-alpine AS deps-amd64
+
+RUN apk add pciutils dmidecode util-linux lm-sensors
 
 FROM node:20-alpine AS deps-arm64
 
