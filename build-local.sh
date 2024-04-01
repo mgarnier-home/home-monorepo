@@ -13,10 +13,10 @@ if [ "${BUILDX}" = true ]; then
   echo "Building for multiple platforms"
   docker buildx create --name mybuilder
   docker buildx use mybuilder
-  docker buildx build --platform linux/amd64,linux/arm64 -t mgarnier11/$PROJECT_NAME:latest -f apps/$PROJECT_NAME/docker/Dockerfile .
+  docker buildx --no-cache build --platform linux/amd64,linux/arm64 -t mgarnier11/$PROJECT_NAME:latest -f apps/$PROJECT_NAME/docker/Dockerfile .
 else
   echo "Building for single platform"
-  docker build -t mgarnier11/$PROJECT_NAME:latest -f apps/$PROJECT_NAME/docker/Dockerfile .
+  docker build --no-cache -t mgarnier11/$PROJECT_NAME:latest -f apps/$PROJECT_NAME/docker/Dockerfile .
 fi
 
 if [ "${PUSH}" = true ]; then

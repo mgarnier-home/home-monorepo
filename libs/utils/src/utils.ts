@@ -70,8 +70,6 @@ export namespace Utils {
   };
 
   export const resolveConfigPath = (pathToResolve: string, callerDirname?: string): string => {
-    console.log('pathToResolve', pathToResolve);
-    console.log('callerDirname', callerDirname);
     return pathToResolve.startsWith('/')
       ? pathToResolve
       : path.resolve(callerDirname || __dirname, '../', pathToResolve);

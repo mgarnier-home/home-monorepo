@@ -5,13 +5,11 @@ import path from 'path';
 import { commands } from './commands';
 import { config, getStack } from './utils/config';
 import { Stack } from './utils/schemas';
-import { getStackHostPath } from './utils/utils';
+import { checkStackForHost } from './utils/utils';
 
 console.log(config);
 
 type Request = express.Request & { stackConfig?: Stack };
-
-const checkStackForHost = (stack: string, hostName: string) => fs.existsSync(getStackHostPath(stack, hostName));
 
 const main = async () => {
   const app = express();
@@ -41,18 +39,18 @@ const main = async () => {
     console.log(`Server listening on port ${config.serverPort}`);
   });
 
-  (Object.keys(commands) as (keyof typeof commands)[]).forEach((command) => {
-    app.get(`/${command}/:stack/:host`, async (req: Request, res) => {
-      const { stack, host: hostName } = req.params;
+  for (const command of Object.keys(commands) as (keyof typeof commands)[]) {
+    app.get(`/${command}/:stackName/:hostName`, async (req: Request, res) => {
+      const { stackName, hostName } = req.params;
       const stackConfig: Stack = req.stackConfig!;
 
       const host = stackConfig.hosts.find((host) => host.name === hostName)!;
 
-      if (!stack || !hostName) {
+      if (!stackName || !hostName) {
         return res.status(400).send('Invalid request');
       }
 
-      if (stack !== 'all' && !stackConfig.stacks.includes(stack)) {
+      if (stackName !== 'all' && !stackConfig.stacks.includes(stackName)) {
         return res.status(400).send('Invalid stack');
       }
 
@@ -60,15 +58,18 @@ const main = async () => {
         return res.status(400).send('Invalid host');
       }
 
-      if (stack !== 'all' && hostName !== 'all' && !checkStackForHost(stack, hostName)) {
-        return res.status(400).send(`Stack ${stack} not found for host ${hostName}`);
+      if (stackName !== 'all' && hostName !== 'all' && !checkStackForHost(stackName, hostName)) {
+        return res.status(400).send(`Stack ${stackName} not found for host ${hostName}`);
       }
 
-      res.send(`Running ${command} on ${stack} for host ${hostName}`);
+      res.send(`Running ${stackName} ${command} on host ${hostName}`);
 
-      await commands[command](stack, host);
+      const stacksToRun = stackName === 'all' ? stackConfig.stacks : [stackName];
+      const hostsToRun = hostName === 'all' ? stackConfig.hosts : [host];
+
+      await commands[command](stacksToRun, hostsToRun);
     });
-  });
+  }
 };
 
 main();

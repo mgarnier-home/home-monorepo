@@ -4,7 +4,7 @@ import path from 'path';
 
 import { config } from './utils/config';
 import { Host } from './utils/schemas';
-import { getStackHostPath } from './utils/utils';
+import { checkStackForHost, getAdditionalComposeFiles, getStackHostPath } from './utils/utils';
 
 type ExecError = {
   status: number;
@@ -19,30 +19,23 @@ type ExecResponse = {
 
 const execCommand = (command: string): ExecResponse => {
   try {
-    console.log(`executing command: ${command}`);
+    // console.log(`executing command: ${command}`);
 
     const result = execSync(command, { stdio: 'pipe' });
-    console.log(`command output: ${result.toString()}`);
+    // console.log(`command output: ${result.toString()}`);
 
     return { success: true, output: result.toString() };
   } catch (_error) {
     const error = _error as ExecError;
 
-    console.error(`error executing command: ${command}`);
-    console.error(`status: ${error.status}`);
-    console.error(`signal: ${error.signal}`);
-    console.error(`stdout: ${error.output[1]}`);
-    console.error(`stderr: ${error.output[2]}`);
+    // console.error(`error executing command: ${command}`);
+    // console.error(`status: ${error.status}`);
+    // console.error(`signal: ${error.signal}`);
+    // console.error(`stdout: ${error.output[1]}`);
+    // console.error(`stderr: ${error.output[2]}`);
 
     return { success: false, output: error.output[2]?.toString() ?? '' };
   }
-};
-
-const getAdditionalComposeFiles = () => {
-  // list all .yml files directly under config.composeFolderPath
-  const files = fs.readdirSync(config.composeFolderPath);
-
-  return files.filter((file) => file.endsWith('.yml')).map((file) => path.join(config.composeFolderPath, file));
 };
 
 const hasDockerContext = (host: Host) => {
@@ -58,7 +51,7 @@ const hasDockerContext = (host: Host) => {
 };
 
 const createContext = (host: Host) => {
-  const command = `docker context create ssh ${host.name} --docker "host=ssh://${host.username}@${host.ip}"`;
+  const command = `docker context create --docker "host=ssh://${host.username}@${host.ip}" ${host.name}`;
 
   const result = execCommand(command);
 
@@ -69,8 +62,8 @@ const createContext = (host: Host) => {
   return result.success;
 };
 
-const useContext = (host: Host) => {
-  const command = `docker context use ${host.name}`;
+const useContext = (hostName: string) => {
+  const command = `docker context use ${hostName}`;
 
   const result = execCommand(command);
 
@@ -79,18 +72,6 @@ const useContext = (host: Host) => {
   }
 
   return result.success;
-};
-
-const execDockerCommandOnHost = (host: Host, command: string) => {
-  const contextPresent = hasDockerContext(host);
-
-  if (!contextPresent) {
-    createContext(host);
-  }
-
-  useContext(host);
-
-  return execCommand(command);
 };
 
 const getDockerComposeCommand = (stack: string, host: Host, command: string) => {
@@ -98,13 +79,13 @@ const getDockerComposeCommand = (stack: string, host: Host, command: string) => 
 
   return `docker compose ${
     //
-    config.composeEnvFilesPaths.map((file) => `--env-file ${file}`).join(' ')
+    config.composeEnvFilesPaths.map((file) => `--env-file ${file.trim()}`).join(' ')
   } -f ${
     //
     getStackHostPath(stack, host.name)
   } ${
     //
-    additionalComposeFiles.map((file) => `-f ${file}`).join(' ')
+    additionalComposeFiles.map((file) => `-f ${file.trim()}`).join(' ')
   } -p ${
     //
     stack
@@ -114,34 +95,76 @@ const getDockerComposeCommand = (stack: string, host: Host, command: string) => 
   }`;
 };
 
-const execDockerCommandListOnHost = (host: Host, commands: string[]) => {
-  const contextPresent = hasDockerContext(host);
+const runCommands = (
+  stacks: string[],
+  hosts: Host[],
+  commands: string[]
+): {
+  name: string;
+  stacks: { name: string; commands: { full: string; base: string; success: boolean; output: string }[] }[];
+}[] => {
+  return hosts.map((host) => {
+    const contextPresent = hasDockerContext(host);
 
-  if (!contextPresent) {
-    createContext(host);
-  }
+    if (!contextPresent) {
+      createContext(host);
+    }
 
-  useContext(host);
+    useContext(host.name);
 
-  return commands.map((command) => execCommand(command));
+    const stacksResults = stacks
+      .filter((stack) => checkStackForHost(stack, host.name))
+      .map((stack) => ({
+        name: stack,
+        commands: commands.map((command) => {
+          console.log(`Host : ${host.name} Stack : ${stack} Command : ${command}`);
+          const fullCommand = getDockerComposeCommand(stack, host, command);
+          const commandResult = execCommand(fullCommand);
+
+          return {
+            full: fullCommand,
+            base: command,
+            success: commandResult.success,
+            output: commandResult.output,
+          };
+        }),
+      }));
+
+    useContext('default');
+
+    return {
+      name: host.name,
+      stacks: stacksResults,
+    };
+  });
 };
 
 export const commands = {
-  up: async (stack: string, host: Host) => {
-    // console.log(composeCommand);
+  up: async (stacks: string[], hosts: Host[]) => {
+    console.log('=====================================================================');
+    console.log('UP');
 
-    console.log(execDockerCommandOnHost(host, getDockerComposeCommand(stack, host, 'up -d')));
+    console.log(JSON.stringify(runCommands(stacks, hosts, ['up -d']), null, 2));
+
+    console.log('UP COMPLETE');
+    console.log('=====================================================================');
   },
-  down: async (stack: string, host: Host) => {
-    console.log(execDockerCommandOnHost(host, getDockerComposeCommand(stack, host, 'up -d')));
+  down: async (stacks: string[], hosts: Host[]) => {
+    console.log('=====================================================================');
+    console.log('DOWN');
+
+    console.log(JSON.stringify(runCommands(stacks, hosts, ['down']), null, 2));
+
+    console.log('DOWN COMPLETE');
+    console.log('=====================================================================');
   },
-  pull: async (stack: string, host: Host) => {
-    console.log(
-      execDockerCommandListOnHost(host, [
-        getDockerComposeCommand(stack, host, 'down'),
-        getDockerComposeCommand(stack, host, 'pull'),
-        getDockerComposeCommand(stack, host, 'up -d'),
-      ])
-    );
+  pull: async (stacks: string[], hosts: Host[]) => {
+    console.log('=====================================================================');
+    console.log('PULL');
+
+    console.log(JSON.stringify(runCommands(stacks, hosts, ['down', 'pull', 'up -d']), null, 2));
+
+    console.log('PULL COMPLETE');
+    console.log('=====================================================================');
   },
 };
