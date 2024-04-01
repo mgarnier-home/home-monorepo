@@ -48,6 +48,7 @@ export namespace Utils {
 
   export const deepMerge = (obj1: any, obj2: any) => {
     const clone1 = structuredClone(obj1);
+
     const clone2 = structuredClone(obj2);
 
     for (let key in clone2) {

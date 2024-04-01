@@ -65,6 +65,7 @@ const main = async () => {
       res.send(`Running ${stackName} ${command} on host ${hostName}`);
 
       const stacksToRun = stackName === 'all' ? stackConfig.stacks : [stackName];
+
       const hostsToRun = hostName === 'all' ? stackConfig.hosts : [host];
 
       await commands[command](stacksToRun, hostsToRun);

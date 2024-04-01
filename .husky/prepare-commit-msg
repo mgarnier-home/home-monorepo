@@ -32,6 +32,13 @@ if [ ! -z "$FILES_MODIFIED" ]; then
     fi
   done
 
+  # Check if any files in the libs directory have been modified
+  LIBS_MODIFIED=$(git diff --cached --name-only --diff-filter=ACM | grep '^libs/')
+  if [ ! -z "$LIBS_MODIFIED" ]; then
+    SHOULD_ADD_SKIP_DEPS=false
+    echo "Files in the libs directory have been modified"
+  fi
+
   if [ "$SHOULD_ADD_SKIP_DEPS" = true ]; then
     echo "Adding [skip deps] to commit message"
     sed -i.bak -e '$s/$/ [skip deps]/' "$1"
