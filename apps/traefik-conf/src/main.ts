@@ -23,7 +23,7 @@ const loadData = async (): Promise<AppData> => {
       }
     }
   } catch (error) {
-    console.error('Error while loading data : ', error);
+    logger.error('Error while loading data : ', error);
   }
 
   return {
