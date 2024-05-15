@@ -1,16 +1,7 @@
 export interface Config {
-  traefikConfDirectory: string;
-  composeDirectory: string;
-  saveDataFile: string;
+  dataFilePath: string;
   serverPort: number;
   stacksToIgnore: string[];
-  redirectionName: string;
-  fbxAppToken: string;
-  fbxAppId: string;
-  fbxApiDomain: string;
-  fbxHttpsPort: number;
-  fbxApiBaseUrl: string;
-  fbxApiVersion: string;
 }
 
 export interface Proxy {
@@ -22,6 +13,7 @@ export interface Proxy {
 export interface Host {
   name: string;
   ip: string;
+  apiPort: number;
 }
 
 export interface AppData {
@@ -37,7 +29,6 @@ export interface StackInfos {
 
 export interface TraefikService {
   host: Host;
-  stackName: string;
   serviceName: string;
   portVariable: string;
 }

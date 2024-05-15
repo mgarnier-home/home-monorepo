@@ -1,0 +1,219 @@
+http:
+  routers:
+    Athena_media_jellyfin:
+      entryPoints:
+        - http
+      service: Athena_media_jellyfin
+      rule: Host(`jellyfin.Athena.home`)
+    Athena_media_gonic_music:
+      entryPoints:
+        - http
+      service: Athena_media_gonic_music
+      rule: Host(`gonic_music.Athena.home`)
+    Athena_media_gonic_sagas:
+      entryPoints:
+        - http
+      service: Athena_media_gonic_sagas
+      rule: Host(`gonic_sagas.Athena.home`)
+    Athena_media_airsonic:
+      entryPoints:
+        - http
+      service: Athena_media_airsonic
+      rule: Host(`airsonic.Athena.home`)
+    Athena_monitoring_dozzle:
+      entryPoints:
+        - http
+      service: Athena_monitoring_dozzle
+      rule: Host(`dozzle.Athena.home`)
+    Athena_monitoring_nodesight:
+      entryPoints:
+        - http
+      service: Athena_monitoring_nodesight
+      rule: Host(`nodesight.Athena.home`)
+    Athena_paperless_paperless:
+      entryPoints:
+        - http
+      service: Athena_paperless_paperless
+      rule: Host(`paperless.Athena.home`)
+    Zephyr_backup_autosaver:
+      entryPoints:
+        - http
+      service: Zephyr_backup_autosaver
+      rule: Host(`autosaver.Zephyr.home`)
+    Zephyr_dashboard_dashboard:
+      entryPoints:
+        - http
+      service: Zephyr_dashboard_dashboard
+      rule: Host(`dashboard.Zephyr.home`)
+    Zephyr_dashboard_influxdb:
+      entryPoints:
+        - http
+      service: Zephyr_dashboard_influxdb
+      rule: Host(`influxdb.Zephyr.home`)
+    Zephyr_dashboard_stats-api:
+      entryPoints:
+        - http
+      service: Zephyr_dashboard_stats-api
+      rule: Host(`stats-api.Zephyr.home`)
+    Zephyr_home_assistant_homeassistant:
+      entryPoints:
+        - http
+      service: Zephyr_home_assistant_homeassistant
+      rule: Host(`homeassistant.Zephyr.home`)
+    Zephyr_monitoring_dozzle:
+      entryPoints:
+        - http
+      service: Zephyr_monitoring_dozzle
+      rule: Host(`dozzle.Zephyr.home`)
+    Zephyr_monitoring_nodesight:
+      entryPoints:
+        - http
+      service: Zephyr_monitoring_nodesight
+      rule: Host(`nodesight.Zephyr.home`)
+    Zephyr_network_adguard:
+      entryPoints:
+        - http
+      service: Zephyr_network_adguard
+      rule: Host(`adguard.Zephyr.home`)
+    Zephyr_network_node-proxy:
+      entryPoints:
+        - http
+      service: Zephyr_network_node-proxy
+      rule: Host(`node-proxy.Zephyr.home`)
+    Zephyr_syslog_syslog-app:
+      entryPoints:
+        - http
+      service: Zephyr_syslog_syslog-app
+      rule: Host(`syslog-app.Zephyr.home`)
+    Apollon_backup_autosaver:
+      entryPoints:
+        - http
+      service: Apollon_backup_autosaver
+      rule: Host(`autosaver.Apollon.home`)
+    Apollon_monitoring_dozzle:
+      entryPoints:
+        - http
+      service: Apollon_monitoring_dozzle
+      rule: Host(`dozzle.Apollon.home`)
+    Apollon_monitoring_nodesight:
+      entryPoints:
+        - http
+      service: Apollon_monitoring_nodesight
+      rule: Host(`nodesight.Apollon.home`)
+    Apollon_network_traefik:
+      entryPoints:
+        - http
+      service: Apollon_network_traefik
+      rule: Host(`traefik.Apollon.home`)
+    Apollon_network_traefik_conf:
+      entryPoints:
+        - http
+      service: Apollon_network_traefik_conf
+      rule: Host(`traefik_conf.Apollon.home`)
+    Apollon_nextcloud_nextcloud:
+      entryPoints:
+        - http
+      service: Apollon_nextcloud_nextcloud
+      rule: Host(`nextcloud.Apollon.home`)
+    Apollon_ntfy_ntfy:
+      entryPoints:
+        - http
+      service: Apollon_ntfy_ntfy
+      rule: Host(`ntfy.Apollon.home`)
+  services:
+    Athena_media_jellyfin:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_MEDIA_VIDEO_PORT" }}/
+    Athena_media_gonic_music:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_MEDIA_MUSIC_PORT" }}/
+    Athena_media_gonic_sagas:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_MEDIA_SAGAS_PORT" }}/
+    Athena_media_airsonic:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_AIRSONIC_PORT" }}/
+    Athena_monitoring_dozzle:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_DOZZLE_PORT" }}/
+    Athena_monitoring_nodesight:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_NODESIGHT_PORT" }}/
+    Athena_paperless_paperless:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ATHENA_PAPERLESS_PORT" }}/
+    Zephyr_backup_autosaver:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_AUTOSAVER_PORT" }}/
+    Zephyr_dashboard_dashboard:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_DASHBOARD_PORT" }}/
+    Zephyr_dashboard_influxdb:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_INFLUXDB_PORT" }}/
+    Zephyr_dashboard_stats-api:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_STATS_API_PORT" }}/
+    Zephyr_home_assistant_homeassistant:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_HOME_ASSISTANT_PORT" }}/
+    Zephyr_monitoring_dozzle:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_DOZZLE_PORT" }}/
+    Zephyr_monitoring_nodesight:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_NODESIGHT_PORT" }}/
+    Zephyr_network_adguard:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_ADGUARD_PORT" }}/
+    Zephyr_network_node-proxy:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_NODE_PROXY_PORT" }}/
+    Zephyr_syslog_syslog-app:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.97:{{env "ZEPHYR_SYSLOG_PORT" }}/
+    Apollon_backup_autosaver:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_AUTOSAVER_PORT" }}/
+    Apollon_monitoring_dozzle:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_DOZZLE_PORT" }}/
+    Apollon_monitoring_nodesight:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_NODESIGHT_PORT" }}/
+    Apollon_network_traefik:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_TRAEFIK_PORT" }}/
+    Apollon_network_traefik_conf:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_TRAEFIK_CONFIG_PORT" }}/
+    Apollon_nextcloud_nextcloud:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_NEXTCLOUD_PORT" }}/
+    Apollon_ntfy_ntfy:
+      loadBalancer:
+        servers:
+          - url: http://100.64.98.99:{{env "APOLLON_NTFY_PORT" }}/

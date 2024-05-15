@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "name": "docker-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "shx rm -rf dist && tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "docker-modem": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/docker-modem": "3.0.6"
+  }
+}

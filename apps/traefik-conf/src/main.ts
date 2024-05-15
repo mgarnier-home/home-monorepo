@@ -1,28 +1,31 @@
+import { Docker } from 'docker-api';
 import express from 'express';
 import fs from 'fs';
 import { logger } from 'logger';
 
-import { changeRedirection } from './freeboxApi.js';
 import { config } from './utils/config.js';
 import { AppData, TraefikService } from './utils/interfaces.js';
-import { listFiles, readFiles } from './utils/osUtils.js';
-import { getComposeStacksPaths, getTraefikDynamicConf, getTraefikServices } from './utils/traefikUtils.js';
-import { mergeYamls } from './utils/utils.js';
+import { getTraefikDynamicConf } from './utils/traefikUtils.js';
 
 logger.setAppName('traefik-conf');
 
 const saveData = async (data: AppData) => {
-  await fs.promises.writeFile(config.saveDataFile, JSON.stringify(data, null, 4));
+  await fs.promises.writeFile(config.dataFilePath, JSON.stringify(data, null, 4));
 };
 
 const loadData = async (): Promise<AppData> => {
-  if (fs.existsSync(config.saveDataFile)) {
-    const dataStr = await fs.promises.readFile(config.saveDataFile, 'utf-8');
+  try {
+    if (fs.existsSync(config.dataFilePath)) {
+      const dataStr = await fs.promises.readFile(config.dataFilePath, 'utf-8');
 
-    if (dataStr !== '') {
-      return JSON.parse(dataStr) as AppData;
+      if (dataStr !== '') {
+        return JSON.parse(dataStr) as AppData;
+      }
     }
+  } catch (error) {
+    console.error('Error while loading data : ', error);
   }
+
   return {
     proxies: [],
     hosts: [],
@@ -45,26 +48,27 @@ const main = async () => {
     res.status(200).send('OK');
   });
 
-  app.get('/config', async (req, res) => {
-    const ymlFilesPaths = await listFiles(config.traefikConfDirectory, '.yml');
-
-    const ymlFilesContent = await readFiles(ymlFilesPaths);
-    const mergedYaml = mergeYamls(ymlFilesContent);
-
-    res.status(200).send(mergedYaml);
-  });
-
-  app.get('/compose-config', async (req, res) => {
+  app.get('/dynamic-config', async (req, res) => {
     appData = await loadData();
-
-    const stacksInfos = await getComposeStacksPaths(appData.hosts, config.composeDirectory, config.stacksToIgnore);
 
     const traefikServices: TraefikService[] = [];
 
-    for (const stackInfos of stacksInfos) {
-      const fileContent = await fs.promises.readFile(stackInfos.path, 'utf-8');
+    for (const host of appData.hosts) {
+      const docker = new Docker(`${host.ip}`, host.apiPort);
+      const containers = await docker.listContainers();
+      traefikServices.push(
+        ...containers
+          .filter((container) => {
+            return container.Labels['traefik-conf.port'] != undefined;
+          })
+          .map((container) => {
+            const portVariable = container.Labels['traefik-conf.port'] || '';
+            const serviceName =
+              container.Labels['traefik-conf.name'] || container.Labels['com.docker.compose.service'] || '';
 
-      traefikServices.push(...getTraefikServices(stackInfos, fileContent));
+            return { host, serviceName, portVariable };
+          })
+      );
     }
 
     const dynamicYml = getTraefikDynamicConf(traefikServices, appData);
@@ -80,8 +84,6 @@ const main = async () => {
 
     if (proxy) {
       const ip = proxy.activated ? proxy.sourceIP : proxy.destIP;
-
-      await changeRedirection(config.redirectionName, ip);
 
       proxy.activated = !proxy.activated;
 
