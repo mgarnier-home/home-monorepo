@@ -11,7 +11,9 @@ import { parseTraefikLabels } from './utils/traefikUtils.js';
 logger.setAppName('traefik-conf');
 
 const saveData = async (data: AppData) => {
-  await fs.promises.writeFile(config.dataFilePath, JSON.stringify(data, null, 4));
+  const stringData = config.dataFilePath.endsWith('.json') ? JSON.stringify(data, null, 4) : jsYaml.dump(data);
+
+  await fs.promises.writeFile(config.dataFilePath, stringData, 'utf-8');
 };
 
 const loadData = async (): Promise<AppData> => {
@@ -20,7 +22,10 @@ const loadData = async (): Promise<AppData> => {
       const dataStr = await fs.promises.readFile(config.dataFilePath, 'utf-8');
 
       if (dataStr !== '') {
-        return JSON.parse(dataStr) as AppData;
+        if (config.dataFilePath.endsWith('.json')) {
+          return JSON.parse(dataStr) as AppData;
+        }
+        return jsYaml.load(dataStr) as AppData;
       }
     }
   } catch (error) {
@@ -35,6 +40,8 @@ const loadData = async (): Promise<AppData> => {
 
 const main = async () => {
   let appData = await loadData();
+
+  console.log('appData : ', appData);
 
   logger.info('appData : ', appData);
 
