@@ -74,11 +74,11 @@ export const parseTraefikLabels = (
 
         routers[routerName] = {
           entryPoints: 'http',
-          service: serviceName,
+          service: routerName,
           rule: `Host(\`${serviceName}.${host.name.toLowerCase()}.home\`)`,
         };
 
-        services[serviceName] = {
+        services[routerName] = {
           loadBalancer: {
             servers: [
               {
