@@ -14,10 +14,17 @@ export const getTraefikDynamicConf = (traefikServices: TraefikService[], data: A
 
     const serviceIp = proxy?.activated ? proxy.destIP : service.host.ip;
 
+    const entryPoints = service.entryPoints ? service.entryPoints.split(',') : ['http'];
+    const middlewares = service.middlewares ? service.middlewares.split(',') : undefined;
+    const tlsResolver = service.tlsResolver;
+    const host = service.rule || `${service.serviceName}.${service.host.name.toLowerCase()}.home`;
+
     routers[routerName] = {
-      entryPoints: ['http'],
+      entryPoints,
       service: serviceName,
-      rule: `Host(\`${service.serviceName}.${service.host.name.toLowerCase()}.home\`)`,
+      middlewares,
+      rule: `Host(\`${host}\`)`,
+      tls: tlsResolver ? { certResolver: tlsResolver } : undefined,
     };
 
     services[serviceName] = {

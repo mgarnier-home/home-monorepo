@@ -66,7 +66,12 @@ const main = async () => {
             const serviceName =
               container.Labels['traefik-conf.name'] || container.Labels['com.docker.compose.service'] || '';
 
-            return { host, serviceName, portVariable };
+            const entryPoints = container.Labels['traefik-conf.entryPoints'];
+            const middlewares = container.Labels['traefik-conf.middlewares'];
+            const rule = container.Labels['traefik-conf.rule'];
+            const tlsResolver = container.Labels['traefik-conf.tlsResolver'];
+
+            return { host, serviceName, portVariable, entryPoints, middlewares, rule, tlsResolver };
           })
       );
     }

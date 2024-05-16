@@ -31,4 +31,8 @@ export interface TraefikService {
   host: Host;
   serviceName: string;
   portVariable: string;
+  entryPoints?: string;
+  middlewares?: string;
+  rule?: string;
+  tlsResolver?: string;
 }
