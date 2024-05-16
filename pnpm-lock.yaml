@@ -399,15 +399,7 @@ importers:
         specifier: workspace:*
         version: link:../../libs/utils
 
-  libs/docker-api:
-    dependencies:
-      docker-modem:
-        specifier: ^5.0.3
-        version: 5.0.3
-    devDependencies:
-      '@types/docker-modem':
-        specifier: 3.0.6
-        version: 3.0.6
+  libs/docker-api: {}
 
   libs/logger: {}
 
@@ -1913,9 +1905,6 @@ packages:
   '@types/cors@2.8.17':
     resolution: {integrity: sha512-8CGDvrBj1zgo2qE+oS3pOCyYNqCPryMWY2bGfwA0dcfopWGgxs+78df0Rs3rc9THP4JkOhLsAa+15VdpAqkcUA==}
 
-  '@types/docker-modem@3.0.6':
-    resolution: {integrity: sha512-yKpAGEuKRSS8wwx0joknWxsmLha78wNMe9R2S3UNsVOkZded8UqOrV8KoeDXoXsjndxwyF3eIhyClGbO1SEhEg==}
-
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
 
@@ -2794,10 +2783,6 @@ packages:
   dns-packet@5.6.1:
     resolution: {integrity: sha512-l4gcSouhcgIKRvyy99RNVOgxXiicE+2jZoNmaNmZ6JXiGajBOJAesk1OBlJuM5k2c+eudGdLxDqXuPCKIj6kpw==}
     engines: {node: '>=6'}
-
-  docker-modem@5.0.3:
-    resolution: {integrity: sha512-89zhop5YVhcPEt5FpUFGr3cDyceGhq/F9J+ZndQ4KfqNvfbJpPMfgeixFgUj5OjCYAboElqODxY5Z1EBsSa6sg==}
-    engines: {node: '>= 8.0'}
 
   dom-serialize@2.2.1:
     resolution: {integrity: sha512-Yra4DbvoW7/Z6LBN560ZwXMjoNOSAN2wRsKFGc4iBeso+mpIA6qj1vfdf9HpMaKAqG6wXTy+1SYEzmNpKXOSsQ==}
@@ -5045,9 +5030,6 @@ packages:
   spdy@4.0.2:
     resolution: {integrity: sha512-r46gZQZQV+Kl9oItvl1JZZqJKGr+oEkB08A6BzkiR7593/7IbtuncXHd2YoYeTsG4157ZssMu9KYvUHLcjcDoA==}
     engines: {node: '>=6.0.0'}
-
-  split-ca@1.0.1:
-    resolution: {integrity: sha512-Q5thBSxp5t8WPTTJQS59LrGqOZqOsrhDGDVm8azCqIBjSBd7nd9o2PM+mDulQQkh8h//4U6hFZnc/mul8t5pWQ==}
 
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
@@ -7473,11 +7455,6 @@ snapshots:
     dependencies:
       '@types/node': 20.10.5
 
-  '@types/docker-modem@3.0.6':
-    dependencies:
-      '@types/node': 20.10.5
-      '@types/ssh2': 1.11.18
-
   '@types/eslint-scope@3.7.7':
     dependencies:
       '@types/eslint': 8.56.6
@@ -8459,15 +8436,6 @@ snapshots:
   dns-packet@5.6.1:
     dependencies:
       '@leichtgewicht/ip-codec': 2.0.4
-
-  docker-modem@5.0.3:
-    dependencies:
-      debug: 4.3.4
-      readable-stream: 3.6.2
-      split-ca: 1.0.1
-      ssh2: 1.15.0
-    transitivePeerDependencies:
-      - supports-color
 
   dom-serialize@2.2.1:
     dependencies:
@@ -11156,8 +11124,6 @@ snapshots:
       spdy-transport: 3.0.0
     transitivePeerDependencies:
       - supports-color
-
-  split-ca@1.0.1: {}
 
   sprintf-js@1.0.3: {}
 

@@ -1,11 +1,12 @@
 import { Docker } from 'docker-api';
 import express from 'express';
 import fs from 'fs';
+import jsYaml from 'js-yaml';
 import { logger } from 'logger';
 
 import { config } from './utils/config.js';
-import { AppData, TraefikService } from './utils/interfaces.js';
-import { getTraefikDynamicConf } from './utils/traefikUtils.js';
+import { AppData } from './utils/interfaces.js';
+import { parseTraefikLabels } from './utils/traefikUtils.js';
 
 logger.setAppName('traefik-conf');
 
@@ -51,34 +52,26 @@ const main = async () => {
   app.get('/dynamic-config', async (req, res) => {
     appData = await loadData();
 
-    const traefikServices: TraefikService[] = [];
+    const traefikConf: any = { http: { services: {}, routers: {} } };
 
     for (const host of appData.hosts) {
       const docker = new Docker(`${host.ip}`, host.apiPort);
       const containers = await docker.listContainers();
-      traefikServices.push(
-        ...containers
-          .filter((container) => {
-            return container.Labels['traefik-conf.port'] != undefined;
-          })
-          .map((container) => {
-            const portVariable = container.Labels['traefik-conf.port'] || '';
-            const serviceName =
-              container.Labels['traefik-conf.name'] || container.Labels['com.docker.compose.service'] || '';
 
-            const entryPoints = container.Labels['traefik-conf.entryPoints'];
-            const middlewares = container.Labels['traefik-conf.middlewares'];
-            const rule = container.Labels['traefik-conf.rule'];
-            const tlsResolver = container.Labels['traefik-conf.tlsResolver'];
+      for (const container of containers) {
+        const result = parseTraefikLabels(host, container.Labels, appData);
 
-            return { host, serviceName, portVariable, entryPoints, middlewares, rule, tlsResolver };
-          })
-      );
+        if (result.services) {
+          traefikConf.http.services = { ...traefikConf.http.services, ...result.services };
+        }
+
+        if (result.routers) {
+          traefikConf.http.routers = { ...traefikConf.http.routers, ...result.routers };
+        }
+      }
     }
 
-    const dynamicYml = getTraefikDynamicConf(traefikServices, appData);
-
-    res.status(200).send(dynamicYml);
+    res.status(200).send(jsYaml.dump(traefikConf, { indent: 2 }));
   });
 
   app.get('/proxy-enable/:proxyIndex', async (req, res) => {
