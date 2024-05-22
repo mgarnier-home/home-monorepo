@@ -69,20 +69,30 @@ export const parseTraefikLabels = (
 
       if (trimmedKey === 'traefik-conf.port') {
         const serviceName = labels['traefik-conf.name'] || labels['com.docker.compose.service'] || '';
+        const rule = labels['traefik-conf.rule'] || `Host(\`${serviceName}.${data.domainName}\`)`;
+        const entrypoints = labels['traefik-conf.entrypoints'] || data.defaultEntrypoints;
+        const middlewares = labels['traefik-conf.middlewares'] || data.defaultMiddlewares;
+        const tlsResolver = labels['traefik-conf.tlsResolver'] || data.defaultCertResolver;
+
+        const port = isNaN(parseInt(trimmedValue, 10)) ? `{{env "${trimmedValue}" }}` : parseInt(trimmedValue, 10);
 
         const routerName = `${host.name}_${serviceName}`.toLowerCase();
 
         routers[routerName] = {
-          entryPoints: 'http',
+          entryPoints: entrypoints.split(',') || [],
+          middlewares: middlewares.split(',') || [],
+          tls: {
+            certResolver: tlsResolver,
+          },
           service: routerName,
-          rule: `Host(\`${serviceName}.${host.name.toLowerCase()}.home\`)`,
+          rule,
         };
 
         services[routerName] = {
           loadBalancer: {
             servers: [
               {
-                url: `http://${serverIp}:{{env "${trimmedValue}" }}/`,
+                url: `http://${serverIp}:${port}`,
               },
             ],
           },

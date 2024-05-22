@@ -35,6 +35,10 @@ const loadData = async (): Promise<AppData> => {
   return {
     proxies: [],
     hosts: [],
+    domainName: '',
+    defaultEntrypoints: '',
+    defaultCertResolver: '',
+    defaultMiddlewares: '',
   };
 };
 

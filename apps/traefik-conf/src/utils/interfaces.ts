@@ -19,6 +19,10 @@ export interface Host {
 export interface AppData {
   proxies: Proxy[];
   hosts: Host[];
+  domainName: string;
+  defaultEntrypoints: string;
+  defaultCertResolver: string;
+  defaultMiddlewares: string;
 }
 
 export interface StackInfos {
