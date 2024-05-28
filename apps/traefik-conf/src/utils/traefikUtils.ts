@@ -108,5 +108,5 @@ export const parseTraefikLabels = (
     }
   }
 
-  return { services, routers: Utils.deepMerge(personnalisedRouters, defaultRouters) };
+  return { services, routers: Utils.deepMerge(defaultRouters, personnalisedRouters) };
 };
