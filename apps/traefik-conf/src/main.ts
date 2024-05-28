@@ -37,7 +37,7 @@ const loadData = async (): Promise<AppData> => {
     hosts: [],
     domainName: '',
     defaultEntrypoints: '',
-    defaultCertResolver: '',
+    defaultTls: undefined,
     defaultMiddlewares: '',
   };
 };

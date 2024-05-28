@@ -21,11 +21,10 @@ export interface AppData {
   hosts: Host[];
   domainName: string;
   defaultEntrypoints: string;
-
   defaultMiddlewares: string;
-  defaultTls: {
-    defaultCertResolver: string;
-    defaultOptions: string;
+  defaultTls?: {
+    defaultCertResolver?: string;
+    defaultOptions?: string;
   };
 }
 
