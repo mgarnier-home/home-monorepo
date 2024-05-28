@@ -1,5 +1,7 @@
 build orchestrator amd64:
   extends: .build-template
+  tags:
+    - amd64
   variables:
     PROJECT_NAME: orchestrator
     TAG_NAME: amd64

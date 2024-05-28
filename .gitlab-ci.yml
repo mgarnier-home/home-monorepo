@@ -66,6 +66,8 @@ stages:
 
 install dependencies amd64:
   extends: .install-deps-template
+  tags:
+    - amd64
   variables:
     TAG_NAME: amd64
 

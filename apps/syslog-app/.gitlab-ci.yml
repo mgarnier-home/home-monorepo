@@ -1,5 +1,7 @@
 build syslog-app amd64:
   extends: .build-template
+  tags:
+    - amd64
   variables:
     PROJECT_NAME: syslog-app
     TAG_NAME: amd64

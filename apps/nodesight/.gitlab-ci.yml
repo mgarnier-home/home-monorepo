@@ -1,11 +1,15 @@
 build nodesight amd64:
   extends: .build-template
+  tags:
+    - amd64
   variables:
     PROJECT_NAME: nodesight
     TAG_NAME: amd64
 
 build nodesight amd64-nvidia:
   extends: .build-template
+  tags:
+    - amd64
   variables:
     PROJECT_NAME: nodesight
     TAG_NAME: amd64-nvidia

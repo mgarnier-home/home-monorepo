@@ -1,5 +1,7 @@
 build node-proxy amd64:
   extends: .build-template
+  tags:
+    - amd64
   variables:
     PROJECT_NAME: node-proxy
     TAG_NAME: amd64

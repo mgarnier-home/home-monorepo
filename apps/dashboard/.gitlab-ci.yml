@@ -1,5 +1,7 @@
 build dashboard amd64:
   extends: .build-template
+  tags:
+    - amd64
   variables:
     PROJECT_NAME: dashboard
     TAG_NAME: amd64
