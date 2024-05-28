@@ -12,79 +12,83 @@ export const parseTraefikLabels = (
 
   const services: any = {};
 
-  const routers: any = {};
+  const personnalisedRouters: any = {};
+
+  const defaultRouters: any = {};
 
   for (const [key, value] of Object.entries(labels)) {
     const trimmedKey = key.trim();
     const trimmedValue = value.trim();
 
     try {
-      if (trimmedKey.startsWith('my-traefik.http.services')) {
-        const serviceName = trimmedKey.split('.')[3];
+      // if (trimmedKey.startsWith('my-traefik.http.services')) {
+      //   const serviceName = trimmedKey.split('.')[3];
 
-        if (serviceName) {
-          services[serviceName] = {};
-          if (trimmedKey.endsWith('port')) {
-            services[serviceName].loadBalancer = {
-              servers: [{ url: `http://${serverIp}:{{env "${trimmedValue}" }}/` }],
-            };
-          }
-        }
-      }
+      //   if (serviceName) {
+      //     services[serviceName] = {};
+      //     if (trimmedKey.endsWith('port')) {
+      //       services[serviceName].loadBalancer = {
+      //         servers: [{ url: `http://${serverIp}:{{env "${trimmedValue}" }}/` }],
+      //       };
+      //     }
+      //   }
+      // }
 
       if (trimmedKey.startsWith('my-traefik.http.routers')) {
-        console.log('key', trimmedKey, 'value', trimmedValue);
+        // console.log('key', trimmedKey, 'value', trimmedValue);
         const splitKey = trimmedKey.split('.');
         const routerName = splitKey[3];
 
         if (routerName) {
-          if (!routers[routerName]) routers[routerName] = {};
+          if (!personnalisedRouters[routerName]) personnalisedRouters[routerName] = {};
 
           if (trimmedKey.endsWith('rule')) {
-            console.log('rule', trimmedValue);
-            routers[routerName].rule = trimmedValue;
+            personnalisedRouters[routerName].rule = trimmedValue;
           }
 
           if (trimmedKey.endsWith('entrypoints')) {
-            routers[routerName].entryPoints = trimmedValue.split(',');
+            personnalisedRouters[routerName].entryPoints = trimmedValue.split(',');
           }
 
           if (trimmedKey.endsWith('service')) {
-            routers[routerName].service = trimmedValue;
+            personnalisedRouters[routerName].service = trimmedValue;
           }
 
           if (trimmedKey.endsWith('middlewares')) {
-            routers[routerName].middlewares = trimmedValue.split(',');
+            personnalisedRouters[routerName].middlewares = trimmedValue.split(',');
           }
 
           if (splitKey[4] === 'tls') {
-            if (!routers[routerName].tls) {
-              routers[routerName].tls = {};
+            if (!personnalisedRouters[routerName].tls) {
+              personnalisedRouters[routerName].tls = {};
             }
 
-            routers[routerName].tls[splitKey[5]!] = trimmedValue;
+            personnalisedRouters[routerName].tls[splitKey[5]!] = trimmedValue;
           }
         }
       }
 
       if (trimmedKey === 'traefik-conf.port') {
         const serviceName = labels['traefik-conf.name'] || labels['com.docker.compose.service'] || '';
-        const rule = labels['traefik-conf.rule'] || `Host(\`${serviceName}.${data.domainName}\`)`;
-        const entrypoints = labels['traefik-conf.entrypoints'] || data.defaultEntrypoints;
-        const middlewares = labels['traefik-conf.middlewares'] || data.defaultMiddlewares;
-        const tlsResolver = labels['traefik-conf.tlsResolver'] || data.defaultCertResolver;
+        const rule = `Host(\`${serviceName}.${data.domainName}\`)`;
+        const entrypoints = data.defaultEntrypoints;
+        const middlewares = data.defaultMiddlewares;
+        const tls = data.defaultTls
+          ? {
+              certResolver: data.defaultTls.defaultCertResolver ?? undefined,
+              options: data.defaultTls.defaultOptions ?? undefined,
+            }
+          : undefined;
 
         const port = isNaN(parseInt(trimmedValue, 10)) ? `{{env "${trimmedValue}" }}` : parseInt(trimmedValue, 10);
 
         const routerName = `${host.name}_${serviceName}`.toLowerCase();
 
-        routers[routerName] = {
+        defaultRouters[routerName] = {
           entryPoints: entrypoints.split(',') || [],
           middlewares: middlewares.split(',') || [],
-          tls: {
-            certResolver: tlsResolver,
-          },
           service: routerName,
+          tls,
           rule,
         };
 
@@ -103,5 +107,5 @@ export const parseTraefikLabels = (
     }
   }
 
-  return { services, routers };
+  return { services, routers: { ...defaultRouters, ...personnalisedRouters } };
 };

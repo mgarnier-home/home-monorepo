@@ -21,8 +21,12 @@ export interface AppData {
   hosts: Host[];
   domainName: string;
   defaultEntrypoints: string;
-  defaultCertResolver: string;
+
   defaultMiddlewares: string;
+  defaultTls: {
+    defaultCertResolver: string;
+    defaultOptions: string;
+  };
 }
 
 export interface StackInfos {
