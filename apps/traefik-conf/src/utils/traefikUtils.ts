@@ -1,4 +1,5 @@
 import jsYaml from 'js-yaml';
+import { Utils } from 'utils';
 
 import { AppData, Host } from './interfaces';
 
@@ -107,5 +108,5 @@ export const parseTraefikLabels = (
     }
   }
 
-  return { services, routers: { ...defaultRouters, ...personnalisedRouters } };
+  return { services, routers: Utils.deepMerge(personnalisedRouters, defaultRouters) };
 };
