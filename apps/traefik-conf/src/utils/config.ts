@@ -7,7 +7,7 @@ import { Config } from './interfaces.js';
 
 dotenv.config();
 
-const configFilePath = process.env.CONFIG_FILE || Path.resolve(__dirname, '../../config.json');
+const configFilePath = process.env.CONFIG_FILE || Path.resolve(__dirname, '../../conf.json');
 
 const loadConfigFromFile = (): Config => {
   const config = Fs.readFileSync(configFilePath, 'utf-8');

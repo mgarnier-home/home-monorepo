@@ -4,3 +4,6 @@ coverage
 .env
 .nx
 .pnpm-store
+conf.yml
+
+conf.json

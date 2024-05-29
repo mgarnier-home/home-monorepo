@@ -1,4 +1,4 @@
-import { Docker } from 'docker-api';
+import { Container, Docker } from 'docker-api';
 import express from 'express';
 import fs from 'fs';
 import jsYaml from 'js-yaml';
@@ -9,6 +9,8 @@ import { AppData } from './utils/interfaces.js';
 import { parseTraefikLabels } from './utils/traefikUtils.js';
 
 logger.setAppName('traefik-conf');
+
+const containersMap = new Map<string, Container[]>();
 
 const saveData = async (data: AppData) => {
   const stringData = config.dataFilePath.endsWith('.json') ? JSON.stringify(data, null, 4) : jsYaml.dump(data);
@@ -66,18 +68,26 @@ const main = async () => {
     const traefikConf: any = { http: { services: {}, routers: {} } };
 
     for (const host of appData.hosts) {
-      const docker = new Docker(`${host.ip}`, host.apiPort);
-      const containers = await docker.listContainers();
+      try {
+        const docker = new Docker(`${host.ip}`, host.apiPort);
 
-      for (const container of containers) {
-        const result = parseTraefikLabels(host, container.Labels, appData);
+        containersMap.set(host.ip, await docker.listContainers());
+      } catch (error) {
+        logger.error('Error while getting containers : ', error);
+      }
 
-        if (result.services) {
-          traefikConf.http.services = { ...traefikConf.http.services, ...result.services };
-        }
+      const containers = containersMap.get(host.ip);
+      if (containers) {
+        for (const container of containers) {
+          const result = parseTraefikLabels(host, container.Labels, appData);
 
-        if (result.routers) {
-          traefikConf.http.routers = { ...traefikConf.http.routers, ...result.routers };
+          if (result.services) {
+            traefikConf.http.services = { ...traefikConf.http.services, ...result.services };
+          }
+
+          if (result.routers) {
+            traefikConf.http.routers = { ...traefikConf.http.routers, ...result.routers };
+          }
         }
       }
     }
