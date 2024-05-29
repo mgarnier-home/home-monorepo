@@ -77,6 +77,7 @@ const main = async () => {
       }
 
       const containers = containersMap.get(host.ip);
+
       if (containers) {
         for (const container of containers) {
           const result = parseTraefikLabels(host, container.Labels, appData);

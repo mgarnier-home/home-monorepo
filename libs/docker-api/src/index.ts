@@ -10,8 +10,6 @@ export class Docker {
   }
 
   async listContainers(): Promise<Container[]> {
-    console.log(`http://${this.host}:${this.port}/containers/json`);
-
     const response = await fetch(`http://${this.host}:${this.port}/containers/json`);
 
     return await response.json();
