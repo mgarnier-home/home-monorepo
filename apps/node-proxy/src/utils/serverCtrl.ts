@@ -155,43 +155,6 @@ export class ServerControl {
     );
   }
 
-  static async getServicesFromSSH(serverIp: string, sshUsername: string, sshPassword: string): Promise<Service[]> {
-    const str = await ServerControl.executeCommand(
-      serverIp,
-      sshUsername,
-      sshPassword,
-      `docker ps --format "{{.Names}}|{{.ID}}|{{.Ports}}"`
-    );
-
-    const lines = str.split('\n');
-
-    const services: Service[] = [];
-
-    for (const line of lines) {
-      const parts = line.split('|');
-
-      if (parts.length === 3) {
-        const name = parts[0] ?? '';
-        const forwardedPorts = parts[2]?.split(',').filter((p) => p.includes('->'));
-
-        for (const forwardedPort of forwardedPorts ?? []) {
-          const protocol = forwardedPort.includes('tcp') ? Protocol.TCP : Protocol.UDP;
-          const forwardedPortInfos = forwardedPort.split('->');
-
-          const port = forwardedPortInfos[0]?.split(':')[1];
-
-          services.push({
-            name,
-            proxyPort: parseInt(port ?? ''),
-            protocol,
-          });
-        }
-      }
-    }
-
-    return services;
-  }
-
   static getServicesFromEnv(hostname: string): Service[] {
     const services: Service[] = [];
 
@@ -213,6 +176,10 @@ export class ServerControl {
       }
     }
     return services;
+  }
+
+  static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<Service[]> {
+    return [];
   }
 
   static async stopServer(serverHost: string, sshUsername: string, sshPassword: string) {

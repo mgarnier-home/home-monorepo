@@ -56,27 +56,7 @@ const getHost = (host: string): HostServer => {
     throw new Error('Host not found');
   }
 
-  return hostServers[hostIndex] as HostServer;
-};
-
-const startHost = async (req: Request, res: Response) => {
-  const host = res.locals.host as HostServer;
-
-  if (await host.startHost()) {
-    res.send('Server started');
-  } else {
-    res.status(500).send('Error starting server');
-  }
-};
-
-const stopHost = async (req: Request, res: Response) => {
-  const host = res.locals.host as HostServer;
-
-  if (await host.stopHost()) {
-    res.send('Server stopped');
-  } else {
-    res.status(500).send('Error stopping server');
-  }
+  return hostServers[hostIndex];
 };
 
 const main = async () => {
@@ -123,19 +103,25 @@ const main = async () => {
     }
   });
 
-  app.get('/control/:host/startstop', async (req, res) => {
+  app.get('/control/:host/start', async (req: Request, res: Response) => {
     const host = res.locals.host as HostServer;
 
-    if (host.hostStarted) {
-      stopHost(req, res);
+    if (await host.startHost()) {
+      res.send('Server started');
     } else {
-      startHost(req, res);
+      res.status(500).send('Error starting server');
     }
   });
 
-  app.get('/control/:host/start', startHost);
+  app.get('/control/:host/stop', async (req: Request, res: Response) => {
+    const host = res.locals.host as HostServer;
 
-  app.get('/control/:host/stop', stopHost);
+    if (await host.stopHost()) {
+      res.send('Server stopped');
+    } else {
+      res.status(500).send('Error stopping server');
+    }
+  });
 
   app.get('/control/:host/disable', (req, res) => {
     const host = res.locals.host as HostServer;
