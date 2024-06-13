@@ -50,6 +50,7 @@ export class Host {
     this.refreshHostStatus = this.refreshHostStatus.bind(this);
     this.spawnServiceWorker = this.spawnServiceWorker.bind(this);
     this.handleWorkerMessage = this.handleWorkerMessage.bind(this);
+    this.refreshServices = this.refreshServices.bind(this);
 
     this.config = config;
     this._configUpdated = configUpdated;

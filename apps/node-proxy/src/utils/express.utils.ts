@@ -51,6 +51,16 @@ export const createExpressApp = (apiPort: number) => {
     res.send('Server stopped');
   });
 
+  app.get('/control/:host/start-stop', async (req: Request, res: ResponseWithHost) => {
+    if (await res.locals.host.getHostStatus()) {
+      await res.locals.host.stopHost();
+      res.send('Server stopped');
+    } else {
+      await res.locals.host.startHost();
+      res.send('Server started');
+    }
+  });
+
   app.get('/control/:host/status', async (req, res: ResponseWithHost) => {
     const status = await res.locals.host.getHostStatus();
 
