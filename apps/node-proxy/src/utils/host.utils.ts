@@ -1,18 +1,20 @@
 import fs from 'fs';
 import jsYaml from 'js-yaml';
+import { logger } from 'logger';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { Host } from '../classes/host.class';
-import { HostConfig } from './interfaces';
+import { Host } from '../classes/host.class.js';
+import { HostConfig } from './interfaces.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const hosts: Host[] = [];
-const configFilePath = process.env.CONFIG_FILE || path.resolve(__dirname, '../../config.json');
+const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../../config.json');
 
 const loadConfig = async (): Promise<HostConfig[]> => {
+  logger.debug('Loading config from : ', configFilePath);
   if (fs.existsSync(configFilePath)) {
     const dataStr = await fs.promises.readFile(configFilePath, 'utf-8');
 
@@ -44,6 +46,8 @@ export const getHost = (host: string): Host | undefined => {
 
 export const setupHosts = async () => {
   const hostConfigs = await loadConfig();
+
+  logger.info('Hosts loaded : ', hostConfigs);
 
   hosts.push(...hostConfigs.map((config) => new Host(config, hostConfigUpdated)));
 };

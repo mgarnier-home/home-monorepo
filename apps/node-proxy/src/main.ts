@@ -1,7 +1,7 @@
 import { logger } from 'logger';
 
-import { createExpressApp } from './utils/express.utils';
-import { setupHosts } from './utils/host.utils';
+import { createExpressApp } from './utils/express.utils.js';
+import { setupHosts } from './utils/host.utils.js';
 
 logger.setAppName('node-proxy');
 

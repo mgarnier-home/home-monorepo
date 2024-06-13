@@ -1,3 +1,4 @@
+import { Container, Docker } from 'docker-api';
 import { logger } from 'logger';
 import { NodeSSH } from 'node-ssh';
 import Ping from 'ping';
@@ -5,6 +6,8 @@ import { Client } from 'ssh2';
 import Wol from 'wol';
 
 import { Protocol, ServiceConfig } from '../utils/interfaces.js';
+
+const containersMap = new Map<string, Container[]>();
 
 export class ServerControl {
   public static getServerStatus(hostIP: string) {
@@ -179,7 +182,38 @@ export class ServerControl {
   }
 
   static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<ServiceConfig[]> {
-    return [];
+    try {
+      const docker = new Docker(`${serverIp}`, dockerPort);
+
+      containersMap.set(serverIp, await docker.listContainers());
+    } catch (error) {
+      logger.error('Error while getting containers : ', error);
+    }
+
+    const containers = containersMap.get(serverIp);
+
+    const services: ServiceConfig[] = [];
+
+    if (containers) {
+      for (const container of containers) {
+        const publicPorts = [
+          ...new Set(container.Ports?.map((p) => p.PublicPort).filter((p) => p !== undefined) as number[]),
+        ];
+
+        for (const port of publicPorts) {
+          services.push({
+            name: container.Names[0].replace('/', ''),
+            servicePort: port,
+            proxyPort: port,
+            protocol: Protocol.TCP,
+          });
+        }
+      }
+    }
+
+    console.log('services : ', services);
+
+    return services;
   }
 
   static async stopServer(serverHost: string, sshUsername: string, sshPassword: string) {
