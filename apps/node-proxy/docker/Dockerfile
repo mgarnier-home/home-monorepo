@@ -25,36 +25,9 @@ COPY --from=build /app .
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3000 || exit 1
 
+EXPOSE 3000
+
+ENV SERVER_PORT=3000
+ENV CONFIG_FILE=/app/config.json
+
 CMD ["node", "./dist/main.js"]
-
-
-# FROM node:18.11.0-alpine AS build
-
-# WORKDIR /usr/app
-
-# RUN npm i -g pnpm
-
-# # Install dependencies
-# COPY ./package.json ./
-# RUN pnpm install --shamefully-hoist
-
-# # Copy local code to the container image
-# COPY ./src ./src
-# COPY ./tsconfig.json ./tsconfig.json
-
-# # Compile the code
-# RUN pnpm run compile
-
-# RUN rm -rf ./src
-
-# RUN pnpm prune --prod
-
-# FROM node:18.11.0-alpine AS app
-
-# RUN apk add iputils
-
-# WORKDIR /usr/app
-
-# COPY --from=build /usr/app/ .
-
-# CMD node ./dist/index.js

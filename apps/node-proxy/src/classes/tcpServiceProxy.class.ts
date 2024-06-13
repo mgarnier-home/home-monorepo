@@ -1,6 +1,6 @@
 import { Server, Socket } from 'net';
 
-import { sendStartingServer } from '../utils/ntfy.js';
+import { sendStartingServer } from '../utils/ntfy.utils.js';
 import { ProxyWorker } from './proxyWorker.class.js';
 
 interface SocketContext {

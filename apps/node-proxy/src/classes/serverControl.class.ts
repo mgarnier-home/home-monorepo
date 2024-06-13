@@ -4,7 +4,7 @@ import Ping from 'ping';
 import { Client } from 'ssh2';
 import Wol from 'wol';
 
-import { Protocol, Service } from './interfaces.js';
+import { Protocol, ServiceConfig } from '../utils/interfaces.js';
 
 export class ServerControl {
   public static getServerStatus(hostIP: string) {
@@ -155,8 +155,8 @@ export class ServerControl {
     );
   }
 
-  static getServicesFromEnv(hostname: string): Service[] {
-    const services: Service[] = [];
+  static getServicesFromEnv(hostname: string): ServiceConfig[] {
+    const services: ServiceConfig[] = [];
 
     for (const key in process.env) {
       if (key.endsWith('_PORT')) {
@@ -178,7 +178,7 @@ export class ServerControl {
     return services;
   }
 
-  static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<Service[]> {
+  static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<ServiceConfig[]> {
     return [];
   }
 

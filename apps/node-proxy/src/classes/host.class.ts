@@ -3,12 +3,12 @@ import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { Worker } from 'worker_threads';
 
-import { __dirname } from '../utils/config.js';
+import { __dirname } from '../utils/constants.js';
 import {
     HostConfig, ManagerThreadMessage, ServiceConfig, ThreadMessageType, WorkerThreadMessage
 } from '../utils/interfaces.js';
-import { sendStoppingServer } from '../utils/ntfy.js';
-import { ServerControl } from '../utils/serverCtrl.js';
+import { sendStoppingServer } from '../utils/ntfy.utils.js';
+import { ServerControl } from './serverControl.class.js';
 
 // import { TCPServiceProxy } from "./tcpServiceProxy.class.ts.old";
 
@@ -30,16 +30,29 @@ export class Host {
   private hostRefreshStatusInterval?: NodeJS.Timeout;
   private hostRefreshServicesInterval?: NodeJS.Timeout;
 
-  private config: HostConfig;
+  private _configUpdated: () => void;
+
+  public config: HostConfig;
   private servicesConfig: ServiceConfig[] = [];
   private workers: Map<string, WorkerConfig> = new Map();
 
-  constructor(config: HostConfig) {
+  public updateOptionValue(key: keyof HostConfig['options'], value: any) {
+    if (!this.config.options) {
+      (this.config.options as any) = {};
+    }
+
+    (this.config.options as any)[key] = value;
+
+    this._configUpdated();
+  }
+
+  constructor(config: HostConfig, configUpdated: () => void) {
     this.refreshHostStatus = this.refreshHostStatus.bind(this);
     this.spawnServiceWorker = this.spawnServiceWorker.bind(this);
     this.handleWorkerMessage = this.handleWorkerMessage.bind(this);
 
     this.config = config;
+    this._configUpdated = configUpdated;
 
     this.log('Host created');
     this.log(`IP: ${this.config.ip}`);
@@ -47,7 +60,7 @@ export class Host {
     this.log(`SSH Username: ${this.config.sshUsername}`);
     this.log(`SSH Password: ${this.config.sshPassword}`);
 
-    // this.setupHost();
+    this.setupHost();
   }
 
   private log(...args: any[]) {
@@ -65,11 +78,11 @@ export class Host {
     // this.log('Services', this.servicesConfig);
   }
 
-  private refreshServices() {
+  private async refreshServices() {
     const dockerServices: ServiceConfig[] = [];
 
     try {
-      dockerServices.push(...ServerControl.getServicesFromDocker(this.config.name));
+      dockerServices.push(...(await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)));
     } catch (error) {
       this.log('Error refreshing services from docker: ' + error);
       return;
@@ -90,8 +103,7 @@ export class Host {
 
     for (const [id, { worker, service }] of this.workers) {
       if (!this.servicesConfig.find((s) => getServiceId(s) === id)) {
-        this.sendMessageToWorker(worker, { type: ThreadMessageType.DISPOSE_WORKER });
-        this.workers.delete(id);
+        this.disposeWorker(id, worker);
       }
     }
   }
@@ -136,6 +148,18 @@ export class Host {
     });
 
     this.workers.set(getServiceId(service), { worker, service });
+  }
+
+  private async disposeWorker(workerId: string, worker: Worker) {
+    this.sendMessageToWorker(worker, { type: ThreadMessageType.DISPOSE_WORKER });
+
+    await setTimeout(1500);
+
+    worker.removeAllListeners();
+
+    worker.terminate();
+
+    this.workers.delete(workerId);
   }
 
   private sendMessageToWorker(worker: Worker, message: ManagerThreadMessage) {
@@ -279,32 +303,4 @@ export class Host {
   public async getHostStatus(): Promise<boolean> {
     return ServerControl.getServerStatus(this.config.ip);
   }
-
-  // public get hostStarted() {
-  //   return this._hostStarted;
-  // }
-
-  // public updateOptionValue(key: string, value: any) {
-  //   if (!this.config.options) {
-  //     (this.config.options as any) = {};
-  //   }
-
-  //   (this.config.options as any)[key] = value;
-  // }
-
-  // public disableAutoStop() {
-  //   this.updateOptionValue('autoStop', false);
-
-  //   updateHostConfig(this.config);
-  // }
-
-  // public async enableAutoStop() {
-  //   this.updateOptionValue('autoStop', true);
-
-  //   updateHostConfig(this.config);
-  // }
-
-  // public getAutoStop() {
-  //   return this.config.options?.autoStop;
-  // }
 }

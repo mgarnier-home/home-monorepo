@@ -3,30 +3,29 @@ export enum Protocol {
   UDP = 'udp',
 }
 
-export interface Service {
+export interface ServiceConfig {
   name: string;
   proxyPort: number;
   servicePort?: number;
   protocol: Protocol;
 }
 
-export interface HostOptions {
-  maxAliveTime: number;
-  autoStop: boolean;
-}
-
-export interface Host {
+export interface HostConfig {
   name: string;
   ip: string;
+  dockerPort: number;
   macAddress: string;
   sshUsername: string;
   sshPassword: string;
-  additionalServices?: Service[];
-  options?: HostOptions;
+  additionalServices?: ServiceConfig[];
+  options: {
+    maxAliveTime: number;
+    autoStop: boolean;
+  };
 }
 
-export interface Config {
-  hosts: Host[];
+export interface AppData {
+  hostsConfigs: HostConfig[];
 }
 
 export enum ThreadMessageType {
