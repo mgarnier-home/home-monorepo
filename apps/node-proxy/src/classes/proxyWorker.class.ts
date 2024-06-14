@@ -1,14 +1,9 @@
-import colors from 'colors';
 import { logger } from 'logger';
 import { parentPort, threadId } from 'worker_threads';
 
 import {
-  HostStatusThreadMessageData,
-  ManagerThreadMessage,
-  Protocol,
-  StartProxyThreadMessageData,
-  ThreadMessageType,
-  WorkerThreadMessage,
+    HostStatusThreadMessageData, ManagerThreadMessage, Protocol, StartProxyThreadMessageData,
+    ThreadMessageType, WorkerThreadMessage
 } from '../utils/interfaces.js';
 import { TCPServiceProxy } from './tcpServiceProxy.class.js';
 

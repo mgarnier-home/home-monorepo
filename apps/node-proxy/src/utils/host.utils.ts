@@ -1,4 +1,3 @@
-import { watch as watchFile } from 'chokidar';
 import fs from 'fs';
 import jsYaml from 'js-yaml';
 import { logger } from 'logger';
@@ -14,29 +13,25 @@ const __dirname = path.dirname(__filename);
 const hosts: Host[] = [];
 const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../../config.json');
 
+const lastConfig: HostConfig[] = [];
+
 const loadConfig = async (): Promise<HostConfig[]> => {
-  logger.debug('Loading config from : ', configFilePath);
-  if (fs.existsSync(configFilePath)) {
-    const dataStr = await fs.promises.readFile(configFilePath, 'utf-8');
+  try {
+    if (fs.existsSync(configFilePath)) {
+      const dataStr = await fs.promises.readFile(configFilePath, 'utf-8');
 
-    if (dataStr !== '') {
-      if (configFilePath.endsWith('.json')) {
-        return JSON.parse(dataStr) as HostConfig[];
+      if (dataStr !== '') {
+        if (configFilePath.endsWith('.json')) {
+          return JSON.parse(dataStr) as HostConfig[];
+        }
+        return jsYaml.load(dataStr) as HostConfig[];
       }
-      return jsYaml.load(dataStr) as HostConfig[];
     }
+  } catch (err) {
+    logger.error('Error loading config file : ', err);
   }
+
   return [];
-};
-
-const getConfig = (cb: (config: HostConfig[]) => void) => {
-  watchFile(configFilePath, { ignoreInitial: false }).on('all', async (event, path) => {
-    logger.info('Config file changed, triggering callback');
-
-    const config = await loadConfig();
-
-    cb(config);
-  });
 };
 
 const saveConfig = async (data: HostConfig[]) => {
@@ -56,13 +51,28 @@ export const getHost = (host: string): Host | undefined => {
 };
 
 export const setupConfigListenner = () => {
-  getConfig(async (configs: HostConfig[]) => {
+  logger.debug('Loading config from : ', configFilePath);
+
+  const configFileChanged = async (configs: HostConfig[]) => {
     await disposeHosts();
 
     logger.info('Hosts loaded : ', configs);
 
     hosts.push(...configs.map((config) => new Host(config, hostConfigUpdated)));
-  });
+  };
+
+  setInterval(async () => {
+    const config = await loadConfig();
+
+    if (JSON.stringify(config) !== JSON.stringify(lastConfig)) {
+      lastConfig.splice(0, lastConfig.length);
+      lastConfig.push(...config);
+
+      logger.info('Config file changed, triggering callback');
+
+      configFileChanged(config);
+    }
+  }, 30 * 1000);
 };
 
 export const disposeHosts = async () => {

@@ -17,12 +17,8 @@
     "@types/wol": "^1.0.1"
   },
   "dependencies": {
-    "chokidar": "^3.5.3",
-    "colors": "^1.4.0",
     "docker-api": "workspace:*",
-    "dotenv": "^16.0.3",
     "express": "^4.18.2",
-    "is-ip": "^5.0.0",
     "js-yaml": "^4.1.0",
     "logger": "workspace:*",
     "node-ssh": "^13.0.0",
@@ -30,5 +26,5 @@
     "ping": "^0.4.2",
     "wol": "^1.0.7"
   },
-  "version": "2.0.5"
+  "version": "2.0.6"
 }
