@@ -81,7 +81,6 @@ export const disposeHosts = async () => {
 
     logger.info('Host disposed : ', host.config.name);
   }
-
   hosts.splice(0, hosts.length);
 
   logger.info('All hosts disposed');
