@@ -75,38 +75,53 @@ export class Host {
     this.hostRefreshServicesInterval = setInterval(this.refreshServices, 30 * 1000);
 
     this.refreshServices();
-
-    // this.log('Services', this.servicesConfig);
   }
 
   private async refreshServices() {
-    const dockerServices: ServiceConfig[] = [];
-
     try {
-      dockerServices.push(...(await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)));
+      this.servicesConfig = [
+        ...(await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)),
+        ...(this.config.additionalServices || []),
+      ];
+
+      for (const service of this.servicesConfig) {
+        if (!this.workers.has(getServiceId(service))) {
+          this.spawnServiceWorker(service);
+        }
+      }
+
+      for (const [id, { worker, service }] of this.workers) {
+        if (!this.servicesConfig.find((s) => getServiceId(s) === id)) {
+          this.disposeWorker(id, worker);
+        }
+      }
     } catch (error) {
-      this.log('Error refreshing services from docker: ' + error);
+      this.log('Error refreshing services ', error);
       return;
     }
+  }
 
-    this.servicesConfig = [
-      // ...(await ServerControl.getServices(this.config.ip, this.config.sshUsername, this.config.sshPassword)),
-      // ...ServerControl.getServicesFromEnv(this.config.name),
-      ...dockerServices,
-      ...(this.config.additionalServices || []),
-    ];
+  public async dispose() {
+    await Promise.all(
+      Array.from(this.workers.values()).map(async ({ worker, service }) => {
+        this.sendMessageToWorker(worker, {
+          type: ThreadMessageType.DISPOSE_WORKER,
+        });
 
-    for (const service of this.servicesConfig) {
-      if (!this.workers.has(getServiceId(service))) {
-        this.spawnServiceWorker(service);
-      }
-    }
+        await setTimeout(1500);
 
-    for (const [id, { worker, service }] of this.workers) {
-      if (!this.servicesConfig.find((s) => getServiceId(s) === id)) {
-        this.disposeWorker(id, worker);
-      }
-    }
+        worker.removeAllListeners();
+
+        worker.terminate();
+
+        this.log(`Worker ${worker.threadId} for ${service.name} disposed`);
+      })
+    );
+
+    this.workers.clear();
+
+    clearInterval(this.hostRefreshServicesInterval);
+    clearInterval(this.hostRefreshStatusInterval);
   }
 
   private spawnServiceWorker(service: ServiceConfig) {

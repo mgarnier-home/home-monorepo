@@ -187,7 +187,7 @@ export class ServerControl {
 
       containersMap.set(serverIp, await docker.listContainers());
     } catch (error) {
-      logger.error('Error while getting containers : ', error);
+      logger.error('Could not get containers, server must be stopped', error);
     }
 
     const containers = containersMap.get(serverIp);
@@ -208,8 +208,6 @@ export class ServerControl {
         }
       }
     }
-
-    console.log('services : ', services);
 
     return services;
   }
