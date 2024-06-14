@@ -196,15 +196,13 @@ export class ServerControl {
 
     if (containers) {
       for (const container of containers) {
-        const publicPorts = [
-          ...new Set(container.Ports?.map((p) => p.PublicPort).filter((p) => p !== undefined) as number[]),
-        ];
+        const traefikConfPort = container.Labels['traefik-conf.port'];
 
-        for (const port of publicPorts) {
+        if (traefikConfPort && !isNaN(parseInt(traefikConfPort))) {
           services.push({
             name: container.Names[0].replace('/', ''),
-            servicePort: port,
-            proxyPort: port,
+            servicePort: parseInt(traefikConfPort),
+            proxyPort: parseInt(traefikConfPort),
             protocol: Protocol.TCP,
           });
         }
