@@ -8,19 +8,18 @@
     "verbatimModuleSyntax": false,
     "allowJs": true,
     "resolveJsonModule": true,
-    "moduleDetection": "force",
     /* Strictness */
     "strict": true,
     "noUncheckedIndexedAccess": true,
     /* If NOT transpiling with TypeScript: */
-    "moduleResolution": "Bundler",
-    "module": "ESNext",
+    "moduleResolution": "Node",
+    "module": "CommonJS",
     "noEmit": true,
     /* If your code doesn't run in the DOM: */
     "lib": ["es2022", "DOM"],
     "paths": {
-      "@libs/*": ["./libs/*/src/index.ts"],
-      "@libs/nodesight-types": ["./libs/nodesight-types/types/types.d.ts"]
+      "@libs/*": ["libs/*/src/index.ts"],
+      "@libs/nodesight-types": ["libs/nodesight-types/types/types.d.ts"]
     }
   }
 }
