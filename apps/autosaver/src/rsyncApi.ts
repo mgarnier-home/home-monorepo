@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { logger } from 'logger';
+
+import { logger } from '@libs/logger';
 
 export namespace RsyncApi {
   export const rsyncFolder = async (source: string, destination: string) => {

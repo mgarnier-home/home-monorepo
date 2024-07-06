@@ -1,5 +1,6 @@
-import { logger } from 'logger';
 import nodemailer from 'nodemailer';
+
+import { logger } from '@libs/logger';
 
 import { getBackupConfig } from './utils/config';
 import { BackupConfig } from './utils/types';

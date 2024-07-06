@@ -1,5 +1,6 @@
 import express from 'express';
-import { logger } from 'logger';
+
+import { logger } from '@libs/logger';
 
 import { Cpu } from './hwInfo/cpu.js';
 import { Gpu } from './hwInfo/gpu.js';

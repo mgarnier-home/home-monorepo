@@ -1,4 +1,4 @@
-import { NtfyUtils } from 'ntfy-utils';
+import { NtfyUtils } from '@libs/ntfy-utils';
 
 import { DirectoryToBackup } from './types';
 

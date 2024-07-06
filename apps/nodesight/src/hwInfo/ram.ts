@@ -1,6 +1,7 @@
-import { HwRam } from 'nodesight-types';
 import * as si from 'systeminformation';
-import { Utils } from 'utils';
+
+import { HwRam } from '@libs/nodesight-types';
+import { Utils } from '@libs/utils';
 
 const getStaticInfo = async (): Promise<HwRam.Static> => {
   const [memInfo, memLayout] = await Promise.all([si.mem(), si.memLayout()]);

@@ -1,8 +1,9 @@
 import cpy from 'cpy';
 import fs from 'fs';
-import { logger } from 'logger';
 import path from 'path';
-import { Utils } from 'utils';
+
+import { logger } from '@libs/logger';
+import { Utils } from '@libs/utils';
 
 export namespace SaveApi {
   export const cleanOldDirectories = async (backupFolder: string): Promise<void> => {

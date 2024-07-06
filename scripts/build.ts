@@ -1,7 +1,18 @@
 import esbuild, { BuildOptions } from 'esbuild';
 
+
+const getProject = (args: string[]): string => {
+
+  
+  
+}
+
 const main = async () => {
   const args = process.argv.slice(2);
+
+  const [script, project] = args;
+
+
 
   const context: BuildOptions = {
     entryPoints: ['src/main.ts'],

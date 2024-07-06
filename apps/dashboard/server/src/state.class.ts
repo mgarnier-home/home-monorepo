@@ -1,7 +1,6 @@
 import fs from 'fs';
 import jsYaml from 'js-yaml';
 import { logger } from 'logger';
-import pLimit from 'p-limit';
 import { SimpleCache, Utils } from 'utils';
 
 import { config } from './utils/config';

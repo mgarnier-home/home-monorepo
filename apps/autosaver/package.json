@@ -25,12 +25,9 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "generate-password": "^1.7.0",
-    "logger": "workspace:*",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.3",
-    "ntfy-utils": "workspace:*",
-    "utils": "workspace:*",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.17"
+  "version": "2.0.18"
 }

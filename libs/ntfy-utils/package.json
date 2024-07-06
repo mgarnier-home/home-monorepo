@@ -4,7 +4,6 @@
   "private": true,
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
-  "exports": "./dist/lib/index.js",
   "scripts": {
     "test": "jest",
     "test:integration": "npm start -- noGen",

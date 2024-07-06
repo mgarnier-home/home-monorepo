@@ -1,6 +1,7 @@
-import { HwStorage } from 'nodesight-types';
 import * as si from 'systeminformation';
-import { Utils } from 'utils';
+
+import { HwStorage } from '@libs/nodesight-types';
+import { Utils } from '@libs/utils';
 
 const getPartitionsWindows = (
   disks: HwStorage.Disk[],

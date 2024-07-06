@@ -1,0 +1,5 @@
+builder: esbuild
+
+esbuildContext: 
+  entrypoint: src/main.ts
+  tsconfig: tsconfig.json
