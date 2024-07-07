@@ -8,9 +8,10 @@
     "verbatimModuleSyntax": false,
     "allowJs": true,
     "resolveJsonModule": true,
+    "sourceMap": true,
     /* Strictness */
     "strict": true,
-    "noUncheckedIndexedAccess": true,
+    // "noUncheckedIndexedAccess": true,
     /* If NOT transpiling with TypeScript: */
     "moduleResolution": "Node",
     "module": "CommonJS",
@@ -21,5 +22,6 @@
       "@libs/*": ["libs/*/src/index.ts"],
       "@libs/nodesight-types": ["libs/nodesight-types/types/types.d.ts"]
     }
-  }
+  },
+  "include": ["apps/autosaver/src/**/*.ts", "libs/**/*.ts"]
 }

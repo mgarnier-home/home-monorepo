@@ -4,8 +4,10 @@ import path from 'path';
 import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
 import { TsconfigPathsPlugin } from 'tsconfig-paths-webpack-plugin';
 import webpack from 'webpack';
-import { ConfigOptions } from 'webpack-cli';
+import webpackCli from 'webpack-cli';
 import nodeExternals from 'webpack-node-externals';
+
+const appsList = ['autosaver', 'dashboard'];
 
 const tsConfigFile = 'tsconfig.json';
 
@@ -54,79 +56,76 @@ const config: webpack.Configuration = {
       }),
     ],
   },
-  plugins: [
-    new webpack.ProgressPlugin(),
-    new CleanWebpackPlugin(),
-    // only in lint mode
-    // new ForkTsCheckerWebpackPlugin({
-    //   typescript: {
-    //     configFile: tsConfigFile,
-    //     configOverwrite: {
-    //       include: ['apps/autosaver'],
-    //       exclude: ['node_modules'],
-    //     },
-    //     diagnosticOptions: {
-    //       semantic: true,
-    //       syntactic: true,
-    //     },
-    //     mode: 'write-references',
-    //   },
-    //   issue: {},
-    // }),
-  ],
+  plugins: [new webpack.ProgressPlugin(), new CleanWebpackPlugin()],
 };
 
-module.exports = (options: ConfigOptions) => {
-  console.log(options);
-  // config.mode = argv.mode;
+type Env = webpackCli.WebpackRunOptions['env'] & {
+  apps?: string; // 'app1' | 'app1,app2'
+};
 
-  // if (argv.mode === 'development') {
-  // config.watch = argv.watch;
-  config.watch = true;
-  config.watchOptions = {
-    // for some systems, watching many files can result in a lot of CPU or memory usage
-    // https://webpack.js.org/configuration/watch/#watchoptionsignored
-    // don't use this pattern, if you have a monorepo with linked packages
-    ignored: /node_modules/,
-  };
-  // config.cache.name = env.debug ? 'development_debug' : 'development';
-  // config.devtool = env.debug ? 'eval-source-map' : undefined;
+type Args = webpackCli.WebpackRunOptions & {
+  env: Env;
+};
 
-  // If running in watch mode
-  if (config.watch) {
-    // config.cache.name = env.debug ? 'development_debug_hmr' : 'development_hmr';
-    // config.entry = {
-    //   ...(config as any).entry,
-    //   main: ['webpack/hot/poll?100',
-    //     //'webpack/hot/signal',
-    //     (config as any).entry.main],
-    // };
-    config.entry = ['webpack/hot/poll?100', `./apps/autosaver/src/main.ts`];
-    config.externals = [
-      nodeExternals({
-        allowlist: [
-          'webpack/hot/poll?100',
-          //'webpack/hot/signal'
-        ],
-      }),
-    ];
-    config.plugins = [
-      ...(config.plugins as Array<any>),
-      new webpack.WatchIgnorePlugin({ paths: [/\.js$/, /\.d\.ts$/] }),
-      new webpack.HotModuleReplacementPlugin({}),
-      new RunScriptWebpackPlugin({
-        name: 'main.js',
-        // nodeArgs: env.debug ? ['--inspect'] : undefined, // Allow debugging
-        nodeArgs: ['--env-file', '../.env'],
-        autoRestart: false, // auto
-        // signal: true, // Signal to send for HMR (defaults to `false`, uses 'SIGUSR2' if `true`)
-        keyboard: true, // Allow typing 'rs' to restart the server. default: only if NODE_ENV is 'development'
-        // args: ['scriptArgument1', 'scriptArgument2'], // pass args to script
-        cwd: path.join(__dirname, 'dist'),
-      }),
-    ];
+const getAppPath = (app: string) => path.join(__dirname, 'apps', app);
+
+const getConfig = (env: Env, args: Args) => {
+  const apps = env.apps ? env.apps.split(',') : appsList;
+
+  config.entry = apps.reduce((acc: any, app) => {
+    acc[app] = path.join(getAppPath(app), 'src', 'main.ts');
+    return acc;
+  }, {});
+
+  console.log('config.entry', config.entry);
+
+  config.mode = args.mode || 'none';
+
+  if (config.mode === 'development') {
+    config.watch = args.watch || false;
+    config.devtool = 'inline-source-map';
+
+    if (config.watch && apps.length > 1) {
+      console.error('Cannot run multiple apps in watch mode');
+      process.exit(1);
+    }
+    if (config.watch && apps.length === 1) {
+      const app = apps[0];
+      config.watchOptions = {
+        ignored: /node_modules/,
+      };
+
+      config.cache = { ...(config.cache as webpack.FileCacheOptions), name: 'development_hmr' };
+      config.entry = {
+        main: ['webpack/hot/poll?100', (config.entry as any)[app]],
+      };
+      config.externals = [
+        nodeExternals({
+          allowlist: ['webpack/hot/poll?100'],
+        }),
+      ];
+      console.log(path.join(getAppPath(app), '.env'));
+      config.plugins = [
+        ...(config.plugins as Array<any>),
+        new webpack.WatchIgnorePlugin({ paths: [/\.js$/, /\.d\.ts$/] }),
+        new webpack.SourceMapDevToolPlugin({
+          filename: '[name].js.map',
+        }),
+        new webpack.HotModuleReplacementPlugin({}),
+        new RunScriptWebpackPlugin({
+          name: 'main.js',
+
+          nodeArgs: ['--inspect=0.0.0.0:9229'], // Allow debugging
+          // nodeArgs: ['--env-file', path.join(getAppPath(app), '.env')],
+          autoRestart: false, // auto
+          // signal: true, // Signal to send for HMR (defaults to `false`, uses 'SIGUSR2' if `true`)
+          // keyboard: true, // Allow typing 'rs' to restart the server. default: only if NODE_ENV is 'development'
+          // args: ['scriptArgument1', 'scriptArgument2'], // pass args to script
+          cwd: getAppPath(app),
+        }),
+      ];
+    }
   }
-  // }
 
   // if (argv.mode === 'production') {
   //   config.devtool = 'source-map';
@@ -144,3 +143,5 @@ module.exports = (options: ConfigOptions) => {
 
   return config;
 };
+
+module.exports = getConfig;
