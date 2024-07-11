@@ -237,6 +237,7 @@ logger.info('Script scheduled with the following cron schedule : ', config.cronS
 const app = express();
 
 app.get('/', (req, res) => {
+  // console.log('GET /');
   if (isExecuting) {
     res.status(204).send('OK');
   } else {

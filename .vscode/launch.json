@@ -6,25 +6,35 @@
       "name": "Attach to process",
       "type": "node",
       "request": "attach",
-      "processId": "${command:PickProcess}",
-      // "port": 9229,
-      // "skipFiles": [
-      //   // Node.js internal core modules
-      //   "<node_internals>/**",
+      // "processId": "${command:PickProcess}",
+      "port": 9229,
+      // "trace": true,
+      "skipFiles": [
+        // Node.js internal core modules
+        "<node_internals>/**",
 
-      //   // Ignore all dependencies (optional)
-      //   "${workspaceFolder}/node_modules/**"
-      // ],
-      "sourceMaps": true,
-      "remoteRoot": "/mnt/dev/home-monorepo/dist",
-      "outFiles": ["/mnt/dev/home-monorepo/dist/**/**.js"]
-      // "resolveSourceMapLocations": ["${workspaceFolder}/dist/main.js.map"]
+        // Ignore all dependencies (optional)
+        "${workspaceFolder}/node_modules/**"
+      ],
+      "restart": true
+      // "sourceMaps": true
+      // "outFiles": ["${workspaceFolder}/**/*.(m|c|)js", "!**/node_modules/**"],
+      // "remoteRoot": "/mnt/dev/home-monorepo/dist",
+      // "outFiles": ["/mnt/dev/home-monorepo/dist/**/**.js"]
+      // "resolveSourceMapLocations": ["${workspaceFolder}/dist/"],
       // "remoteRoot": "/mnt/dev/home-monorepo/dist/main.js",
+      // "localRoot": "${workspaceFolder}"
       // "sourceMapPathOverrides": {
-      //   "meteor://💻app/*": "${workspaceFolder}/*",
-      //   "webpack:///./~/*": "${workspaceFolder}/node_modules/*",
-      //   "webpack:////*": "/*",
-      //   "webpack://@?:*/?:*/*": "${workspaceFolder}/*"
+      //   // "*": "/patate",
+      //   "webpack://home-monorepo/*": "${workspaceFolder}/*"
+      //   // "webpack:///./~/*": "${workspaceFolder}/node_modules/*",
+      //   // "webpack:////*": "/*",
+      //   // "webpack://@?:*/?:*/*": "${workspaceFolder}/*",
+      //   // "webpack://?:*/*": "${workspaceFolder}/*",
+      //   // "webpack:///([a-z]):/(.+)": "$1:/$2",
+      //   // "webpack://home-monorepo/*": "${workspaceFolder}/*",
+      //   // "meteor://💻app/*": "${workspaceFolder}/*",
+      //   // "turbopack://[project]/*": "${workspaceFolder}/*"
       // }
     }
   ]

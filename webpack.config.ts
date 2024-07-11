@@ -15,7 +15,6 @@ const config: webpack.Configuration = {
   output: {
     filename: `[name].js`,
     path: path.join(__dirname, 'dist'),
-    devtoolModuleFilenameTemplate: `${path.sep}[absolute-resource-path][loaders]`,
   },
   cache: {
     type: 'filesystem',
@@ -23,7 +22,6 @@ const config: webpack.Configuration = {
   },
   // devtool: false,
   target: 'node',
-  mode: 'development',
   node: {
     __filename: false,
     __dirname: false,
@@ -37,7 +35,7 @@ const config: webpack.Configuration = {
           {
             loader: 'swc-loader',
             options: {
-              sourceMaps: false,
+              sourceMaps: true,
               jsc: {
                 target: 'es2022',
               },
@@ -83,7 +81,7 @@ const getConfig = (env: Env, args: Args) => {
 
   if (config.mode === 'development') {
     config.watch = args.watch || false;
-    config.devtool = 'inline-source-map';
+    config.devtool = 'source-map';
 
     if (config.watch && apps.length > 1) {
       console.error('Cannot run multiple apps in watch mode');
@@ -95,29 +93,26 @@ const getConfig = (env: Env, args: Args) => {
         ignored: /node_modules/,
       };
 
-      config.cache = { ...(config.cache as webpack.FileCacheOptions), name: 'development_hmr' };
+      // config.cache = { ...(config.cache as webpack.FileCacheOptions), name: 'development_hmr' };
       config.entry = {
-        main: ['webpack/hot/poll?100', (config.entry as any)[app]],
+        main: [(config.entry as any)[app]],
       };
-      config.externals = [
-        nodeExternals({
-          allowlist: ['webpack/hot/poll?100'],
-        }),
-      ];
+      // config.externals = [
+      //   nodeExternals({
+      //     allowlist: ['webpack/hot/poll?100'],
+      //   }),
+      // ];
       console.log(path.join(getAppPath(app), '.env'));
       config.plugins = [
         ...(config.plugins as Array<any>),
         new webpack.WatchIgnorePlugin({ paths: [/\.js$/, /\.d\.ts$/] }),
-        new webpack.SourceMapDevToolPlugin({
-          filename: '[name].js.map',
-        }),
-        new webpack.HotModuleReplacementPlugin({}),
+        // new webpack.HotModuleReplacementPlugin({}),
         new RunScriptWebpackPlugin({
           name: 'main.js',
 
           nodeArgs: ['--inspect=0.0.0.0:9229'], // Allow debugging
           // nodeArgs: ['--env-file', path.join(getAppPath(app), '.env')],
-          autoRestart: false, // auto
+          autoRestart: true, // auto
           // signal: true, // Signal to send for HMR (defaults to `false`, uses 'SIGUSR2' if `true`)
           // keyboard: true, // Allow typing 'rs' to restart the server. default: only if NODE_ENV is 'development'
           // args: ['scriptArgument1', 'scriptArgument2'], // pass args to script
