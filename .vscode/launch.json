@@ -16,7 +16,7 @@
         // Ignore all dependencies (optional)
         "${workspaceFolder}/node_modules/**"
       ],
-      "restart": true
+      "restart": true,
       // "sourceMaps": true
       // "outFiles": ["${workspaceFolder}/**/*.(m|c|)js", "!**/node_modules/**"],
       // "remoteRoot": "/mnt/dev/home-monorepo/dist",
@@ -24,18 +24,9 @@
       // "resolveSourceMapLocations": ["${workspaceFolder}/dist/"],
       // "remoteRoot": "/mnt/dev/home-monorepo/dist/main.js",
       // "localRoot": "${workspaceFolder}"
-      // "sourceMapPathOverrides": {
-      //   // "*": "/patate",
-      //   "webpack://home-monorepo/*": "${workspaceFolder}/*"
-      //   // "webpack:///./~/*": "${workspaceFolder}/node_modules/*",
-      //   // "webpack:////*": "/*",
-      //   // "webpack://@?:*/?:*/*": "${workspaceFolder}/*",
-      //   // "webpack://?:*/*": "${workspaceFolder}/*",
-      //   // "webpack:///([a-z]):/(.+)": "$1:/$2",
-      //   // "webpack://home-monorepo/*": "${workspaceFolder}/*",
-      //   // "meteor://💻app/*": "${workspaceFolder}/*",
-      //   // "turbopack://[project]/*": "${workspaceFolder}/*"
-      // }
+      "sourceMapPathOverrides": {
+        "webpack://autosaver/*": "${workspaceFolder}/apps/autosaver/*"
+      }
     }
   ]
 }

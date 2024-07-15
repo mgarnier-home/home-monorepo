@@ -2,12 +2,8 @@
   "private": true,
   "name": "autosaver",
   "scripts": {
-    "patch-version": "npm version patch",
-    "build": "npm run lint && npm run esbuild -- build",
-    "dev": "tsx watch --tsconfig tsconfig.json --inspect --clear-screen=false src/main.ts ",
-    "esbuild": "tsx scripts/build.ts",
-    "lint": "tsc --project tsconfig.json --noEmit",
-    "start": "npm run build && node dist/main.js"
+    "start": "webpack build --config webpack.config.ts",
+    "patch-version": "npm version patch"
   },
   "scripts-old": {
     "build": "shx rm -rf dist/ && tsc",
@@ -29,5 +25,5 @@
     "nodemailer": "^6.9.3",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.20"
+  "version": "2.0.21"
 }
