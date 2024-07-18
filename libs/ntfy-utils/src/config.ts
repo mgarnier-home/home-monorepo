@@ -1,8 +1,4 @@
-import dotenv from 'dotenv';
-
 import { Config } from './interfaces';
-
-dotenv.config();
 
 const loadConfigFromEnv = (): Config => {
   const config: Config = {

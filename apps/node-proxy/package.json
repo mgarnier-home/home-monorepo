@@ -4,7 +4,7 @@
   "scripts": {
     "patch-version": "npm version patch",
     "build": "webpack build",
-    "start": "npm run build && node dist/main.js",
+    "start": "npm run build && node --env-file .env dist/main.js",
     "dev": "webpack build --mode development --watch"
   },
   "devDependencies": {

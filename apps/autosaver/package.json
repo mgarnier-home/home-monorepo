@@ -3,7 +3,7 @@
   "name": "autosaver",
   "scripts": {
     "build": "webpack build",
-    "start": "npm run build && node dist/main.js",
+    "start": "npm run build && node --env-file .env dist/main.js",
     "dev": "webpack build --mode development --watch",
     "patch-version": "npm version patch"
   },
@@ -15,12 +15,11 @@
   "dependencies": {
     "console-table-printer": "^2.11.2",
     "cpy": "^10.1.0",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "generate-password": "^1.7.0",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.3",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.22"
+  "version": "2.0.23"
 }

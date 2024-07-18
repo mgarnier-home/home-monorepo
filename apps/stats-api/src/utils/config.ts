@@ -1,10 +1,7 @@
-import dotenv from 'dotenv';
 import Fs from 'node:fs';
 import Path from 'node:path';
 
 import { Config } from './interfaces';
-
-dotenv.config();
 
 const configFilePath = process.env.CONFIG_FILE || Path.resolve(__dirname, '../../config.json');
 

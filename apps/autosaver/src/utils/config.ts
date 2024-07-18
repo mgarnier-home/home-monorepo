@@ -1,12 +1,9 @@
-import dotenv from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
 import { cwd } from 'node:process';
 import { parse as ymlParse } from 'yaml';
 
 import { ArchiveApiType, BackupConfig, Config } from './types';
-
-dotenv.config();
 
 const configFilePath = process.env.CONFIG_FILE || path.resolve(__dirname, '../../config.json');
 

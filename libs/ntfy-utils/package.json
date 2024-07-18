@@ -18,7 +18,5 @@
     "dist/lib/**/*.js",
     "package.json"
   ],
-  "dependencies": {
-    "dotenv": "^16.3.1"
-  }
+  "dependencies": {}
 }
