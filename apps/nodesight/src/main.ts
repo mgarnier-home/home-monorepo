@@ -2,15 +2,15 @@ import express from 'express';
 
 import { logger } from '@libs/logger';
 
-import { Cpu } from './hwInfo/cpu.js';
-import { Gpu } from './hwInfo/gpu.js';
-import { HwInfo } from './hwInfo/index.js';
-import { Network } from './hwInfo/network.js';
-import { Ram } from './hwInfo/ram.js';
-import { Storage } from './hwInfo/storage.js';
-import { sendToStatsApi } from './statsApi.js';
-import { config } from './utils/config.js';
-import { Current } from './utils/interfaces.js';
+import { Cpu } from './hwInfo/cpu';
+import { Gpu } from './hwInfo/gpu';
+import { HwInfo } from './hwInfo/index';
+import { Network } from './hwInfo/network';
+import { Ram } from './hwInfo/ram';
+import { Storage } from './hwInfo/storage';
+import { sendToStatsApi } from './statsApi';
+import { config } from './utils/config';
+import { Current } from './utils/interfaces';
 
 logger.setAppName('nodesight');
 

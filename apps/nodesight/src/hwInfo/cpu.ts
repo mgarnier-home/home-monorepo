@@ -2,7 +2,7 @@ import * as si from 'systeminformation';
 
 import { HwCpu } from '@libs/nodesight-types';
 
-import { config } from '../utils/config.js';
+import { config } from '../utils/config';
 
 const normalizeCpuModel = (cpuModel: string) => {
   return cpuModel
