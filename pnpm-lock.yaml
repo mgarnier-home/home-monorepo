@@ -284,15 +284,6 @@ importers:
       express-validator:
         specifier: ^7.0.1
         version: 7.0.1
-      logger:
-        specifier: workspace:*
-        version: link:../../libs/logger
-      nodesight-types:
-        specifier: workspace:*
-        version: link:../../libs/nodesight-types
-      utils:
-        specifier: workspace:*
-        version: link:../../libs/utils
 
   apps/syslog-app:
     dependencies:
@@ -335,9 +326,6 @@ importers:
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
-      docker-api:
-        specifier: workspace:*
-        version: link:../../libs/docker-api
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
@@ -347,12 +335,6 @@ importers:
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
-      logger:
-        specifier: workspace:*
-        version: link:../../libs/logger
-      utils:
-        specifier: workspace:*
-        version: link:../../libs/utils
 
   libs/docker-api: {}
 
