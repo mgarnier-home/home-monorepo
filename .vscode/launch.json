@@ -26,7 +26,10 @@
       // "localRoot": "${workspaceFolder}"
       "sourceMapPathOverrides": {
         "webpack://autosaver/*": "${workspaceFolder}/apps/autosaver/*",
-        "webpack://node-proxy/*": "${workspaceFolder}/apps/node-proxy/*"
+        "webpack://node-proxy/*": "${workspaceFolder}/apps/node-proxy/*",
+        "webpack://nodesight/*": "${workspaceFolder}/apps/nodesight/*",
+        "webpack://stats-api/*": "${workspaceFolder}/apps/stats-api/*",
+        "webpack://traefik-conf/*": "${workspaceFolder}/apps/traefik-conf/*"
       }
     }
   ]

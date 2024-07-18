@@ -82,6 +82,7 @@ export const getConfig = (env: Env, args: Args, app: string): webpack.Configurat
       defaultConfig.watchOptions = {
         ignored: /node_modules/,
       };
+
       defaultConfig.plugins = [
         ...(defaultConfig.plugins as Array<any>),
         new webpack.WatchIgnorePlugin({ paths: [/\.js$/, /\.d\.ts$/] }),

@@ -1,12 +1,13 @@
-import { Container, Docker } from 'docker-api';
 import express from 'express';
 import fs from 'fs';
 import jsYaml from 'js-yaml';
-import { logger } from 'logger';
 
-import { config } from './utils/config.js';
-import { AppData } from './utils/interfaces.js';
-import { parseTraefikLabels } from './utils/traefikUtils.js';
+import { Container, Docker } from '@libs/docker-api';
+import { logger } from '@libs/logger';
+
+import { config } from './utils/config';
+import { AppData } from './utils/interfaces';
+import { parseTraefikLabels } from './utils/traefikUtils';
 
 logger.setAppName('traefik-conf');
 
@@ -20,6 +21,7 @@ const saveData = async (data: AppData) => {
 
 const loadData = async (): Promise<AppData> => {
   try {
+    logger.debug('Loading data from : ', config.dataFilePath);
     if (fs.existsSync(config.dataFilePath)) {
       const dataStr = await fs.promises.readFile(config.dataFilePath, 'utf-8');
 
@@ -46,8 +48,6 @@ const loadData = async (): Promise<AppData> => {
 
 const main = async () => {
   let appData = await loadData();
-
-  console.log('appData : ', appData);
 
   logger.info('appData : ', appData);
 
