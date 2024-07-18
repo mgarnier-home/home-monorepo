@@ -84,9 +84,13 @@ export class Host {
   private async refreshServices() {
     try {
       this.servicesConfig = [
-        ...(await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)),
+        ...(this.config.enableDocker === true
+          ? await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)
+          : []),
         ...(this.config.additionalServices || []),
       ];
+
+      logger.debug('Services refreshed: ', this.servicesConfig);
 
       for (const service of this.servicesConfig) {
         if (!this.workers.has(getServiceId(service))) {
@@ -129,7 +133,7 @@ export class Host {
   }
 
   private spawnServiceWorker(service: ServiceConfig) {
-    const workerPath = path.resolve(__dirname, '../worker/proxyWorker');
+    const workerPath = path.resolve(__dirname, './worker/proxyWorker');
 
     const worker = new Worker(workerPath);
 

@@ -1,18 +1,14 @@
 import fs from 'fs';
 import jsYaml from 'js-yaml';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { logger } from '@libs/logger';
 
 import { Host } from '../classes/host.class';
 import { HostConfig } from './interfaces';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const hosts: Host[] = [];
-const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../../configon');
+const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../config.yml');
 
 const lastConfig: HostConfig[] = [];
 
@@ -27,6 +23,8 @@ const loadConfig = async (): Promise<HostConfig[]> => {
         }
         return jsYaml.load(dataStr) as HostConfig[];
       }
+    } else {
+      logger.warn('Config file not found : ', configFilePath);
     }
   } catch (err) {
     logger.error('Error loading config file : ', err);

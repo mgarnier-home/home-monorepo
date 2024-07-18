@@ -2,12 +2,9 @@
   "private": true,
   "name": "autosaver",
   "scripts": {
-    "start": "webpack build --config webpack.config.ts",
-    "patch-version": "npm version patch"
-  },
-  "scripts-old": {
-    "build": "shx rm -rf dist/ && tsc",
-    "start": "nx run build && node dist/main.js",
+    "build": "webpack build",
+    "start": "npm run build && node dist/main.js",
+    "dev": "webpack build --mode development --watch",
     "patch-version": "npm version patch"
   },
   "devDependencies": {
@@ -25,5 +22,5 @@
     "nodemailer": "^6.9.3",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.21"
+  "version": "2.0.22"
 }

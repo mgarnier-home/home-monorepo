@@ -1,4 +1,3 @@
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import path from 'path';
 import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
 import { TsconfigPathsPlugin } from 'tsconfig-paths-webpack-plugin';
@@ -62,10 +61,18 @@ const defaultConfig: webpack.Configuration = {
       }),
     ],
   },
-  plugins: [new webpack.ProgressPlugin(), new CleanWebpackPlugin()],
+  plugins: [new webpack.ProgressPlugin()],
 };
 
-export const getConfig = (env: Env, args: Args): webpack.Configuration => {
+const getAppPath = (app: string) => path.join(__dirname, 'apps', app);
+
+export const getConfig = (env: Env, args: Args, app: string): webpack.Configuration => {
+  defaultConfig.output = {
+    clean: true,
+    filename: '[name].js',
+    path: path.join(getAppPath(app), 'dist'),
+  };
+
   defaultConfig.mode = args.mode || 'development';
   if (defaultConfig.mode === 'development') {
     defaultConfig.devtool = 'source-map';
@@ -81,8 +88,7 @@ export const getConfig = (env: Env, args: Args): webpack.Configuration => {
         new RunScriptWebpackPlugin({
           name: 'main.js',
 
-          nodeArgs: ['--inspect=0.0.0.0:9229'], // Allow debugging
-          // nodeArgs: ['--env-file', path.join(getAppPath(app), '.env')],
+          nodeArgs: ['--inspect=0.0.0.0:9229', '--env-file', path.join(getAppPath(app), '.env')], // Allow debugging
           autoRestart: true, // auto
           // signal: true, // Signal to send for HMR (defaults to `false`, uses 'SIGUSR2' if `true`)
           // keyboard: true, // Allow typing 'rs' to restart the server. default: only if NODE_ENV is 'development'
