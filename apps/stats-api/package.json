@@ -3,11 +3,9 @@
   "name": "stats-api",
   "scripts": {
     "patch-version": "npm version patch",
-    "esbuild": "tsx scripts/build.ts",
-    "lint": "tsc --noEmit",
-    "build": "npm run lint && npm run esbuild -- build",
-    "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
-    "start": "npm run build && node dist/main.js"
+    "build": "webpack build",
+    "start": "npm run build && node dist/main.js",
+    "dev": "webpack build --mode development --watch"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.33.2",
@@ -19,5 +17,5 @@
     "nodesight-types": "workspace:*",
     "utils": "workspace:*"
   },
-  "version": "1.0.2"
+  "version": "1.0.3"
 }

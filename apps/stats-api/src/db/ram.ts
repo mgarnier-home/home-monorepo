@@ -1,10 +1,9 @@
-import { logger } from 'logger';
-import { HwRam } from 'nodesight-types';
-
 import { Point } from '@influxdata/influxdb-client';
+import { logger } from '@libs/logger';
+import { HwRam } from '@libs/nodesight-types';
 
-import { config } from '../utils/config.js';
-import { Database } from './database.js';
+import { config } from '../utils/config';
+import { Database } from './database';
 
 type RamQueryResult = {
   _time: string;

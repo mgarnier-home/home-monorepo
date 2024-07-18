@@ -1,14 +1,15 @@
 import express, { Request, Response } from 'express';
 import { body } from 'express-validator';
-import { logger } from 'logger';
 
-import { setupApiRoutes } from './api/setupApi.js';
-import { ApiUtils } from './api/utils.js';
-import { databaseCpu } from './db/cpu.js';
-import { databaseGpu } from './db/gpu.js';
-import { databaseNetwork } from './db/network.js';
-import { databaseRam } from './db/ram.js';
-import { config } from './utils/config.js';
+import { logger } from '@libs/logger';
+
+import { setupApiRoutes } from './api/setupApi';
+import { ApiUtils } from './api/utils';
+import { databaseCpu } from './db/cpu';
+import { databaseGpu } from './db/gpu';
+import { databaseNetwork } from './db/network';
+import { databaseRam } from './db/ram';
+import { config } from './utils/config';
 
 logger.setAppName('stats-api');
 const app = express();

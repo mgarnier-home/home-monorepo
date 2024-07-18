@@ -1,9 +1,10 @@
 import { Express, Request, Response } from 'express';
 import { body, ValidationChain } from 'express-validator';
-import { logger } from 'logger';
 
-import { Database } from '../db/database.js';
-import { ApiUtils } from './utils.js';
+import { logger } from '@libs/logger';
+
+import { Database } from '../db/database';
+import { ApiUtils } from './utils';
 
 export const setupApiRoutes = <T, L>(
   app: Express,

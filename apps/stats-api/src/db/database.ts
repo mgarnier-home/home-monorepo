@@ -1,6 +1,6 @@
 import { FluxTableMetaData, InfluxDB } from '@influxdata/influxdb-client';
 
-import { config } from '../utils/config.js';
+import { config } from '../utils/config';
 
 export abstract class Database<H, L> {
   private _client = new InfluxDB({ url: config.dbHost, token: config.dbToken });
