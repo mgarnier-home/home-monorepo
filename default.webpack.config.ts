@@ -25,10 +25,11 @@ const defaultConfig: webpack.Configuration = {
     __dirname: false,
   },
   externals: [
-    nodeExternals({
-      modulesDir: path.join(__dirname, 'node_modules'),
-      importType: (moduleName) => `import ${moduleName}`,
-    }),
+    nodeExternals(),
+    // {
+    // modulesDir: path.join(__dirname, 'node_modules'),
+    // importType: (moduleName) => `import ${moduleName}`,
+    // }
   ],
   module: {
     rules: [
@@ -46,6 +47,10 @@ const defaultConfig: webpack.Configuration = {
           },
         ],
         exclude: /node_modules/,
+      },
+      {
+        test: /\.node$/,
+        loader: 'node-loader',
       },
     ],
   },

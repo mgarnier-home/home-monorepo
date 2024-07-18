@@ -1,11 +1,12 @@
-import { logger } from 'logger';
 import { parentPort, threadId } from 'worker_threads';
+
+import { logger } from '@libs/logger';
 
 import {
     HostStatusThreadMessageData, ManagerThreadMessage, Protocol, StartProxyThreadMessageData,
     ThreadMessageType, WorkerThreadMessage
-} from '../utils/interfaces.js';
-import { TCPServiceProxy } from './tcpServiceProxy.class.js';
+} from '../utils/interfaces';
+import { TCPServiceProxy } from './tcpServiceProxy.class';
 
 const colorList = ['red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'grey'];
 

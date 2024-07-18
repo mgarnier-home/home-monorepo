@@ -25,7 +25,8 @@
       // "remoteRoot": "/mnt/dev/home-monorepo/dist/main.js",
       // "localRoot": "${workspaceFolder}"
       "sourceMapPathOverrides": {
-        "webpack://autosaver/*": "${workspaceFolder}/apps/autosaver/*"
+        "webpack://autosaver/*": "${workspaceFolder}/apps/autosaver/*",
+        "webpack://node-proxy/*": "${workspaceFolder}/apps/node-proxy/*"
       }
     }
   ]

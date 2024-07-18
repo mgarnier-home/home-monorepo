@@ -1,8 +1,9 @@
 import Express, { NextFunction, Request, Response } from 'express';
-import { logger } from 'logger';
 
-import { Host } from '../classes/host.class.js';
-import { getHost } from './host.utils.js';
+import { logger } from '@libs/logger';
+
+import { Host } from '../classes/host.class';
+import { getHost } from './host.utils';
 
 type ResponseWithHost = Response & { locals: { host: Host } };
 

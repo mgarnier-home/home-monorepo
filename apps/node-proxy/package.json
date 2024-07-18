@@ -1,7 +1,6 @@
 {
   "private": true,
   "name": "node-proxy",
-  "type": "module",
   "scripts": {
     "patch-version": "npm version patch",
     "dev": "tsx watch --tsconfig tsconfig.json src/main.ts",
@@ -17,12 +16,9 @@
     "@types/wol": "^1.0.1"
   },
   "dependencies": {
-    "docker-api": "workspace:*",
     "express": "^4.18.2",
     "js-yaml": "^4.1.0",
-    "logger": "workspace:*",
     "node-ssh": "^13.0.0",
-    "ntfy-utils": "workspace:*",
     "ping": "^0.4.2",
     "wol": "^1.0.7"
   },

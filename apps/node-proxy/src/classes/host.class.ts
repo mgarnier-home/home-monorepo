@@ -1,14 +1,18 @@
-import { logger } from 'logger';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { Worker } from 'worker_threads';
 
-import { __dirname } from '../utils/constants.js';
+import { logger } from '@libs/logger';
+
 import {
-    HostConfig, ManagerThreadMessage, ServiceConfig, ThreadMessageType, WorkerThreadMessage
-} from '../utils/interfaces.js';
-import { sendStoppingServer } from '../utils/ntfy.utils.js';
-import { ServerControl } from './serverControl.class.js';
+  HostConfig,
+  ManagerThreadMessage,
+  ServiceConfig,
+  ThreadMessageType,
+  WorkerThreadMessage,
+} from '../utils/interfaces';
+import { sendStoppingServer } from '../utils/ntfy.utils';
+import { ServerControl } from './serverControl.class';
 
 // import { TCPServiceProxy } from "./tcpServiceProxy.class.ts.old";
 

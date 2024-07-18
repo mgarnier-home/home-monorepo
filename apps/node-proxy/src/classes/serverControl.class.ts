@@ -1,11 +1,12 @@
-import { Container, Docker } from 'docker-api';
-import { logger } from 'logger';
 import { NodeSSH } from 'node-ssh';
 import Ping from 'ping';
 import { Client } from 'ssh2';
 import Wol from 'wol';
 
-import { Protocol, ServiceConfig } from '../utils/interfaces.js';
+import { Container, Docker } from '@libs/docker-api';
+import { logger } from '@libs/logger';
+
+import { Protocol, ServiceConfig } from '../utils/interfaces';
 
 const containersMap = new Map<string, Container[]>();
 

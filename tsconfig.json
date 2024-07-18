@@ -23,5 +23,5 @@
       "@libs/nodesight-types": ["libs/nodesight-types/types/types.d.ts"]
     }
   },
-  "include": ["apps/autosaver/src/**/*.ts", "libs/**/*.ts"]
+  "include": ["apps/**/*.ts", "libs/**/*.ts"]
 }
