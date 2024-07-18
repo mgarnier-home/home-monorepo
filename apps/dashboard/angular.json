@@ -21,7 +21,7 @@
             "index": "app/src/index.html",
             "browser": "app/src/main.ts",
             "polyfills": ["zone.js"],
-            "tsConfig": "app/tsconfig.app.json",
+            "tsConfig": "app/tsconfig.json",
             "inlineStyleLanguage": "scss",
             "assets": ["app/src/favicon.ico", "app/src/assets"],
             "styles": ["app/src/index.css"],
@@ -68,12 +68,6 @@
             }
           },
           "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "app:build"
-          }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",

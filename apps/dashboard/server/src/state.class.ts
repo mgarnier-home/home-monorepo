@@ -1,168 +1,169 @@
-import fs from 'fs';
-import jsYaml from 'js-yaml';
-import { logger } from 'logger';
-import { SimpleCache, Utils } from 'utils';
+// import fs from 'fs';
+// import jsYaml from 'js-yaml';
 
-import { config } from './utils/config';
-import { makeRequest, pingHost } from './utils/utils';
+// import { logger } from '@libs/logger';
+// import { SimpleCache, Utils } from '@libs/utils';
 
-import type { App } from '@shared/interfaces/app';
-import type { MakeRequestResponse } from '@shared/interfaces/utils';
-class State {
-  constructor() {
-    this.reloadSetup = this.reloadSetup.bind(this);
-    this._refreshHostPing = this._refreshHostPing.bind(this);
-  }
+// import { config } from './utils/config';
+// import { makeRequest, pingHost } from './utils/utils';
 
-  private _hosts: App.Setup.Host[] = [];
-  private _hostPings: Map<string, { lastPing: App.Ping | null; interval: NodeJS.Timeout }> = new Map();
-  private _statusChecksCodesCache = new SimpleCache<MakeRequestResponse<void>>(10);
-  private _globalConfig: App.Setup.GlobalConfig = {
-    statusCheckInterval: 30000,
-    pingInterval: 30000,
-    statsApiUrl: '',
-  };
+// import type { App } from '@shared/interfaces/app';
+// import type { MakeRequestResponse } from '@shared/interfaces/utils';
+// class State {
+//   constructor() {
+//     this.reloadSetup = this.reloadSetup.bind(this);
+//     this._refreshHostPing = this._refreshHostPing.bind(this);
+//   }
 
-  public async reloadSetup() {
-    if (fs.existsSync(config.appSetupPath)) {
-      const appSetupContentStr = await fs.promises.readFile(config.appSetupPath, 'utf-8');
+//   private _hosts: App.Setup.Host[] = [];
+//   private _hostPings: Map<string, { lastPing: App.Ping | null; interval: NodeJS.Timeout }> = new Map();
+//   private _statusChecksCodesCache = new SimpleCache<MakeRequestResponse<void>>(10);
+//   private _globalConfig: App.Setup.GlobalConfig = {
+//     statusCheckInterval: 30000,
+//     pingInterval: 30000,
+//     statsApiUrl: '',
+//   };
 
-      const { globalConfig, hosts } = jsYaml.load(appSetupContentStr) as {
-        globalConfig: App.Setup.GlobalConfig;
-        hosts: App.Setup.Host[];
-      };
-      const { statsApiUrl } = globalConfig;
+//   public async reloadSetup() {
+//     if (fs.existsSync(config.appSetupPath)) {
+//       const appSetupContentStr = await fs.promises.readFile(config.appSetupPath, 'utf-8');
 
-      this._globalConfig = {
-        statusCheckInterval: globalConfig.statusCheckInterval ?? 30000,
-        pingInterval: globalConfig.pingInterval ?? 30000,
-        statsApiUrl: statsApiUrl.endsWith('/') ? statsApiUrl.slice(0, -1) : statsApiUrl,
-      };
+//       const { globalConfig, hosts } = jsYaml.load(appSetupContentStr) as {
+//         globalConfig: App.Setup.GlobalConfig;
+//         hosts: App.Setup.Host[];
+//       };
+//       const { statsApiUrl } = globalConfig;
 
-      this._hosts = hosts.map((host) => State.sanitizeHost(host));
+//       this._globalConfig = {
+//         statusCheckInterval: globalConfig.statusCheckInterval ?? 30000,
+//         pingInterval: globalConfig.pingInterval ?? 30000,
+//         statsApiUrl: statsApiUrl.endsWith('/') ? statsApiUrl.slice(0, -1) : statsApiUrl,
+//       };
 
-      logger.info('App setup reloaded');
+//       this._hosts = hosts.map((host) => State.sanitizeHost(host));
 
-      logger.debug(this._hosts);
-      logger.debug(this._globalConfig);
-    } else {
-      logger.error('Config file not found');
-    }
-  }
+//       logger.info('App setup reloaded');
 
-  public startPinging() {
-    this._hosts.forEach(this._refreshHostPing);
-  }
+//       logger.debug(this._hosts);
+//       logger.debug(this._globalConfig);
+//     } else {
+//       logger.error('Config file not found');
+//     }
+//   }
 
-  private _refreshHostPing(host: App.Setup.Host) {
-    const hostPing = this._hostPings.get(host.id);
+//   public startPinging() {
+//     this._hosts.forEach(this._refreshHostPing);
+//   }
 
-    if (host.enablePing && !hostPing) {
-      const interval = setInterval(async () => {
-        const ping = await pingHost(host);
+//   private _refreshHostPing(host: App.Setup.Host) {
+//     const hostPing = this._hostPings.get(host.id);
 
-        this._hostPings.set(host.id, { lastPing: ping, interval });
-      }, this._globalConfig.pingInterval);
+//     if (host.enablePing && !hostPing) {
+//       const interval = setInterval(async () => {
+//         const ping = await pingHost(host);
 
-      this._hostPings.set(host.id, { lastPing: null, interval });
-    }
+//         this._hostPings.set(host.id, { lastPing: ping, interval });
+//       }, this._globalConfig.pingInterval);
 
-    if (!host.enablePing && hostPing) {
-      clearInterval(hostPing.interval);
-      this._hostPings.delete(host.id);
-    }
-  }
+//       this._hostPings.set(host.id, { lastPing: null, interval });
+//     }
 
-  public stopPinging() {
-    this._hostPings.forEach(({ interval }) => clearInterval(interval));
-    this._hostPings.clear();
-  }
+//     if (!host.enablePing && hostPing) {
+//       clearInterval(hostPing.interval);
+//       this._hostPings.delete(host.id);
+//     }
+//   }
 
-  private async _getStatusChecks(): Promise<App.State.StatusCheck[]> {
-    const setupStatusChecks = this._hosts.flatMap((host) => host.services.flatMap((service) => service.statusChecks));
+//   public stopPinging() {
+//     this._hostPings.forEach(({ interval }) => clearInterval(interval));
+//     this._hostPings.clear();
+//   }
 
-    const statusChecks = await Promise.all(
-      setupStatusChecks.map<Promise<App.State.StatusCheck>>(async (statusCheck) => {
-        if (this._statusChecksCodesCache.get(statusCheck.id) === null) {
-          const response = await makeRequest<void>(statusCheck.url, 'GET');
+//   private async _getStatusChecks(): Promise<App.State.StatusCheck[]> {
+//     const setupStatusChecks = this._hosts.flatMap((host) => host.services.flatMap((service) => service.statusChecks));
 
-          this._statusChecksCodesCache.set(statusCheck.id, response);
-        }
+//     const statusChecks = await Promise.all(
+//       setupStatusChecks.map<Promise<App.State.StatusCheck>>(async (statusCheck) => {
+//         if (this._statusChecksCodesCache.get(statusCheck.id) === null) {
+//           const response = await makeRequest<void>(statusCheck.url, 'GET');
 
-        const cachedCode = this._statusChecksCodesCache.get(statusCheck.id)!;
+//           this._statusChecksCodesCache.set(statusCheck.id, response);
+//         }
 
-        return {
-          id: statusCheck.id,
-          name: statusCheck.name,
-          successCodes:
-            statusCheck.type === 'singleCode'
-              ? [{ code: statusCheck.success, color: statusCheck.color }]
-              : statusCheck.codes,
-          clickAction: statusCheck.clickAction,
-          lastRequest: cachedCode,
-        };
-      })
-    );
+//         const cachedCode = this._statusChecksCodesCache.get(statusCheck.id)!;
 
-    return statusChecks;
-  }
+//         return {
+//           id: statusCheck.id,
+//           name: statusCheck.name,
+//           successCodes:
+//             statusCheck.type === 'singleCode'
+//               ? [{ code: statusCheck.success, color: statusCheck.color }]
+//               : statusCheck.codes,
+//           clickAction: statusCheck.clickAction,
+//           lastRequest: cachedCode,
+//         };
+//       })
+//     );
 
-  private static sanitizeClickAction(
-    serviceUrl: string,
-    clickAction?: App.ClickAction | App.ClickActionType
-  ): App.ClickAction | undefined {
-    if (!clickAction) {
-      return undefined;
-    }
+//     return statusChecks;
+//   }
 
-    const sanitizedClickAction =
-      typeof clickAction === 'string'
-        ? { type: clickAction, url: serviceUrl }
-        : { ...clickAction, url: clickAction.url || serviceUrl };
+//   private static sanitizeClickAction(
+//     serviceUrl: string,
+//     clickAction?: App.ClickAction | App.ClickActionType
+//   ): App.ClickAction | undefined {
+//     if (!clickAction) {
+//       return undefined;
+//     }
 
-    return sanitizedClickAction;
-  }
+//     const sanitizedClickAction =
+//       typeof clickAction === 'string'
+//         ? { type: clickAction, url: serviceUrl }
+//         : { ...clickAction, url: clickAction.url || serviceUrl };
 
-  private static sanitizeService(service: App.Setup.Service, hostName: string): App.Setup.Service {
-    const { clickAction, statusChecks } = service;
+//     return sanitizedClickAction;
+//   }
 
-    const sanitizedService = {
-      ...service,
-      clickAction: State.sanitizeClickAction(service.url, clickAction),
-      statusChecks: statusChecks.map((statusCheck, index) => {
-        const { clickAction } = statusCheck;
+//   private static sanitizeService(service: App.Setup.Service, hostName: string): App.Setup.Service {
+//     const { clickAction, statusChecks } = service;
 
-        const type: any = Array.isArray((statusCheck as any).codes) ? 'multipleCodes' : 'singleCode';
+//     const sanitizedService = {
+//       ...service,
+//       clickAction: State.sanitizeClickAction(service.url, clickAction),
+//       statusChecks: statusChecks.map((statusCheck, index) => {
+//         const { clickAction } = statusCheck;
 
-        const sanitizedStatusCheck = {
-          ...statusCheck,
-          name: statusCheck.name || index === 1 ? 'Service' : '',
-          id: Utils.hashCode(hostName + service.name + service.url + statusCheck.url + type),
-          type,
-          clickAction: State.sanitizeClickAction(service.url, clickAction),
-          url: statusCheck.url || service.url,
-        };
+//         const type: any = Array.isArray((statusCheck as any).codes) ? 'multipleCodes' : 'singleCode';
 
-        return sanitizedStatusCheck;
-      }),
-    };
+//         const sanitizedStatusCheck = {
+//           ...statusCheck,
+//           name: statusCheck.name || index === 1 ? 'Service' : '',
+//           id: Utils.hashCode(hostName + service.name + service.url + statusCheck.url + type),
+//           type,
+//           clickAction: State.sanitizeClickAction(service.url, clickAction),
+//           url: statusCheck.url || service.url,
+//         };
 
-    return sanitizedService;
-  }
+//         return sanitizedStatusCheck;
+//       }),
+//     };
 
-  private static sanitizeHost(host: App.Setup.Host): App.Setup.Host {
-    const nodesightUrl = host.nodesightUrl;
+//     return sanitizedService;
+//   }
 
-    const sanitizedHost = {
-      ...host,
-      nodesightUrl: nodesightUrl ? (nodesightUrl.endsWith('/') ? nodesightUrl.slice(0, -1) : nodesightUrl) : undefined,
-      services: host.services.map((service) => State.sanitizeService(service, host.name)),
-    };
+//   private static sanitizeHost(host: App.Setup.Host): App.Setup.Host {
+//     const nodesightUrl = host.nodesightUrl;
 
-    return sanitizedHost;
-  }
-}
+//     const sanitizedHost = {
+//       ...host,
+//       nodesightUrl: nodesightUrl ? (nodesightUrl.endsWith('/') ? nodesightUrl.slice(0, -1) : nodesightUrl) : undefined,
+//       services: host.services.map((service) => State.sanitizeService(service, host.name)),
+//     };
 
-const state = new State();
+//     return sanitizedHost;
+//   }
+// }
 
-export { state };
+// const state = new State();
+
+// export { state };

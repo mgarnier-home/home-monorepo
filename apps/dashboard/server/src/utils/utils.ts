@@ -1,6 +1,7 @@
-import { logger } from 'logger';
 import ping from 'ping';
-import { Utils } from 'utils';
+
+import { logger } from '@libs/logger';
+import { Utils } from '@libs/utils';
 
 import type { App } from '@shared/interfaces/app';
 import type { MakeRequestResponse } from '@shared/interfaces/utils';

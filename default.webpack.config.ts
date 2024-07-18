@@ -13,67 +13,66 @@ export type Args = webpackCli.WebpackRunOptions & {
 
 const tsConfigFile = 'tsconfig.json';
 
-const defaultConfig: webpack.Configuration = {
-  cache: {
-    type: 'filesystem',
-    cacheDirectory: path.resolve(__dirname, '.build_cache'),
-  },
-  target: 'node',
-  node: {
-    __filename: false,
-    __dirname: false,
-  },
-  externals: [
-    nodeExternals(),
-    // {
-    // modulesDir: path.join(__dirname, 'node_modules'),
-    // importType: (moduleName) => `import ${moduleName}`,
-    // }
-  ],
-  module: {
-    rules: [
-      {
-        test: /.ts?$/,
-        use: [
-          {
-            loader: 'swc-loader',
-            options: {
-              sourceMaps: true,
-              jsc: {
-                target: 'es2022',
-              },
-            },
-          },
-        ],
-        exclude: /node_modules/,
-      },
-      {
-        test: /\.node$/,
-        loader: 'node-loader',
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-    plugins: [
-      new TsconfigPathsPlugin({
-        configFile: tsConfigFile,
-      }),
-    ],
-  },
-  plugins: [new webpack.ProgressPlugin()],
-};
-
 const getAppPath = (app: string) => path.join(__dirname, 'apps', app);
 
 export const getConfig = (env: Env, args: Args, app: string): webpack.Configuration => {
-  defaultConfig.output = {
-    clean: true,
-    filename: '[name].js',
-    path: path.join(getAppPath(app), 'dist'),
+  const defaultConfig: webpack.Configuration = {
+    mode: args.mode || 'development',
+    output: {
+      clean: true,
+      filename: '[name].js',
+      path: path.join(getAppPath(app), 'dist'),
+    },
+    cache: {
+      type: 'filesystem',
+      cacheDirectory: path.resolve(__dirname, '.build_cache'),
+    },
+    target: 'node',
+    node: {
+      __filename: false,
+      __dirname: false,
+    },
+    externals: [
+      nodeExternals(),
+      // {
+      // modulesDir: path.join(__dirname, 'node_modules'),
+      // importType: (moduleName) => `import ${moduleName}`,
+      // }
+    ],
+    module: {
+      rules: [
+        {
+          test: /.ts?$/,
+          use: [
+            {
+              loader: 'swc-loader',
+              options: {
+                sourceMaps: true,
+                jsc: {
+                  target: 'es2022',
+                },
+              },
+            },
+          ],
+          exclude: /node_modules/,
+        },
+        {
+          test: /\.node$/,
+          loader: 'node-loader',
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.tsx', '.ts', '.js'],
+      plugins: [
+        new TsconfigPathsPlugin({
+          configFile: tsConfigFile,
+        }),
+      ],
+    },
+    plugins: [new webpack.ProgressPlugin()],
   };
 
-  defaultConfig.mode = args.mode || 'development';
   if (defaultConfig.mode === 'development') {
     defaultConfig.devtool = 'source-map';
 

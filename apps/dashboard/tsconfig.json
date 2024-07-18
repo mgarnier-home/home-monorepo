@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/*"],
+      "@libs/*": ["../../libs/*/src/index.ts"],
+      "@libs/nodesight-types": ["../../libs/nodesight-types/types/types.d.ts"]
+    }
+  }
+}

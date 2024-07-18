@@ -1,182 +1,183 @@
-import jsYaml from 'js-yaml';
-import { logger } from 'logger';
-import fs from 'node:fs';
-import ping from 'ping';
-import { SimpleCache, Utils } from 'utils';
+// import jsYaml from 'js-yaml';
+// import { logger } from 'logger';
+// import fs from 'node:fs';
+// import ping from 'ping';
 
-import { config } from './utils/config';
+// import { SimpleCache, Utils } from '@libs/utils';
 
-import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
-import type { ApiInterfaces } from '@shared/interfaces/apiInterfaces';
-const log = (...args: any[]) => {
-  logger.info(`[Handlers]`, ...args);
-};
+// import { config } from './utils/config';
 
-const requestsCache = new SimpleCache<{ code: number; data: any }>(30);
+// import type { AppInterfaces } from '@shared/interfaces/appInterfaces';
+// import type { ApiInterfaces } from '@shared/interfaces/apiInterfaces';
+// const log = (...args: any[]) => {
+//   logger.info(`[Handlers]`, ...args);
+// };
 
-export namespace Handlers {
-  const sanitizeAppConf = (appConf: AppInterfaces.AppConfig): AppInterfaces.AppConfig => {
-    const sanitizeClickActions = (host: AppInterfaces.Host): AppInterfaces.Host => {
-      if (host.services === undefined) {
-        host.services = [];
-      }
+// const requestsCache = new SimpleCache<{ code: number; data: any }>(30);
 
-      if (host.nodesightUrl && host.nodesightUrl.endsWith('/')) {
-        host.nodesightUrl = host.nodesightUrl.slice(0, -1);
-      }
+// export namespace Handlers {
+//   const sanitizeAppConf = (appConf: AppInterfaces.AppConfig): AppInterfaces.AppConfig => {
+//     const sanitizeClickActions = (host: AppInterfaces.Host): AppInterfaces.Host => {
+//       if (host.services === undefined) {
+//         host.services = [];
+//       }
 
-      host.services.forEach((service) => {
-        if (typeof service.clickAction === 'string') {
-          service.clickAction = { type: service.clickAction, url: service.url } as AppInterfaces.ClickAction;
-        }
+//       if (host.nodesightUrl && host.nodesightUrl.endsWith('/')) {
+//         host.nodesightUrl = host.nodesightUrl.slice(0, -1);
+//       }
 
-        if (service.clickAction && !service.clickAction.url) {
-          service.clickAction.url = service.url;
-        }
+//       host.services.forEach((service) => {
+//         if (typeof service.clickAction === 'string') {
+//           service.clickAction = { type: service.clickAction, url: service.url } as AppInterfaces.ClickAction;
+//         }
 
-        service.statusChecks.forEach((statusCheck) => {
-          if (Array.isArray((statusCheck as any).codes)) {
-            statusCheck.type = 'multipleCodes';
-          } else {
-            statusCheck.type = 'singleCode';
-          }
+//         if (service.clickAction && !service.clickAction.url) {
+//           service.clickAction.url = service.url;
+//         }
 
-          if (typeof statusCheck.clickAction === 'string') {
-            statusCheck.clickAction = {
-              type: statusCheck.clickAction,
-              url: statusCheck.url,
-            } as AppInterfaces.ClickAction;
-          }
+//         service.statusChecks.forEach((statusCheck) => {
+//           if (Array.isArray((statusCheck as any).codes)) {
+//             statusCheck.type = 'multipleCodes';
+//           } else {
+//             statusCheck.type = 'singleCode';
+//           }
 
-          if (statusCheck.clickAction && !statusCheck.clickAction.url) {
-            statusCheck.clickAction.url = statusCheck.url || service.url;
-          }
-        });
-      });
+//           if (typeof statusCheck.clickAction === 'string') {
+//             statusCheck.clickAction = {
+//               type: statusCheck.clickAction,
+//               url: statusCheck.url,
+//             } as AppInterfaces.ClickAction;
+//           }
 
-      return host;
-    };
+//           if (statusCheck.clickAction && !statusCheck.clickAction.url) {
+//             statusCheck.clickAction.url = statusCheck.url || service.url;
+//           }
+//         });
+//       });
 
-    appConf.globalConfig = {
-      ...{ statusCheckInterval: 30000, pingInterval: 30000, statsApiUrl: '' },
-      ...appConf.globalConfig,
-    };
+//       return host;
+//     };
 
-    if (appConf.globalConfig.statsApiUrl.endsWith('/')) {
-      appConf.globalConfig.statsApiUrl = appConf.globalConfig.statsApiUrl.slice(0, -1);
-    }
+//     appConf.globalConfig = {
+//       ...{ statusCheckInterval: 30000, pingInterval: 30000, statsApiUrl: '' },
+//       ...appConf.globalConfig,
+//     };
 
-    appConf.hosts.forEach((host) => {
-      host = sanitizeClickActions(host);
-    });
+//     if (appConf.globalConfig.statsApiUrl.endsWith('/')) {
+//       appConf.globalConfig.statsApiUrl = appConf.globalConfig.statsApiUrl.slice(0, -1);
+//     }
 
-    return appConf;
-  };
+//     appConf.hosts.forEach((host) => {
+//       host = sanitizeClickActions(host);
+//     });
 
-  export const getAppConf = async (): Promise<string> => {
-    const isYml = config.appConfPath.endsWith('.yml');
+//     return appConf;
+//   };
 
-    if (fs.existsSync(config.appConfPath)) {
-      const appConfContentStr = await fs.promises.readFile(config.appConfPath, 'utf-8');
+//   export const getAppConf = async (): Promise<string> => {
+//     const isYml = config.appConfPath.endsWith('.yml');
 
-      let appConfContent: AppInterfaces.AppConfig;
+//     if (fs.existsSync(config.appConfPath)) {
+//       const appConfContentStr = await fs.promises.readFile(config.appConfPath, 'utf-8');
 
-      if (isYml) {
-        appConfContent = jsYaml.load(appConfContentStr) as AppInterfaces.AppConfig;
-      } else {
-        appConfContent = JSON.parse(appConfContentStr) as AppInterfaces.AppConfig;
-      }
+//       let appConfContent: AppInterfaces.AppConfig;
 
-      appConfContent = sanitizeAppConf(appConfContent);
+//       if (isYml) {
+//         appConfContent = jsYaml.load(appConfContentStr) as AppInterfaces.AppConfig;
+//       } else {
+//         appConfContent = JSON.parse(appConfContentStr) as AppInterfaces.AppConfig;
+//       }
 
-      return JSON.stringify(appConfContent);
-    } else {
-      throw new Error('Config file not found');
-    }
-  };
+//       appConfContent = sanitizeAppConf(appConfContent);
 
-  export const pingHost = async (ip: string): Promise<{ ping: boolean; duration: number; ms: number }> => {
-    const startTime = Date.now();
+//       return JSON.stringify(appConfContent);
+//     } else {
+//       throw new Error('Config file not found');
+//     }
+//   };
 
-    const pingResult = await ping.promise.probe(ip, { timeout: 3 });
+//   export const pingHost = async (ip: string): Promise<{ ping: boolean; duration: number; ms: number }> => {
+//     const startTime = Date.now();
 
-    const duration = Date.now() - startTime;
+//     const pingResult = await ping.promise.probe(ip, { timeout: 3 });
 
-    log(`[PingHost] pinged host ${ip} in ${duration}ms, got ${pingResult.alive}: ${pingResult.time}ms`);
+//     const duration = Date.now() - startTime;
 
-    const ms = Math.floor(Number(pingResult.time));
+//     log(`[PingHost] pinged host ${ip} in ${duration}ms, got ${pingResult.alive}: ${pingResult.time}ms`);
 
-    return { ping: pingResult.alive, duration, ms };
-  };
+//     const ms = Math.floor(Number(pingResult.time));
 
-  export const makeRequest = async <Data>(
-    url: string,
-    method: string,
-    body?: string
-  ): Promise<{ code: number; duration: number; data?: Data }> => {
-    const cached = requestsCache.get(url);
+//     return { ping: pingResult.alive, duration, ms };
+//   };
 
-    const startTime = Date.now();
+//   export const makeRequest = async <Data>(
+//     url: string,
+//     method: string,
+//     body?: string
+//   ): Promise<{ code: number; duration: number; data?: Data }> => {
+//     const cached = requestsCache.get(url);
 
-    let code = 0;
-    let data = undefined;
+//     const startTime = Date.now();
 
-    if (!cached) {
-      try {
-        const response = await Utils.fetchWithTimeout(url, 10000, {
-          method: method,
-          headers: {
-            Status: 'true',
-          },
-          body: body,
-        });
+//     let code = 0;
+//     let data = undefined;
 
-        data = await response.text();
+//     if (!cached) {
+//       try {
+//         const response = await Utils.fetchWithTimeout(url, 10000, {
+//           method: method,
+//           headers: {
+//             Status: 'true',
+//           },
+//           body: body,
+//         });
 
-        try {
-          data = JSON.parse(data);
-        } catch (error) {}
+//         data = await response.text();
 
-        code = response.status;
-      } catch (error) {
-        logger.error(error);
+//         try {
+//           data = JSON.parse(data);
+//         } catch (error) {}
 
-        code = 500;
-      }
-    } else {
-      code = cached.code;
-      data = cached.data;
-      log(`[MakeRequest] using cached response for ${url}`);
-    }
+//         code = response.status;
+//       } catch (error) {
+//         logger.error(error);
 
-    const duration = Date.now() - startTime;
+//         code = 500;
+//       }
+//     } else {
+//       code = cached.code;
+//       data = cached.data;
+//       log(`[MakeRequest] using cached response for ${url}`);
+//     }
 
-    log(`[MakeRequest] to ${url} in ${duration}ms, got ${code}`);
+//     const duration = Date.now() - startTime;
 
-    requestsCache.set(url, { code, data });
+//     log(`[MakeRequest] to ${url} in ${duration}ms, got ${code}`);
 
-    return { code, duration, data };
-  };
+//     requestsCache.set(url, { code, data });
 
-  export const getStatusChecks = async (statusChecks: ApiInterfaces.StatusChecks.RequestData[]) => {
-    const promises = statusChecks.map((statusCheck) =>
-      makeRequest(statusCheck.url, 'GET').then((response) => ({ statusCheck, response }))
-    );
+//     return { code, duration, data };
+//   };
 
-    const results = await Promise.all(promises);
+//   export const getStatusChecks = async (statusChecks: ApiInterfaces.StatusChecks.RequestData[]) => {
+//     const promises = statusChecks.map((statusCheck) =>
+//       makeRequest(statusCheck.url, 'GET').then((response) => ({ statusCheck, response }))
+//     );
 
-    const updatedStatusChecks: ApiInterfaces.StatusChecks.ResponseData[] = results.map((result) => {
-      const { statusCheck, response } = result;
+//     const results = await Promise.all(promises);
 
-      let code = response.code;
+//     const updatedStatusChecks: ApiInterfaces.StatusChecks.ResponseData[] = results.map((result) => {
+//       const { statusCheck, response } = result;
 
-      return {
-        id: statusCheck.id,
-        duration: response.duration,
-        code,
-      };
-    });
+//       let code = response.code;
 
-    return { statusChecks: updatedStatusChecks };
-  };
-}
+//       return {
+//         id: statusCheck.id,
+//         duration: response.duration,
+//         code,
+//       };
+//     });
+
+//     return { statusChecks: updatedStatusChecks };
+//   };
+// }
