@@ -8,7 +8,12 @@ const nodeProxyConfig = (env: Env, args: Args): webpack.Configuration => {
   const config = getConfig(env, args, 'dashboard');
 
   config.entry = {
-    main: { import: './server/src/main.ts', filename: 'server/main.js' },
+    main: { import: './server/src/main.ts', filename: 'main.js' },
+  };
+
+  config.output = {
+    ...config.output,
+    path: path.resolve(__dirname, '../dist/server'),
   };
 
   return config;

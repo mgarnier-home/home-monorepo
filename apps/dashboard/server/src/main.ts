@@ -36,6 +36,8 @@ expressApp.use((err: Error, req: express.Request, res: express.Response, next: e
   res.status(500).send(err.message);
 });
 
+logger.info(`Serving icon files from ${config.iconsPath} and app files from ${config.appDistPath}`);
+
 expressApp.use(express.static(config.iconsPath));
 expressApp.use(express.static(config.appDistPath));
 

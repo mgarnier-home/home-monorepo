@@ -3,12 +3,13 @@
   "name": "dashboard",
   "scripts": {
     "patch-version": "npm version patch",
+    "build": "run-s build:*",
     "build:app": "ng build",
-    "dev:app": "ng serve --port 3001",
-    "test:app": "ng test",
     "build:server": "webpack build --config server/webpack.config.ts",
-    "start:server": "npm run build && node --env-file .env dist/main.js",
-    "dev:server": "webpack build --config server/webpack.config.ts --mode development --watch"
+    "dev:app": "ng serve --port 3001",
+    "dev:server": "webpack build --config server/webpack.config.ts --mode development --watch",
+    "test:app": "ng test",
+    "start": "npm run build && node --env-file .env dist/server/main.js"
   },
   "dependencies": {
     "@angular-devkit/build-angular": "^18.1.1",
@@ -48,5 +49,5 @@
     "zod": "^3.23.8",
     "zone.js": "0.14.8"
   },
-  "version": "2.0.2"
+  "version": "2.0.3"
 }

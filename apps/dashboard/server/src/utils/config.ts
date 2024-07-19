@@ -20,7 +20,7 @@ const resolvePath = (pathToResolve: string): string => {
 
 const loadConfigFromEnv = (): ServerConfig => {
   const config: ServerConfig = {
-    appDistPath: resolvePath(process.env.APP_DIST_PATH || './app-dist'),
+    appDistPath: resolvePath(process.env.APP_DIST_PATH || './app/browser'),
     appSetupPath: resolvePath(process.env.APP_SETUP_PATH || 'setup.yml'),
     iconsPath: resolvePath(process.env.ICONS_PATH || './icons'),
     serverPort: Number(process.env.SERVER_PORT) || 3000,

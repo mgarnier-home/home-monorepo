@@ -1,7 +1,8 @@
 import { connect, Socket } from 'socket.io-client';
-import { environment } from 'src/environments/environment';
 
 import { Injectable } from '@angular/core';
+
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
