@@ -1,12 +1,11 @@
 const main = async () => {
-  console.log(process.env);
-  // const apiUrl = core.getInput('api-url');
-  // const imageAuthor = core.getInput('image-author');
-  // const imageName = core.getInput('image-name');
+  const apiUrl = process.env['INPUT_API-URL'];
+  const imageAuthor = process.env['INPUT_IMAGE-AUTHOR'];
+  const imageName = process.env['INPUT_IMAGE-NAME'];
 
-  // const onlyLatest = core.getInput('only-latest') === 'true';
+  const onlyLatest = process.env['INPUT_ONLY-LATEST'] === 'true';
 
-  // console.log(apiUrl, imageAuthor, imageName, onlyLatest);
+  console.log(apiUrl, imageAuthor, imageName, onlyLatest);
 };
 
 main().catch((error) => {
