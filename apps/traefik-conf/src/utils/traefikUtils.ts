@@ -1,5 +1,4 @@
-import jsYaml from 'js-yaml';
-import { Utils } from 'utils';
+import { Utils } from '@libs/utils';
 
 import { AppData, Host } from './interfaces';
 

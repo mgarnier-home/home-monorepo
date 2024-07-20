@@ -1,5 +1,6 @@
 import jsYaml from 'js-yaml';
-import { Utils } from 'utils';
+
+import { Utils } from '@libs/utils';
 
 export const mergeYamls = (yamlFiles: string[]): string => {
   const yamls: any[] = yamlFiles.map((yaml) => jsYaml.load(yaml));

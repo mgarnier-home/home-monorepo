@@ -1,7 +1,8 @@
-import { HwCpu } from 'nodesight-types';
 import * as si from 'systeminformation';
 
-import { config } from '../utils/config.js';
+import { HwCpu } from '@libs/nodesight-types';
+
+import { config } from '../utils/config';
 
 const normalizeCpuModel = (cpuModel: string) => {
   return cpuModel

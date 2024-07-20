@@ -1,4 +1,4 @@
-import { NtfyUtils } from 'ntfy-utils';
+import { NtfyUtils } from '@libs/ntfy-utils';
 
 export const sendStartingServer = async (hostname: string, incomingIp: string, service: string) => {
   NtfyUtils.sendNotification(

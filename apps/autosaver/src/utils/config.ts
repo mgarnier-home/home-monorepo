@@ -1,11 +1,9 @@
-import dotenv from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
+import { cwd } from 'node:process';
 import { parse as ymlParse } from 'yaml';
 
 import { ArchiveApiType, BackupConfig, Config } from './types';
-
-dotenv.config();
 
 const configFilePath = process.env.CONFIG_FILE || path.resolve(__dirname, '../../config.json');
 
@@ -19,7 +17,7 @@ const loadConfigFromEnv = (): Config => {
   const backupConfigPath = process.env.BACKUP_CONFIG_PATH || './config.yml';
   const fullBackupConfigPath = backupConfigPath.startsWith('/')
     ? backupConfigPath
-    : path.join(__dirname, '../../', backupConfigPath);
+    : path.resolve(cwd(), backupConfigPath);
 
   const config: Config = {
     serverPort: Number(process.env.SERVER_PORT) || 3000,

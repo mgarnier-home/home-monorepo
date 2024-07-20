@@ -2,7 +2,7 @@ import { Color, LogLevel, logLevels } from './interfaces';
 
 const inBrowser = typeof window !== 'undefined';
 
-const envLogLevel = inBrowser ? NaN : parseInt(process?.env?.LOG_LEVEL);
+const envLogLevel = inBrowser ? NaN : parseInt(process?.env?.LOG_LEVEL ?? '');
 
 interface ILogger {
   // log(color: Color, ...args: any[]): void;
@@ -15,7 +15,7 @@ interface ILogger {
 
 class Logger implements ILogger {
   public colored: ColoredLogger = new ColoredLogger(this);
-  private appName: string;
+  private appName: string = 'default-app-name';
   private logLevel: LogLevel = isNaN(envLogLevel) ? LogLevel.INFO : envLogLevel;
 
   private static getColor(def: Color, arg: any): Color {

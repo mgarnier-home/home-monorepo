@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "app": {
+    "dashboard-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -12,12 +12,12 @@
       },
       "root": "app",
       "sourceRoot": "app/src",
-      "prefix": "app",
+      "prefix": "dashboard",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "app-dist",
+            "outputPath": "dist/app",
             "index": "app/src/index.html",
             "browser": "app/src/main.ts",
             "polyfills": ["zone.js"],
@@ -61,25 +61,19 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "app:build:production"
+              "buildTarget": "dashboard-app:build:production"
             },
             "development": {
-              "buildTarget": "app:build:development"
+              "buildTarget": "dashboard-app:build:development"
             }
           },
           "defaultConfiguration": "development"
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "buildTarget": "app:build"
-          }
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "polyfills": ["zone.js", "zone.js/testing"],
-            "tsConfig": "app/tsconfig.spec.json",
+            "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": ["app/src/favicon.ico", "app/src/assets"],
             "styles": ["app/src/styles.scss"],

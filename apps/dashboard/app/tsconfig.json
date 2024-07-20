@@ -1,11 +1,11 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
-  "compileOnSave": false,
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./app-dist/out-tsc",
+    // "outDir": "./app-dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
+    // "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
@@ -17,13 +17,13 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
+    "noEmit": false,
     "useDefineForClassFields": false,
     "lib": ["ES2022", "dom"],
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["../shared/*"]
-    }
+    "baseUrl": ".."
   },
+
+  "include": ["./src/*.ts", "./src/**/*.ts", "../shared/**/*.ts", "../../../libs/**/*.ts"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

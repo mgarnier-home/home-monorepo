@@ -13,6 +13,7 @@ export interface ServiceConfig {
 export interface HostConfig {
   name: string;
   ip: string;
+  enableDocker: boolean;
   dockerPort: number;
   macAddress: string;
   sshUsername: string;

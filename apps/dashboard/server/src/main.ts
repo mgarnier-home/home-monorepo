@@ -1,12 +1,12 @@
 import express from 'express';
 import fs from 'fs';
 import http from 'http';
-import { logger } from 'logger';
 import { Server as SocketIOServer } from 'socket.io';
 
-import { DEFAULT_ROOM, SOCKET_EVENTS } from '@shared/interfaces/socket';
+import { logger } from '@libs/logger';
+import { DEFAULT_ROOM } from '@shared/interfaces/socket';
 
-import { state } from './state.class';
+// import { state } from './state.class';
 import { config } from './utils/config';
 
 logger.setAppName('dashboard-server');
@@ -36,6 +36,8 @@ expressApp.use((err: Error, req: express.Request, res: express.Response, next: e
   res.status(500).send(err.message);
 });
 
+logger.info(`Serving icon files from ${config.iconsPath} and app files from ${config.appDistPath}`);
+
 expressApp.use(express.static(config.iconsPath));
 expressApp.use(express.static(config.appDistPath));
 
@@ -53,17 +55,17 @@ socketIOServer.on('connection', async (socket) => {
   logger.info(`Socket connected: ${socket.id}`);
   socket.join(DEFAULT_ROOM);
 
-  await state.reloadSetup();
-  state.startTracking();
+  // await state.reloadSetup();
+  // state.startTracking();
 
-  socket.on(SOCKET_EVENTS.reloadAppSetup, state.reloadSetup);
+  // socket.on(SOCKET_EVENTS.reloadAppSetup, state.reloadSetup);
 
   socket.on('disconnect', () => {
     logger.info(`Socket disconnected: ${socket.id}`);
 
     if (getNumberOfClients() === 0) {
       logger.info('No clients connected, stopping tracking');
-      state.stopTracking();
+      // state.stopTracking();
     }
   });
 });

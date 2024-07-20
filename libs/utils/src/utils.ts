@@ -41,7 +41,7 @@ export namespace Utils {
   }
 
   export const capFirst = (str: string) => {
-    return str[0].toUpperCase() + str.slice(1);
+    return str[0]?.toUpperCase() + str.slice(1);
   };
 
   export const platformIsWindows = (platform: string) => platform === 'Windows' || platform === 'win32';

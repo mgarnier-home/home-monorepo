@@ -1,7 +1,8 @@
-import { logger } from 'logger';
 import { threadId } from 'worker_threads';
 
-import { ProxyWorker } from '../classes/proxyWorker.class.js';
+import { logger } from '@libs/logger';
+
+import { ProxyWorker } from '../classes/proxyWorker.class';
 
 logger.setAppName('node-proxy:worker-' + threadId);
 

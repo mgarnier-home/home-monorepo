@@ -1,14 +1,18 @@
-import { logger } from 'logger';
 import path from 'path';
 import { setTimeout } from 'timers/promises';
 import { Worker } from 'worker_threads';
 
-import { __dirname } from '../utils/constants.js';
+import { logger } from '@libs/logger';
+
 import {
-    HostConfig, ManagerThreadMessage, ServiceConfig, ThreadMessageType, WorkerThreadMessage
-} from '../utils/interfaces.js';
-import { sendStoppingServer } from '../utils/ntfy.utils.js';
-import { ServerControl } from './serverControl.class.js';
+  HostConfig,
+  ManagerThreadMessage,
+  ServiceConfig,
+  ThreadMessageType,
+  WorkerThreadMessage,
+} from '../utils/interfaces';
+import { sendStoppingServer } from '../utils/ntfy.utils';
+import { ServerControl } from './serverControl.class';
 
 // import { TCPServiceProxy } from "./tcpServiceProxy.class.ts.old";
 
@@ -80,9 +84,13 @@ export class Host {
   private async refreshServices() {
     try {
       this.servicesConfig = [
-        ...(await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)),
+        ...(this.config.enableDocker === true
+          ? await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)
+          : []),
         ...(this.config.additionalServices || []),
       ];
+
+      logger.debug('Services refreshed: ', this.servicesConfig);
 
       for (const service of this.servicesConfig) {
         if (!this.workers.has(getServiceId(service))) {
@@ -125,7 +133,7 @@ export class Host {
   }
 
   private spawnServiceWorker(service: ServiceConfig) {
-    const workerPath = path.resolve(__dirname, '../worker/proxyWorker');
+    const workerPath = path.resolve(__dirname, './worker/proxyWorker');
 
     const worker = new Worker(workerPath);
 

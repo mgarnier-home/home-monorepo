@@ -1,6 +1,7 @@
-import { HwNetwork } from 'nodesight-types';
 import * as si from 'systeminformation';
-import { Utils } from 'utils';
+
+import { HwNetwork } from '@libs/nodesight-types';
+import { Utils } from '@libs/utils';
 
 const getStaticInfo = async (): Promise<HwNetwork.Static> => {
   const networkInfo = await si.networkInterfaces();

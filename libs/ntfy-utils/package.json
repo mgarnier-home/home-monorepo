@@ -2,24 +2,10 @@
   "name": "ntfy-utils",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/lib/index.js",
-  "types": "dist/lib/index.d.ts",
-  "exports": "./dist/lib/index.js",
-  "scripts": {
-    "test": "jest",
-    "test:integration": "npm start -- noGen",
-    "build": "shx rm -rf dist/ && tsc",
-    "start": "npm run compile && node dist/test"
-  },
+  "main": "src/index.ts",
+  "scripts": {},
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "files": [
-    "dist/lib/**/*.d.ts",
-    "dist/lib/**/*.js",
-    "package.json"
-  ],
-  "dependencies": {
-    "dotenv": "^16.3.1"
-  }
+  "dependencies": {}
 }

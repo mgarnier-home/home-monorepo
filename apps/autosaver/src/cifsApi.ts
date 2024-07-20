@@ -1,6 +1,7 @@
 import { spawnSync } from 'child_process';
 import fs from 'fs';
-import { logger } from 'logger';
+
+import { logger } from '@libs/logger';
 
 export namespace CifsApi {
   export const mountCifsFolder = async (

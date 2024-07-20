@@ -2,16 +2,9 @@
   "private": true,
   "name": "autosaver",
   "scripts": {
-    "patch-version": "npm version patch",
-    "build": "npm run lint && npm run esbuild -- build",
-    "dev": "tsx watch --tsconfig tsconfig.json --inspect --clear-screen=false src/main.ts ",
-    "esbuild": "tsx scripts/build.ts",
-    "lint": "tsc --project tsconfig.json --noEmit",
-    "start": "npm run build && node dist/main.js"
-  },
-  "scripts-old": {
-    "build": "shx rm -rf dist/ && tsc",
-    "start": "nx run build && node dist/main.js",
+    "build": "webpack build",
+    "start": "npm run build && node --env-file .env dist/main.js",
+    "dev": "webpack build --mode development --watch",
     "patch-version": "npm version patch"
   },
   "devDependencies": {
@@ -22,15 +15,11 @@
   "dependencies": {
     "console-table-printer": "^2.11.2",
     "cpy": "^10.1.0",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "generate-password": "^1.7.0",
-    "logger": "workspace:*",
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.3",
-    "ntfy-utils": "workspace:*",
-    "utils": "workspace:*",
     "yaml": "^2.4.0"
   },
-  "version": "2.0.17"
+  "version": "2.0.23"
 }

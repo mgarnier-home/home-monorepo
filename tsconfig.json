@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    /* Base Options: */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "target": "es2022",
+    "verbatimModuleSyntax": false,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    /* Strictness */
+    "strict": true,
+    // "noUncheckedIndexedAccess": true,
+    /* If NOT transpiling with TypeScript: */
+    "moduleResolution": "Node",
+    "module": "CommonJS",
+    "noEmit": true,
+    /* If your code doesn't run in the DOM: */
+    "lib": ["es2022", "DOM"],
+    "paths": {
+      "@libs/*": ["libs/*/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "libs/**/test", "apps/**/test"]
+}

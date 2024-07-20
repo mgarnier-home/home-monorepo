@@ -1,17 +1,14 @@
 import fs from 'fs';
 import jsYaml from 'js-yaml';
-import { logger } from 'logger';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-import { Host } from '../classes/host.class.js';
-import { HostConfig } from './interfaces.js';
+import { logger } from '@libs/logger';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { Host } from '../classes/host.class';
+import { HostConfig } from './interfaces';
 
 const hosts: Host[] = [];
-const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../../config.json');
+const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../config.yml');
 
 const lastConfig: HostConfig[] = [];
 
@@ -21,11 +18,13 @@ const loadConfig = async (): Promise<HostConfig[]> => {
       const dataStr = await fs.promises.readFile(configFilePath, 'utf-8');
 
       if (dataStr !== '') {
-        if (configFilePath.endsWith('.json')) {
+        if (configFilePath.endsWith('on')) {
           return JSON.parse(dataStr) as HostConfig[];
         }
         return jsYaml.load(dataStr) as HostConfig[];
       }
+    } else {
+      logger.warn('Config file not found : ', configFilePath);
     }
   } catch (err) {
     logger.error('Error loading config file : ', err);
@@ -35,7 +34,7 @@ const loadConfig = async (): Promise<HostConfig[]> => {
 };
 
 const saveConfig = async (data: HostConfig[]) => {
-  const stringData = configFilePath.endsWith('.json') ? JSON.stringify(data, null, 4) : jsYaml.dump(data);
+  const stringData = configFilePath.endsWith('on') ? JSON.stringify(data, null, 4) : jsYaml.dump(data);
 
   await fs.promises.writeFile(configFilePath, stringData, 'utf-8');
 };

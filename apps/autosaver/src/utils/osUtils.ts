@@ -1,7 +1,8 @@
 import { exec } from 'child_process';
 import fs from 'fs';
-import { logger } from 'logger';
 import path from 'path';
+
+import { logger } from '@libs/logger';
 
 export namespace OsUtils {
   export const rmFiles = async (filePaths: string[]) => {

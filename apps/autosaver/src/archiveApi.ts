@@ -1,7 +1,8 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
-import { logger } from 'logger';
 import path from 'path';
+
+import { logger } from '@libs/logger';
 
 import { EncryptApi } from './encryptApi';
 import { config } from './utils/config';

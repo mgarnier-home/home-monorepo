@@ -1,4 +1,4 @@
-import { Utils } from 'utils';
+import { Utils } from '@libs/utils';
 
 import type { DockerMessage, SyslogMessage } from './interfaces';
 

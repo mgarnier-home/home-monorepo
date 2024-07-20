@@ -6,14 +6,31 @@
       "name": "Attach to process",
       "type": "node",
       "request": "attach",
+      // "processId": "${command:PickProcess}",
       "port": 9229,
+      // "trace": true,
       "skipFiles": [
         // Node.js internal core modules
         "<node_internals>/**",
 
         // Ignore all dependencies (optional)
         "${workspaceFolder}/node_modules/**"
-      ]
+      ],
+      "restart": true,
+      // "sourceMaps": true
+      // "outFiles": ["${workspaceFolder}/**/*.(m|c|)js", "!**/node_modules/**"],
+      // "remoteRoot": "/mnt/dev/home-monorepo/dist",
+      // "outFiles": ["/mnt/dev/home-monorepo/dist/**/**.js"]
+      // "resolveSourceMapLocations": ["${workspaceFolder}/dist/"],
+      // "remoteRoot": "/mnt/dev/home-monorepo/dist/main.js",
+      // "localRoot": "${workspaceFolder}"
+      "sourceMapPathOverrides": {
+        "webpack://autosaver/*": "${workspaceFolder}/apps/autosaver/*",
+        "webpack://node-proxy/*": "${workspaceFolder}/apps/node-proxy/*",
+        "webpack://nodesight/*": "${workspaceFolder}/apps/nodesight/*",
+        "webpack://stats-api/*": "${workspaceFolder}/apps/stats-api/*",
+        "webpack://traefik-conf/*": "${workspaceFolder}/apps/traefik-conf/*"
+      }
     }
   ]
 }

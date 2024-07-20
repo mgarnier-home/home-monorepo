@@ -1,8 +1,8 @@
-import { logger } from 'logger';
-import { HwCpu, HwGpu, HwNetwork, HwRam } from 'nodesight-types';
+import { logger } from '@libs/logger';
+import { HwCpu, HwGpu, HwNetwork, HwRam } from '@libs/nodesight-types';
 
-import { config } from './utils/config.js';
-import { Current } from './utils/interfaces.js';
+import { config } from './utils/config';
+import { Current } from './utils/interfaces';
 
 const getUrl = (type: string) => `${config.statsApiUrl}/api/${config.hostname}/${type}`;
 

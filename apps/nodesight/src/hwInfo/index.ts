@@ -1,8 +1,8 @@
-import { Cpu } from './cpu.js';
-import { Gpu } from './gpu.js';
-import { Network } from './network.js';
-import { Ram } from './ram.js';
-import { Storage } from './storage.js';
+import { Cpu } from './cpu';
+import { Gpu } from './gpu';
+import { Network } from './network';
+import { Ram } from './ram';
+import { Storage } from './storage';
 
 export namespace HwInfo {
   export const staticInfo = async () => {

@@ -2,9 +2,10 @@ import { Table } from 'console-table-printer';
 import express from 'express';
 import fs from 'fs';
 import generator from 'generate-password';
-import { Color, logger } from 'logger';
 import cron from 'node-cron';
 import path from 'path';
+
+import { Color, logger } from '@libs/logger';
 
 import { archiveApi } from './archiveApi';
 import { CifsApi } from './cifsApi';
