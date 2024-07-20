@@ -19,7 +19,7 @@
     /* If your code doesn't run in the DOM: */
     "lib": ["es2022", "DOM"],
     "paths": {
-      "@libs/*": ["libs/*/index.ts"]
+      "@libs/*": ["libs/*/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist", "libs/**/test", "apps/**/test"]

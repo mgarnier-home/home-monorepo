@@ -1,0 +1,20 @@
+name: "Get docker versions"
+description: "Retrieve all versions of an image pushed to a docker registry"
+author: "mgarnier11"
+inputs:
+  api-url:
+    description: "The URL of the docker registry API"
+    required: true
+  image-author:
+    description: "The author of the image"
+    required: true
+  image-name:
+    description: "The image name"
+    required: true
+  only-latest:
+    description: "Only return the latest version"
+    required: false
+    default: "false"
+runs:
+  using: "node20"
+  main: "getDockerVersions.js"

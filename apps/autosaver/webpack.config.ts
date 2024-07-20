@@ -10,8 +10,6 @@ const autosaverConfig = (env: Env, args: Args): webpack.Configuration => {
     main: './src/main.ts',
   };
 
-  console.log(config);
-
   return config;
 };
 

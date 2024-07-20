@@ -1,5 +1,7 @@
 FROM node:20-alpine
 
+ARG APP=none
+
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Enable corepack, that allows us to use pnpm as a drop-in replacement for npm
@@ -7,10 +9,17 @@ RUN corepack enable
 
 WORKDIR /build
 
-COPY . .
+COPY apps/$APP ./apps/$APP
+COPY libs ./libs
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.json default.webpack.config.ts ./
 
-# Install dependencies for all workspaces
+
+RUN echo $APP
+
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Move apps to a separate directory, so that we can copy the /build directory without having to copy possibly not up to date apps
-RUN mv ./apps /apps
+RUN pnpm run --filter=$APP build
+
+RUN cp -r apps/$APP/dist /dist
+
+

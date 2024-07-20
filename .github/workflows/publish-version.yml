@@ -1,0 +1,21 @@
+name: Publish version
+run-name: Publish version for an application
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Hello world action step
+        uses: ./.github/actions/get-docker-versions
+        id: get-docker-versions
+        with:
+          api-url: https://hub.docker.com/v2/repositories
+          image-author: mgarnier11
+          image-name: autosaver
+          only-latest: true

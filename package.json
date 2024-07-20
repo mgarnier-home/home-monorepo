@@ -7,6 +7,8 @@
     "start:autosaver": "webpack build --env apps=autosaver --mode development && node dist/autosaver/main.js --env-file apps/autosaver/.env"
   },
   "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
     "@types/jest": "^29.5.3",
     "@types/node": "^20.10.5",
     "@types/webpack-node-externals": "^3.0.4",
