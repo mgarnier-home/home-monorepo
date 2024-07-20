@@ -5,7 +5,7 @@ const getAllTags = async (url) => {
   const data = await response.json();
 
   if (data.next) {
-    return [...data.results, ...(await getVersions(data.next))];
+    return [...data.results, ...(await getAllTags(data.next))];
   } else {
     return data.results;
   }
