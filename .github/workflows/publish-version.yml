@@ -19,3 +19,9 @@ jobs:
           image-author: mgarnier11
           image-name: autosaver
           only-latest: true
+      - name: Print all the versions
+        run: echo "${{ steps.get-docker-versions.outputs.all-versions }}"
+      - name: Print all the tags
+        run: echo "${{ steps.get-docker-versions.outputs.all-tags }}"
+      - name: Print the latest version
+        run: echo "${{ steps.get-docker-versions.outputs.latest-version }}"
