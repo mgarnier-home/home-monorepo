@@ -1,10 +1,10 @@
 import type { DockerMessage, SyslogMessage } from '@shared/interfaces';
 import { createSocket, Socket } from 'dgram';
 import fs from 'fs';
-import { logger } from 'logger';
 import path from 'path';
-import { SimpleCache } from 'utils';
 
+import { logger } from '@libs/logger';
+import { SimpleCache } from '@libs/utils';
 import { getDockerMessage, getMessageKey } from '@shared/utils';
 
 import { config } from './config';

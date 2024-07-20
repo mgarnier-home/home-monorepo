@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "dashboard-app": {
+    "syslog-app": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -12,7 +12,7 @@
       },
       "root": "app",
       "sourceRoot": "app/src",
-      "prefix": "dashboard",
+      "prefix": "syslog",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
@@ -61,10 +61,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "dashboard-app:build:production"
+              "buildTarget": "app:build:production"
             },
             "development": {
-              "buildTarget": "dashboard-app:build:development"
+              "buildTarget": "app:build:development"
             }
           },
           "defaultConfiguration": "development"

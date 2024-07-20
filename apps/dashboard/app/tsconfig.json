@@ -20,14 +20,14 @@
     "noEmit": false,
     "useDefineForClassFields": false,
     "lib": ["ES2022", "dom"],
-    "baseUrl": "."
+    "baseUrl": ".."
   },
 
-  "include": ["./src/*.ts", "./src/**/*.ts", "../shared/**/*.ts", "../../../libs/**/*.ts"]
-  // "angularCompilerOptions": {
-  //   "enableI18nLegacyMessageIdFormat": false,
-  //   "strictInjectionParameters": true,
-  //   "strictInputAccessModifiers": true,
-  //   "strictTemplates": true
-  // },
+  "include": ["./src/*.ts", "./src/**/*.ts", "../shared/**/*.ts", "../../../libs/**/*.ts"],
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  }
 }

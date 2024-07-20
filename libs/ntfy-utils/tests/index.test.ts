@@ -1,4 +1,4 @@
-import { NtfyUtils } from './index.js';
+import { NtfyUtils } from '../src/index.js';
 
 describe('NtfyUtils', () => {
   describe('sendNotification', () => {

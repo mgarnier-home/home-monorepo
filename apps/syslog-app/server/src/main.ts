@@ -1,5 +1,6 @@
 import express from 'express';
-import { logger } from 'logger';
+
+import { logger } from '@libs/logger';
 
 import { config } from './config';
 import { SyslogServer } from './syslog';

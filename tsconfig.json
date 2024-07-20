@@ -19,8 +19,8 @@
     /* If your code doesn't run in the DOM: */
     "lib": ["es2022", "DOM"],
     "paths": {
-      "@libs/*": ["libs/*/src/index.ts"],
-      "@libs/nodesight-types": ["libs/nodesight-types/types/types.d.ts"]
+      "@libs/*": ["libs/*/index.ts"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "libs/**/test", "apps/**/test"]
 }

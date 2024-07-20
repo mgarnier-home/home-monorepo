@@ -1,12 +1,3 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "module": "commonjs",
-    "outDir": "./dist",
-    "declaration": true
-  },
-  "include": ["src"],
-  "exclude": ["dist", "node_modules", "**/*.test.ts"]
+  "extends": "../../tsconfig.json"
 }
