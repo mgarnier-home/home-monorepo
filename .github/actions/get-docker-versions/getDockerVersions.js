@@ -1,14 +1,12 @@
-const core = require('@actions/core');
-const github = require('@actions/github');
-
 const main = async () => {
-  const apiUrl = core.getInput('api-url');
-  const imageAuthor = core.getInput('image-author');
-  const imageName = core.getInput('image-name');
+  console.log(process.env);
+  // const apiUrl = core.getInput('api-url');
+  // const imageAuthor = core.getInput('image-author');
+  // const imageName = core.getInput('image-name');
 
-  const onlyLatest = core.getInput('only-latest') === 'true';
+  // const onlyLatest = core.getInput('only-latest') === 'true';
 
-  console.log(apiUrl, imageAuthor, imageName, onlyLatest);
+  // console.log(apiUrl, imageAuthor, imageName, onlyLatest);
 };
 
 main().catch((error) => {
