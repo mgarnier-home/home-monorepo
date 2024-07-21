@@ -68,14 +68,22 @@ jobs:
       - name: Print architecture
         run: echo "${{ runner.os }} ${{ runner.arch }} ${{ runner.platform }}"
       - name: Build application sources
-        run: |
-          docker build -t build --build-arg APP=${{ inputs.app-name }} --build-arg APP_VERSION=${{ steps.increment-version.outputs.new-version }} -f docker/build.Dockerfile .
+        run: >
+          docker build 
+            -t build 
+            --build-arg APP=${{ inputs.app-name }} 
+            --build-arg APP_VERSION=${{ steps.increment-version.outputs.new-version }} 
+            -f docker/build.Dockerfile 
+            .
       - name: Build application runtime
-        run: |
-          docker build -t mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}-${{ matrix.platform }} -f apps/${{ inputs.app-name }}/docker/Dockerfile .
+        run: >
+          docker build 
+            -t mgarnier11/${{ inputs.app-name }}:${{ matrix.platform }} 
+            -f apps/${{ inputs.app-name }}/docker/Dockerfile 
+            .
       - name: Push application runtime
         run: |
-          docker push mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}-${{ matrix.platform }}
+          docker push mgarnier11/${{ inputs.app-name }}:${{ matrix.platform }}
 
   publish-version:
     runs-on: ubuntu-latest
@@ -91,22 +99,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # - name: Build application executable
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     context: .
-
-      #     push: false
-      #     tags: build
-      #     build-args: |
-      #       APP=${{ inputs.app-name }}
-      #       APP_VERSION=${{ steps.increment-version.outputs.new-version }}
-      #     file: docker/build.Dockerfile
-      # - name: Build application runtime
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     context: .
-      #     platforms: linux/amd64,linux/arm64
-      #     push: false
-      #     tags: mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}
-      #     file: apps/${{ inputs.app-name }}/docker/Dockerfile
+      - name: Publish version ${{ steps.increment-version.outputs.new-version }} for ${{ inputs.app-name }}
+        run: >
+          docker buildx imagetools create 
+            --tag mgarnier11/${{ inputs.app-name }}:latest 
+            --tag mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }} 
+                  mgarnier11/${{ inputs.app-name }}:amd64 
+                  mgarnier11/${{ inputs.app-name }}:arm64
