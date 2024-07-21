@@ -34,19 +34,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Hello world action step
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Get versions of app from docker hub
         uses: mgarnier11/gh-actions/get-docker-versions@latest
         id: get-docker-versions
         with:
           api-url: https://hub.docker.com/v2/repositories
           image-author: mgarnier11
-          image-name: existePas
-      - name: Print all the versions
-        run: echo "${{ steps.get-docker-versions.outputs.all-versions }}"
-      - name: Print all the tags
-        run: echo "${{ steps.get-docker-versions.outputs.all-tags }}"
-      - name: Print the latest version
-        run: echo "${{ steps.get-docker-versions.outputs.latest-version }}"
+          image-name: ${{ inputs.app-name }}
       - name: Increment the version
         uses: mgarnier11/gh-actions/increment-version@latest
         id: increment-version
@@ -55,3 +60,23 @@ jobs:
           upgrade: patch
       - name: Print the new version
         run: echo "${{ steps.increment-version.outputs.new-version }}"
+
+      - name: Build application executable
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: build
+          build-args: |
+            APP=${{ inputs.app-name }}
+            APP_VERSION=${{ steps.increment-version.outputs.new-version }}
+          file: docker/build.Dockerfile
+      - name: Build application runtime
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: false
+          tags: mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}
+          file: apps/${{ inputs.app-name }}/docker/Dockerfile
