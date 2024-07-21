@@ -67,12 +67,18 @@ jobs:
         run: echo "${{ steps.increment-version.outputs.new-version }}"
       - name: Print architecture
         run: echo "${{ runner.os }} ${{ runner.arch }} ${{ runner.platform }}"
+      - name: Build application sources
+        run: |
+          docker build -t build --build-arg APP=${{ inputs.app-name }} --build-arg APP_VERSION=${{ steps.increment-version.outputs.new-version }} -f docker/build.Dockerfile .
+      - name: Build application runtime
+        run: |
+          docker build -t mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }} --platform ${{ matrix.platform }} -f apps/${{ inputs.app-name }}/docker/Dockerfile .
 
       # - name: Build application executable
       #   uses: docker/build-push-action@v6
       #   with:
       #     context: .
-      #     platforms: linux/amd64,linux/arm64
+
       #     push: false
       #     tags: build
       #     build-args: |
