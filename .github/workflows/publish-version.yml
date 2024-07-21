@@ -34,8 +34,8 @@ jobs:
     strategy:
       matrix:
         platform:
-          - amd64
-          - arm64
+          - linux/amd64
+          - linux/arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,7 +75,7 @@ jobs:
           docker build -t mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }} --platform ${{ matrix.platform }} -f apps/${{ inputs.app-name }}/docker/Dockerfile .
       - name: Push application runtime
         run: |
-          docker push mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}-${{ matrix.platform }}
+          docker push mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}-{{ runner.arch }}
 
   publish-version:
     runs-on: ubuntu-latest
