@@ -101,10 +101,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish version ${{ build-version.outputs.new-version }} for ${{ inputs.app-name }}
+      - name: Publish version ${{ needs.build-version.outputs.new-version }} for ${{ inputs.app-name }}
         run: >
           docker buildx imagetools create 
           --tag mgarnier11/${{ inputs.app-name }}:latest 
-          --tag mgarnier11/${{ inputs.app-name }}:${{ build-version.outputs.new-version }}
+          --tag mgarnier11/${{ inputs.app-name }}:${{ needs.build-version.outputs.new-version }}
           mgarnier11/${{ inputs.app-name }}:amd64 
           mgarnier11/${{ inputs.app-name }}:arm64
