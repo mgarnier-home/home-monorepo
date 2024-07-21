@@ -29,7 +29,7 @@ on:
 
 jobs:
   build-version:
-    runs-on: linux/${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
     name: Build version
     strategy:
       matrix:
