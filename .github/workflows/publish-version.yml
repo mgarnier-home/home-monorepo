@@ -66,7 +66,7 @@ jobs:
       - name: Print the new version
         run: echo "${{ steps.increment-version.outputs.new-version }}"
       - name: Print architecture
-        run: echo "${{ runner.os }}"
+        run: echo "${{ runner.os }} ${{ runner.arch }} ${{ runner.platform }}"
 
       # - name: Build application executable
       #   uses: docker/build-push-action@v6
