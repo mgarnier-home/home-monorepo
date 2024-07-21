@@ -25,3 +25,11 @@ jobs:
         run: echo "${{ steps.get-docker-versions.outputs.all-tags }}"
       - name: Print the latest version
         run: echo "${{ steps.get-docker-versions.outputs.latest-version }}"
+      - name: Increment the version
+        uses: mgarnier11/gh-actions/increment-version@latest
+        id: increment-version
+        with:
+          version: ${{ steps.get-docker-versions.outputs.latest-version }}
+          upgrade: patch
+      - name: Print the new version
+        run: echo "${{ steps.increment-version.outputs.new-version }}"
