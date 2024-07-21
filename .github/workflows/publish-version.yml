@@ -3,6 +3,29 @@ run-name: Publish version for an application
 
 on:
   workflow_dispatch:
+    inputs:
+      version-upgrade:
+        description: "How to upgrade the version"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "patch"
+          - "minor"
+          - "major"
+      app-name:
+        description: "The name of the application"
+        required: true
+        default: "none"
+        type: choice
+        options:
+          - "autosaver"
+          - "dashboard"
+          - "node-proxy"
+          - "nodesight"
+          - "stats-api"
+          - "syslog-app"
+          - "traefik-conf"
 
 jobs:
   test:
@@ -17,7 +40,7 @@ jobs:
         with:
           api-url: https://hub.docker.com/v2/repositories
           image-author: mgarnier11
-          image-name: autosaver
+          image-name: existePas
       - name: Print all the versions
         run: echo "${{ steps.get-docker-versions.outputs.all-versions }}"
       - name: Print all the tags
