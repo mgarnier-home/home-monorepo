@@ -2,6 +2,7 @@ import express from 'express';
 import fs from 'fs';
 import jsYaml from 'js-yaml';
 
+import { setVersionEndpoint } from '@libs/api-version';
 import { Container, Docker } from '@libs/docker-api';
 import { logger } from '@libs/logger';
 
@@ -52,6 +53,8 @@ const main = async () => {
   logger.info('appData : ', appData);
 
   const app = express();
+
+  setVersionEndpoint(app);
 
   app.use((err: any, req: any, res: any, next: any) => {
     logger.error(err.stack);

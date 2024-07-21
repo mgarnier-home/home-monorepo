@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
 
 import { Cpu } from './hwInfo/cpu';
@@ -15,6 +16,8 @@ import { Current } from './utils/interfaces';
 logger.setAppName('nodesight');
 
 const app = express();
+
+setVersionEndpoint(app);
 
 let current: Current | undefined = undefined;
 

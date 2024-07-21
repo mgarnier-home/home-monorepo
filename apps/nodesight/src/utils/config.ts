@@ -1,27 +1,23 @@
 import Fs from 'node:fs';
 import Path from 'node:path';
 
+import { getEnvVariable } from '@libs/env-config';
+
 import { Config } from './interfaces';
 
-const configFilePath = process.env.CONFIG_FILE || Path.resolve(__dirname, '../../config.json');
+const loadConfig = (): Config => {
+  const enableStatsApi = getEnvVariable('ENABLE_STATS_API', false, true);
 
-const loadConfigFromFile = (): Config => {
-  const config = Fs.readFileSync(configFilePath, 'utf-8');
-
-  return JSON.parse(config) as Config;
-};
-
-const loadConfigFromEnv = (): Config => {
   const config: Config = {
-    hostname: process.env.HOSTNAME || 'localhost',
-    serverPort: Number(process.env.SERVER_PORT) || 3000,
-    updateInterval: Number(process.env.UPDATE_INTERVAL) || 15000,
-    enableStatsApi: process.env.ENABLE_STATS_API === 'true',
-    statsApiUrl: process.env.STATS_API_URL || 'http://localhost:3000',
-    disableCpuTemps: process.env.DISABLE_CPU_TEMPS === 'true',
+    hostname: getEnvVariable('HOSTNAME', true),
+    serverPort: getEnvVariable('SERVER_PORT', false, 3000),
+    updateInterval: getEnvVariable('UPDATE_INTERVAL', false, 15000),
+    enableStatsApi,
+    statsApiUrl: getEnvVariable('STATS_API_URL', enableStatsApi),
+    disableCpuTemps: getEnvVariable('DISABLE_CPU_TEMPS', false, false),
   };
 
   return config;
 };
 
-export const config = (process.env.CONFIG_FILE ? loadConfigFromFile() : loadConfigFromEnv()) as Config;
+export const config = loadConfig();

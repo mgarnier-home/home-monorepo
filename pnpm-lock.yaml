@@ -14,6 +14,9 @@ importers:
       '@actions/github':
         specifier: ^6.0.0
         version: 6.0.0
+      '@types/express':
+        specifier: ^4.17.21
+        version: 4.17.21
       '@types/jest':
         specifier: ^29.5.3
         version: 29.5.11
@@ -26,6 +29,9 @@ importers:
       clean-webpack-plugin:
         specifier: ^4.0.0
         version: 4.0.0(webpack@5.92.1(@swc/core@1.6.13)(webpack-cli@5.1.4))
+      express:
+        specifier: ^4.19.2
+        version: 4.19.2
       fork-ts-checker-webpack-plugin:
         specifier: ^9.0.2
         version: 9.0.2(typescript@5.5.2)(webpack@5.92.1(@swc/core@1.6.13)(webpack-cli@5.1.4))
@@ -70,11 +76,8 @@ importers:
         specifier: ^2.11.2
         version: 2.12.0
       cpy:
-        specifier: ^10.1.0
-        version: 10.1.0
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
+        specifier: ^11.0.1
+        version: 11.0.1
       generate-password:
         specifier: ^1.7.0
         version: 1.7.1
@@ -88,9 +91,6 @@ importers:
         specifier: ^2.4.0
         version: 2.4.0
     devDependencies:
-      '@types/express':
-        specifier: ^4.17.17
-        version: 4.17.21
       '@types/node-cron':
         specifier: ^3.0.8
         version: 3.0.11
@@ -133,9 +133,6 @@ importers:
       '@angular/router':
         specifier: ^18.1.1
         version: 18.1.1(@angular/common@18.1.1(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8))(rxjs@7.8.1))(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8))(@angular/platform-browser@18.1.1(@angular/animations@18.1.1(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8)))(@angular/common@18.1.1(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8))(rxjs@7.8.1))(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8)))(rxjs@7.8.1)
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
       '@types/jasmine':
         specifier: ~5.1.4
         version: 5.1.4
@@ -151,9 +148,6 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
-      express:
-        specifier: ^4.19.2
-        version: 4.19.2
       jasmine-core:
         specifier: ~5.1.2
         version: 5.1.2
@@ -202,9 +196,6 @@ importers:
 
   apps/node-proxy:
     dependencies:
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -218,9 +209,6 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7
     devDependencies:
-      '@types/express':
-        specifier: ^4.17.14
-        version: 4.17.21
       '@types/js-yaml':
         specifier: ^4.0.5
         version: 4.0.9
@@ -239,12 +227,6 @@ importers:
 
   apps/nodesight:
     dependencies:
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
       systeminformation:
         specifier: ^5.21.11
         version: 5.21.22
@@ -254,12 +236,6 @@ importers:
       '@influxdata/influxdb-client':
         specifier: ^1.33.2
         version: 1.33.2
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
       express-validator:
         specifier: ^7.0.1
         version: 7.0.1
@@ -299,9 +275,6 @@ importers:
       '@angular/router':
         specifier: ^18.1.1
         version: 18.1.1(@angular/common@18.1.1(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8))(rxjs@7.8.1))(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8))(@angular/platform-browser@18.1.1(@angular/animations@18.1.1(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8)))(@angular/common@18.1.1(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8))(rxjs@7.8.1))(@angular/core@18.1.1(rxjs@7.8.1)(zone.js@0.14.8)))(rxjs@7.8.1)
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
       '@types/jasmine':
         specifier: ~5.1.4
         version: 5.1.4
@@ -317,9 +290,6 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.4.5
-      express:
-        specifier: ^4.19.2
-        version: 4.19.2
       jasmine-core:
         specifier: ~5.1.2
         version: 5.1.2
@@ -365,18 +335,12 @@ importers:
 
   apps/traefik-conf:
     dependencies:
-      '@types/express':
-        specifier: ^4.17.21
-        version: 4.17.21
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
-      express:
-        specifier: ^4.18.2
-        version: 4.18.2
       js-yaml:
         specifier: ^4.1.0
         version: 4.1.0
@@ -390,6 +354,8 @@ importers:
   libs/ntfy-utils: {}
 
   libs/utils: {}
+
+  libs/version: {}
 
 packages:
 
@@ -2499,10 +2465,6 @@ packages:
     resolution: {integrity: sha512-yMBKppFur/fbHu9/6USUe03bZ4knMYiwFBcyiaXB8Go0qNehwX6inYPzK9U0NeQvGxKthcmHcaR8P5MStSRBAw==}
     engines: {node: '>= 0.4'}
 
-  arrify@3.0.0:
-    resolution: {integrity: sha512-tLkvA81vQG/XqE2mjDkGQHoOINtMHtysSnemrmoGe6PydDPMRbVugqyk4A6V/WDWEfm3l+0d8anA9r8cv/5Jaw==}
-    engines: {node: '>=12'}
-
   asn1@0.2.6:
     resolution: {integrity: sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==}
 
@@ -2592,10 +2554,6 @@ packages:
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
-
-  body-parser@1.20.1:
-    resolution: {integrity: sha512-jWi7abTbYwajOytWCQc37VulmWiRae5RyTpaCyDcS5/lMdtwSz5lOpDE67srw/HYe35f1z3fDQw+3txg7gNtWw==}
-    engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
 
   body-parser@1.20.2:
     resolution: {integrity: sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==}
@@ -2851,16 +2809,16 @@ packages:
     resolution: {integrity: sha512-aSWTXFzaKWkvHO1Ny/s+ePFpvKsPnjc551iI41v3ny/ow6tBG5Vd+FuqGNhh1LxOmVzOlGUriIlOaokOvhaStA==}
     engines: {node: '>= 0.6'}
 
-  cookie@0.5.0:
-    resolution: {integrity: sha512-YZ3GUyn/o8gfKJlnlX7g7xq4gyO6OSuhGPKaaGssGB2qgDUS0gPgtTvoyZLTt9Ab6dC4hfc9dV5arkvc/OCmrw==}
-    engines: {node: '>= 0.6'}
-
   cookie@0.6.0:
     resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
     engines: {node: '>= 0.6'}
 
   copy-anything@2.0.6:
     resolution: {integrity: sha512-1j20GZTsvKNkc4BY3NpMOM8tt///wY3FpIzozTOFO2ffuZcV61nojHXVKIy3WM+7ADCy5FVhdZYHYDdgTU0yJw==}
+
+  copy-file@11.0.0:
+    resolution: {integrity: sha512-mFsNh/DIANLqFt5VHZoGirdg7bK5+oTWlhnGu6tgRhzBlnEKWaPX2xrFaLltii/6rmhqFMJqffUgknuRdpYlHw==}
+    engines: {node: '>=18'}
 
   copy-webpack-plugin@12.0.2:
     resolution: {integrity: sha512-SNwdBeHyII+rWvee/bTnAYyO8vfVdcSTud4EIb6jcZ8inLeWucJE0DnxXQBjlQ5zlteuuvooGQy3LIyGxhvlOA==}
@@ -2896,17 +2854,13 @@ packages:
       typescript:
         optional: true
 
-  cp-file@10.0.0:
-    resolution: {integrity: sha512-vy2Vi1r2epK5WqxOLnskeKeZkdZvTKfFZQCplE3XWsP+SUJyd5XAUFC9lFgTjjXJF2GMne/UML14iEmkAaDfFg==}
-    engines: {node: '>=14.16'}
-
   cpu-features@0.0.9:
     resolution: {integrity: sha512-AKjgn2rP2yJyfbepsmLfiYcmtNn/2eUvocUyM/09yB0YDiz39HteK/5/T4Onf0pmdYDMgkBoGvRLvEguzyL7wQ==}
     engines: {node: '>=10.0.0'}
 
-  cpy@10.1.0:
-    resolution: {integrity: sha512-VC2Gs20JcTyeQob6UViBLnyP0bYHkBh6EiKzot9vi2DmeGlFT9Wd7VG3NBrkNx/jYvFBeyDOMMHdHQhbtKLgHQ==}
-    engines: {node: '>=16'}
+  cpy@11.0.1:
+    resolution: {integrity: sha512-VIvf1QNOHnIZ5QT8zWxNJq+YYIpbFhgeMwnVngX+AhhUQd3Rns3x6gcvb0fGpNxZQ0q629mX6+GvDtvbO/Hutg==}
+    engines: {node: '>=18'}
 
   create-jest@29.7.0:
     resolution: {integrity: sha512-Adz2bdH0Vq3F53KEMJOoftQFutWCukm6J24wbPWRO4k1kMY7gS7ds/uoJkNuV8wDCtWWnuwGcJwpWcih+zEW1Q==}
@@ -3271,10 +3225,6 @@ packages:
   express-validator@7.0.1:
     resolution: {integrity: sha512-oB+z9QOzQIE8FnlINqyIFA8eIckahC6qc8KtqLdLJcU3/phVyuhXH3bA4qzcrhme+1RYaCSwrq+TlZ/kAKIARA==}
     engines: {node: '>= 8.0.0'}
-
-  express@4.18.2:
-    resolution: {integrity: sha512-5/PsL6iGPdfQ/lKM1UuielYgv3BUoJfz1aUwU9vHZ+J7gyvwdQXFEBIEIaxeGf0GIcreATNyBExtalisDbuMqQ==}
-    engines: {node: '>= 0.10.0'}
 
   express@4.19.2:
     resolution: {integrity: sha512-5T6nhjsT+EOMzuck8JjBHARTHfMht0POzlA60WV2pMD3gyXw2LZnZ+ueGdNxG+0calOJcWKbpFcuzLZ91YWq9Q==}
@@ -4421,9 +4371,6 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  nested-error-stacks@2.1.1:
-    resolution: {integrity: sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==}
-
   nice-napi@1.0.2:
     resolution: {integrity: sha512-px/KnJAJZf5RuBGcfD+Sp2pAKq0ytz8j+1NehvgIGFkvtvFrDM3T8E4x/JJODXK9WZow8RRGrbA9QQ3hs+pDhA==}
     os: ['!win32']
@@ -4597,9 +4544,9 @@ packages:
     resolution: {integrity: sha512-D2FR03Vir7FIu45XBY20mTb+/ZSWB00sjU9jdQXt83gDrI4Ztz5Fs7/yy74g2N5SVQY4xY1qDr4rNddwYRVX0g==}
     engines: {node: '>=0.10.0'}
 
-  p-event@5.0.1:
-    resolution: {integrity: sha512-dd589iCQ7m1L0bmC5NLlVYfy3TbBEsMUfWx9PyAgPeIcFZ/E2yaTZ4Rz4MiBmmJShviiftHVXOqfnfzJ6kyMrQ==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+  p-event@6.0.1:
+    resolution: {integrity: sha512-Q6Bekk5wpzW5qIyUP4gdMEujObYstZl6DMMOSenwBvV0BlE5LkDwkjs5yHbZmdCEq2o4RJx4tE1vwxFVf2FG1w==}
+    engines: {node: '>=16.17'}
 
   p-filter@3.0.0:
     resolution: {integrity: sha512-QtoWLjXAW++uTX67HZQz1dbTpqBfiidsB6VtQUC9iR85S120+s0T5sO6s+B5MLzFcZkrEd/DGMmCjR+f2Qpxwg==}
@@ -4645,9 +4592,9 @@ packages:
     resolution: {integrity: sha512-JA6nkq6hKyWLLasXQXUrO4z8BUZGUt/LjlJxx8Gb2+2ntodU/SS63YZ8b0LUTbQ8ZB9iwOfhEPhg4ykKnn2KsA==}
     engines: {node: '>=16.17'}
 
-  p-timeout@5.1.0:
-    resolution: {integrity: sha512-auFDyzzzGZZZdHz3BtET9VEz0SE/uMEAx7uWfGPucfzEwwe/xH0iVeZibQmANYE/hp9T2+UUZT5m+BKyrDp3Ew==}
-    engines: {node: '>=12'}
+  p-timeout@6.1.2:
+    resolution: {integrity: sha512-UbD77BuZ9Bc9aABo74gfXhNvzC9Tx7SxtHSh1fxvx3jTLLYvmVhiQZZrJzqqU0jKbN32kb5VOKiLEQI/3bIjgQ==}
+    engines: {node: '>=14.16'}
 
   p-try@2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
@@ -4933,10 +4880,6 @@ packages:
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
-
-  raw-body@2.5.1:
-    resolution: {integrity: sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==}
-    engines: {node: '>= 0.8'}
 
   raw-body@2.5.2:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
@@ -8118,26 +8061,26 @@ snapshots:
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/bonjour@3.5.13':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/connect-history-api-fallback@1.5.4':
     dependencies:
       '@types/express-serve-static-core': 4.17.41
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/cookie@0.4.1': {}
 
   '@types/cors@2.8.17':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/eslint-scope@3.7.7':
     dependencies:
@@ -8153,7 +8096,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.17.41':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
       '@types/qs': 6.9.11
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -8168,7 +8111,7 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/graceful-fs@4.1.9':
     dependencies:
@@ -8178,7 +8121,7 @@ snapshots:
 
   '@types/http-proxy@1.17.14':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/istanbul-lib-coverage@2.0.6': {}
 
@@ -8215,7 +8158,7 @@ snapshots:
 
   '@types/node-forge@1.3.11':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/node-ssh@7.0.6':
     dependencies:
@@ -8250,7 +8193,7 @@ snapshots:
   '@types/send@0.17.4':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/serve-index@1.9.4':
     dependencies:
@@ -8260,11 +8203,11 @@ snapshots:
     dependencies:
       '@types/http-errors': 2.0.4
       '@types/mime': 3.0.4
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/sockjs@0.3.36':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/ssh2-streams@0.1.12':
     dependencies:
@@ -8294,7 +8237,7 @@ snapshots:
 
   '@types/ws@8.5.10':
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -8543,8 +8486,6 @@ snapshots:
       is-array-buffer: 3.0.2
       is-shared-array-buffer: 1.0.2
 
-  arrify@3.0.0: {}
-
   asn1@0.2.6:
     dependencies:
       safer-buffer: 2.1.2
@@ -8667,23 +8608,6 @@ snapshots:
       buffer: 5.7.1
       inherits: 2.0.4
       readable-stream: 3.6.2
-
-  body-parser@1.20.1:
-    dependencies:
-      bytes: 3.1.2
-      content-type: 1.0.5
-      debug: 2.6.9
-      depd: 2.0.0
-      destroy: 1.2.0
-      http-errors: 2.0.0
-      iconv-lite: 0.4.24
-      on-finished: 2.4.1
-      qs: 6.11.0
-      raw-body: 2.5.1
-      type-is: 1.6.18
-      unpipe: 1.0.0
-    transitivePeerDependencies:
-      - supports-color
 
   body-parser@1.20.2:
     dependencies:
@@ -8953,13 +8877,16 @@ snapshots:
 
   cookie@0.4.2: {}
 
-  cookie@0.5.0: {}
-
   cookie@0.6.0: {}
 
   copy-anything@2.0.6:
     dependencies:
       is-what: 3.14.1
+
+  copy-file@11.0.0:
+    dependencies:
+      graceful-fs: 4.2.11
+      p-event: 6.0.1
 
   copy-webpack-plugin@12.0.2(webpack@5.92.1(@swc/core@1.6.13)(esbuild@0.21.5)(webpack-cli@5.1.4(webpack@5.92.1))):
     dependencies:
@@ -9000,26 +8927,18 @@ snapshots:
     optionalDependencies:
       typescript: 5.5.2
 
-  cp-file@10.0.0:
-    dependencies:
-      graceful-fs: 4.2.11
-      nested-error-stacks: 2.1.1
-      p-event: 5.0.1
-
   cpu-features@0.0.9:
     dependencies:
       buildcheck: 0.0.6
       nan: 2.18.0
     optional: true
 
-  cpy@10.1.0:
+  cpy@11.0.1:
     dependencies:
-      arrify: 3.0.0
-      cp-file: 10.0.0
+      copy-file: 11.0.0
       globby: 13.2.2
       junk: 4.0.1
       micromatch: 4.0.5
-      nested-error-stacks: 2.1.1
       p-filter: 3.0.0
       p-map: 6.0.0
 
@@ -9448,42 +9367,6 @@ snapshots:
     dependencies:
       lodash: 4.17.21
       validator: 13.11.0
-
-  express@4.18.2:
-    dependencies:
-      accepts: 1.3.8
-      array-flatten: 1.1.1
-      body-parser: 1.20.1
-      content-disposition: 0.5.4
-      content-type: 1.0.5
-      cookie: 0.5.0
-      cookie-signature: 1.0.6
-      debug: 2.6.9
-      depd: 2.0.0
-      encodeurl: 1.0.2
-      escape-html: 1.0.3
-      etag: 1.8.1
-      finalhandler: 1.2.0
-      fresh: 0.5.2
-      http-errors: 2.0.0
-      merge-descriptors: 1.0.1
-      methods: 1.1.2
-      on-finished: 2.4.1
-      parseurl: 1.3.3
-      path-to-regexp: 0.1.7
-      proxy-addr: 2.0.7
-      qs: 6.11.0
-      range-parser: 1.2.1
-      safe-buffer: 5.2.1
-      send: 0.18.0
-      serve-static: 1.15.0
-      setprototypeof: 1.2.0
-      statuses: 2.0.1
-      type-is: 1.6.18
-      utils-merge: 1.0.1
-      vary: 1.1.2
-    transitivePeerDependencies:
-      - supports-color
 
   express@4.19.2:
     dependencies:
@@ -10514,7 +10397,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.10.5
+      '@types/node': 20.14.11
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -10987,8 +10870,6 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  nested-error-stacks@2.1.1: {}
-
   nice-napi@1.0.2:
     dependencies:
       node-addon-api: 3.2.1
@@ -11194,9 +11075,9 @@ snapshots:
 
   os-tmpdir@1.0.2: {}
 
-  p-event@5.0.1:
+  p-event@6.0.1:
     dependencies:
-      p-timeout: 5.1.0
+      p-timeout: 6.1.2
 
   p-filter@3.0.0:
     dependencies:
@@ -11240,7 +11121,7 @@ snapshots:
       is-network-error: 1.1.0
       retry: 0.13.1
 
-  p-timeout@5.1.0: {}
+  p-timeout@6.1.2: {}
 
   p-try@2.2.0: {}
 
@@ -11489,13 +11370,6 @@ snapshots:
       safe-buffer: 5.2.1
 
   range-parser@1.2.1: {}
-
-  raw-body@2.5.1:
-    dependencies:
-      bytes: 3.1.2
-      http-errors: 2.0.0
-      iconv-lite: 0.4.24
-      unpipe: 1.0.0
 
   raw-body@2.5.2:
     dependencies:

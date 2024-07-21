@@ -3,37 +3,31 @@ import path from 'node:path';
 import { cwd } from 'node:process';
 import { parse as ymlParse } from 'yaml';
 
+import { getEnvVariable } from '@libs/env-config';
+
 import { ArchiveApiType, BackupConfig, Config } from './types';
 
-const configFilePath = process.env.CONFIG_FILE || path.resolve(__dirname, '../../config.json');
-
-const loadConfigFromFile = (): Config => {
-  const config = fs.readFileSync(configFilePath, 'utf-8');
-
-  return JSON.parse(config) as Config;
-};
-
-const loadConfigFromEnv = (): Config => {
-  const backupConfigPath = process.env.BACKUP_CONFIG_PATH || './config.yml';
+const loadConfig = (): Config => {
+  const backupConfigPath = getEnvVariable<string>('BACKUP_CONFIG_PATH', false, './config.yml');
   const fullBackupConfigPath = backupConfigPath.startsWith('/')
     ? backupConfigPath
     : path.resolve(cwd(), backupConfigPath);
 
   const config: Config = {
-    serverPort: Number(process.env.SERVER_PORT) || 3000,
+    serverPort: getEnvVariable('SERVER_PORT', false, 3000),
     backupConfigPath: fullBackupConfigPath,
-    cronSchedule: process.env.CRON_SCHEDULE || '0 0 * * *',
-    archiveApiType: process.env.ARCHIVE_API_TYPE === ArchiveApiType.ZIP ? ArchiveApiType.ZIP : ArchiveApiType.TAR,
+    cronSchedule: getEnvVariable('CRON_SCHEDULE', false, '0 0 * * *'),
+    archiveApiType: getEnvVariable<ArchiveApiType>('ARCHIVE_API_TYPE', false, ArchiveApiType.TAR),
   };
 
   return config;
 };
 
-export const config = (process.env.CONFIG_FILE ? loadConfigFromFile() : loadConfigFromEnv()) as Config;
+export const config = loadConfig();
 
 export const getBackupConfig = (): BackupConfig => {
   const backupConfigYml = fs.readFileSync(config.backupConfigPath, 'utf-8');
-  const backupConfig: BackupConfig = ymlParse(backupConfigYml, { merge: true }).config as BackupConfig;
+  const backupConfig: BackupConfig = ymlParse(backupConfigYml, { merge: true })?.config as BackupConfig;
 
   return backupConfig;
 };

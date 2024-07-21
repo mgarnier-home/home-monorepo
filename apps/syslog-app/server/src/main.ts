@@ -1,5 +1,6 @@
 import express from 'express';
 
+import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
 
 import { config } from './config';
@@ -14,6 +15,8 @@ const main = async () => {
 
   const syslogServer = new SyslogServer();
   const app = express();
+
+  setVersionEndpoint(app);
 
   syslogServer.start(config.syslogPort);
 

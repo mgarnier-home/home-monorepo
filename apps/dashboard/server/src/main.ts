@@ -3,6 +3,7 @@ import fs from 'fs';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
+import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
 import { DEFAULT_ROOM } from '@shared/interfaces/socket';
 
@@ -15,6 +16,8 @@ const expressApp = express();
 const httpServer = http.createServer(expressApp);
 
 logger.info(config);
+
+setVersionEndpoint(expressApp);
 
 expressApp.use('/', (req, res, next) => {
   logger.info(`${req.method} ${req.url}`);

@@ -2,13 +2,14 @@ import fs from 'fs';
 import jsYaml from 'js-yaml';
 import path from 'path';
 
+import { getEnvVariable } from '@libs/env-config';
 import { logger } from '@libs/logger';
 
 import { Host } from '../classes/host.class';
 import { HostConfig } from './interfaces';
 
 const hosts: Host[] = [];
-const configFilePath = path.resolve(__dirname, process.env.CONFIG_FILE ?? '../config.yml');
+const configFilePath = path.resolve(__dirname, getEnvVariable('CONFIG_FILE', false, '../config.yml'));
 
 const lastConfig: HostConfig[] = [];
 

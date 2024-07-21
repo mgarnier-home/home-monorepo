@@ -33,7 +33,7 @@ export const getConfig = (env: Env, args: Args, app: string): webpack.Configurat
       __dirname: false,
     },
     externals: [
-      nodeExternals(),
+      // nodeExternals(),
       // {
       // modulesDir: path.join(__dirname, 'node_modules'),
       // importType: (moduleName) => `import ${moduleName}`,

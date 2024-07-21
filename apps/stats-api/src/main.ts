@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { body } from 'express-validator';
 
+import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
 
 import { setupApiRoutes } from './api/setupApi';
@@ -13,6 +14,8 @@ import { config } from './utils/config';
 
 logger.setAppName('stats-api');
 const app = express();
+
+setVersionEndpoint(app);
 
 app.use(express.json());
 app.use((req, res, next) => {

@@ -11,10 +11,14 @@ WORKDIR /app
 
 COPY --from=build /dist .
 
+RUN touch config.yml
+
 RUN ls -la
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3000 || exit 1
 
+EXPOSE 3000
+
 # Define the command to run the app
-CMD ["node", "./dist/main.js"]
+CMD ["node", "./main.js"]

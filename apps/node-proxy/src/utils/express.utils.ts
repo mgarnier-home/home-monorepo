@@ -1,5 +1,6 @@
 import Express, { NextFunction, Request, Response } from 'express';
 
+import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
 
 import { Host } from '../classes/host.class';
@@ -13,6 +14,8 @@ const log = (...args: any[]) => {
 
 export const createExpressApp = (apiPort: number) => {
   const app = Express();
+
+  setVersionEndpoint(app);
 
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error(err.stack);
