@@ -1,4 +1,6 @@
-FROM build AS build
+# ARG build=build_$TARGETARCH
+
+FROM --platform=linux/arm64 build AS build
 
 FROM node:20-buster AS runtime
 

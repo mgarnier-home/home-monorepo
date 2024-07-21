@@ -14,9 +14,9 @@ DOCKER_BUILD_RUN_ARGS="--no-cache -t mgarnier11/$PROJECT_NAME:latest -f apps/$PR
 
 if [ "${BUILDX}" = true ]; then
   echo "Building for multiple platforms"
-  docker buildx create --name mybuilder
+  # docker buildx create --name mybuilder
   docker buildx use mybuilder
-  docker buildx build --platform linux/amd64,linux/arm64 $DOCKER_BUILD_APP_ARGS
+  docker buildx build --platform linux/amd64,linux/arm64 $DOCKER_BUILD_APP_ARGS --load
   docker buildx build --platform linux/amd64,linux/arm64 $DOCKER_BUILD_RUN_ARGS
 else
   echo "Building for single platform"
@@ -29,3 +29,8 @@ if [ "${PUSH}" = true ]; then
   docker push mgarnier11/$PROJECT_NAME:latest
 fi
 
+
+
+# docker buildx build --platform linux/arm64 --no-cache -t build:arm64 -f docker/build.Dockerfile --build-arg APP=autosaver --build-arg APP_VERSION=test --load .
+# docker buildx build --platform linux/arm64 --no-cache -t mgarnier11/autosaver:arm64 -f apps/autosaver/docker/Dockerfile . 
+# docker build --no-cache -t mgarnier11/autosaver:arm64 -f apps/autosaver/docker/Dockerfile . 

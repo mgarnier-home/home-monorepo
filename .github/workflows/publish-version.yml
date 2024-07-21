@@ -28,9 +28,14 @@ on:
           - "traefik-conf"
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    name: Test
+  publish-version:
+    runs-on: ${{ matrix.platform }}
+    name: Publish version
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,23 +65,25 @@ jobs:
           upgrade: patch
       - name: Print the new version
         run: echo "${{ steps.increment-version.outputs.new-version }}"
+      - name: Print architecture
+        run: echo "${{ runner.os }}"
 
-      - name: Build application executable
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: build
-          build-args: |
-            APP=${{ inputs.app-name }}
-            APP_VERSION=${{ steps.increment-version.outputs.new-version }}
-          file: docker/build.Dockerfile
-      - name: Build application runtime
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}
-          file: apps/${{ inputs.app-name }}/docker/Dockerfile
+      # - name: Build application executable
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     platforms: linux/amd64,linux/arm64
+      #     push: false
+      #     tags: build
+      #     build-args: |
+      #       APP=${{ inputs.app-name }}
+      #       APP_VERSION=${{ steps.increment-version.outputs.new-version }}
+      #     file: docker/build.Dockerfile
+      # - name: Build application runtime
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     platforms: linux/amd64,linux/arm64
+      #     push: false
+      #     tags: mgarnier11/${{ inputs.app-name }}:${{ steps.increment-version.outputs.new-version }}
+      #     file: apps/${{ inputs.app-name }}/docker/Dockerfile

@@ -17,7 +17,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.json default.webpa
 
 RUN echo $APP
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 RUN pnpm run --filter=$APP build
 
