@@ -1,5 +1,5 @@
 name: Publish version
-run-name: Publish ${{ steps.increment-version.outputs.new-version }} for ${{ inputs.app-name }}
+run-name: Publish ${{ inputs.app-name }} and increment version with ${{ inputs.version-upgrade }}
 
 on:
   workflow_dispatch:
