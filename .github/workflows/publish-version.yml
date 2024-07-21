@@ -1,5 +1,5 @@
 name: Publish version
-run-name: Publish ${{ inputs.app-name }} and increment version with ${{ inputs.version-upgrade }}
+run-name: "${{ inputs.app-name }}, increment : ${{ inputs.version-upgrade }}"
 
 on:
   workflow_dispatch:
@@ -64,7 +64,7 @@ jobs:
         id: increment-version
         with:
           version: ${{ steps.get-docker-versions.outputs.latest-version }}
-          upgrade: patch
+          upgrade: ${{ inputs.version-upgrade }}
       - name: Print the new version
         run: echo "${{ steps.increment-version.outputs.new-version }}"
       - name: Print architecture
