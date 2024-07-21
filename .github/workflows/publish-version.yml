@@ -18,7 +18,6 @@ jobs:
           api-url: https://hub.docker.com/v2/repositories
           image-author: mgarnier11
           image-name: autosaver
-          only-latest: true
       - name: Print all the versions
         run: echo "${{ steps.get-docker-versions.outputs.all-versions }}"
       - name: Print all the tags
