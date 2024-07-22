@@ -39,9 +39,9 @@ jobs:
         id: get-app-name
         run: |
           if [ "${{ matrix.app }}" == "all" ]; then
-            echo "apps-names=[\"autosaver\", \"dashboard\", \"node-proxy\", \"nodesight\", \"stats-api\", \"syslog-app\", \"traefik-conf\"]"
+            echo "apps-names=[\"autosaver\", \"dashboard\", \"node-proxy\", \"nodesight\", \"stats-api\", \"syslog-app\", \"traefik-conf\"]" >> $GITHUB_OUTPUT
           else
-            echo "apps-names=[\"${{ matrix.app }}\"]"
+            echo "apps-names=[\"${{ matrix.app }}\"]" >> $GITHUB_OUTPUT
           fi
 
   build-app-version:
