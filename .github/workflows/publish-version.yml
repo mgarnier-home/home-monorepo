@@ -27,12 +27,6 @@ on:
           - "syslog-app"
           - "traefik-conf"
           - "all"
-  workflow_call:
-    inputs:
-      app-to-publish:
-        description: "The name of the application to publish"
-        required: true
-        type: string
 
 jobs:
   get-apps-to-build:
@@ -50,19 +44,15 @@ jobs:
           else
             echo "apps-names=[\"${{ inputs.app-name }}\"]" >> $GITHUB_OUTPUT
           fi
-  call-self:
-    name: Call self
+  run-publish-workflow:
     needs: get-apps-to-build
-    uses: ./.github/workflows/publish-version.yml
+    uses: ./.github/workflows/build-and-publish.yml
     with:
-      app-to-publish: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
-
-  build-app-version:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.app-to-publish != '' }}
-    steps:
-      - name: Test
-        run: echo "${{ inputs.app-to-publish }}"
+      app-to-publish: ${{ matrix.app }}
+      version-upgrade: ${{ inputs.version-upgrade }}
+    strategy:
+      matrix:
+        app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
 
   # build-app-version:
   #   runs-on: linux/${{ matrix.platform }}
