@@ -75,11 +75,13 @@ jobs:
         id: get-app-name
         run: |
           apps_names=()
-          for app in autosaver dashboard node-proxy nodesight stats-api syslog-app traefik-conf; do
-            if [ "${{ inputs.${app} }}" == "true" ]; then
-              apps_names+=("${app}")
-            fi
-          done
+          if [ "${{ inputs.autosaver }}" == "true" ]; then apps_names+=("autosaver"); fi
+          if [ "${{ inputs.dashboard }}" == "true" ]; then apps_names+=("dashboard"); fi
+          if [ "${{ inputs.node-proxy }}" == "true" ]; then apps_names+=("node-proxy"); fi
+          if [ "${{ inputs.nodesight }}" == "true" ]; then apps_names+=("nodesight"); fi
+          if [ "${{ inputs.stats-api }}" == "true" ]; then apps_names+=("stats-api"); fi
+          if [ "${{ inputs.syslog-app }}" == "true" ]; then apps_names+=("syslog-app"); fi
+          if [ "${{ inputs.traefik-conf }}" == "true" ]; then apps_names+=("traefik-conf"); fi
           echo "apps-names=[\"${apps_names[@]}\"]" >> $GITHUB_OUTPUT
   run-publish-workflow:
     needs: get-apps-to-build
