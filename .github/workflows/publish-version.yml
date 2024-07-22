@@ -27,6 +27,10 @@ on:
           - "syslog-app"
           - "traefik-conf"
           - "all"
+      bool-test:
+        description: "Test boolean"
+        required: true
+        type: boolean
 
 jobs:
   get-apps-to-build:
