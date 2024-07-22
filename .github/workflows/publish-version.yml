@@ -82,13 +82,28 @@ jobs:
       matrix:
         # app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
         app:
-          - ${{ inputs.autosaver && 'autosaver' || '' }}
-          - ${{ inputs.dashboard && 'dashboard' || '' }}
-          - ${{ inputs.node-proxy && 'node-proxy' || '' }}
-          - ${{ inputs.nodesight && 'nodesight' || '' }}
-          - ${{ inputs.stats-api && 'stats-api' || '' }}
-          - ${{ inputs.syslog-app && 'syslog-app' || '' }}
-          - ${{ inputs.traefik-conf && 'traefik-conf' || '' }}
+          - autosaver
+          - dashboard
+          - node-proxy
+          - nodesight
+          - stats-api
+          - syslog-app
+          - traefik-conf
+        exclude:
+          - app: autosaver
+            if: ${{ !inputs.autosaver }}
+          - app: dashboard
+            if: ${{ !inputs.dashboard }}
+          - app: node-proxy
+            if: ${{ !inputs.node-proxy }}
+          - app: nodesight
+            if: ${{ !inputs.nodesight }}
+          - app: stats-api
+            if: ${{ !inputs.stats-api }}
+          - app: syslog-app
+            if: ${{ !inputs.syslog-app }}
+          - app: traefik-conf
+            if: ${{ !inputs.traefik-conf }}
 
   # build-app-version:
   #   runs-on: linux/${{ matrix.platform }}
