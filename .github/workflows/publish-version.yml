@@ -53,7 +53,7 @@ jobs:
         platform:
           - amd64
           - arm64
-        app: ${{ fromJson(needs.get-apps-to-build.outputs.apps-names) }}
+        app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
     outputs:
       new-version: ${{ steps.increment-version.outputs.new-version }}
     steps:
