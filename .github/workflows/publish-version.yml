@@ -51,6 +51,7 @@ jobs:
     with:
       app-to-publish: ${{ matrix.app }}
       version-upgrade: ${{ inputs.version-upgrade }}
+    secrets: inherit
     strategy:
       matrix:
         app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
