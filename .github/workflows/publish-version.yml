@@ -64,7 +64,11 @@ jobs:
       - name: Get app names
         id: get-app-name
         run: |
-          echo ${{join('test test1 test2', ',')}}${{fromJSON("[\"test\",,\"test1\"]")}}
+          echo ${{join('test test1 test2', ',')}}
+          echo "apps-names=[\"test\",,\"test1\"]" >> $GITHUB_OUTPUT
+      - name: test
+        run: |
+          echo ${{fromJSON(steps.get-app-name.outputs.apps-names)}}
 
   # run-publish-workflow:
   #   needs: get-apps-to-build
