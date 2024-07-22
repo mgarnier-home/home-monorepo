@@ -4,7 +4,7 @@ FROM node:20-alpine AS runtime
 
 WORKDIR /app
 
-COPY --from=build /dist
+COPY --from=build /dist .
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3000 || exit 1
