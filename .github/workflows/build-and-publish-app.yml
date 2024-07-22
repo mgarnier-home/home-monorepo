@@ -69,12 +69,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish version ${{ needs.get-version.outputs.new-version }} for ${{ inputs.app-to-publish }}
+      - name: Publish version ${{ needs.get-version.outputs.new-app-version }} for ${{ inputs.app-to-publish }}
         run: >
           echo "
           docker buildx imagetools create
           --tag mgarnier11/${{ inputs.app-to-publish }}:latest
-          --tag mgarnier11/${{ inputs.app-to-publish }}:${{ needs.get-version.outputs.new-version }}
+          --tag mgarnier11/${{ inputs.app-to-publish }}:${{ needs.get-version.outputs.new-app-version }}
           mgarnier11/${{ inputs.app-to-publish }}:amd64
           mgarnier11/${{ inputs.app-to-publish }}:arm64
           "
