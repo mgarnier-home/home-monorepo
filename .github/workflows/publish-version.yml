@@ -13,22 +13,46 @@ on:
           - "patch"
           - "minor"
           - "major"
-      app-name:
-        description: "The name of the application"
+      # app-name:
+      #   description: "The name of the application"
+      #   required: true
+      #   default: "none"
+      #   type: choice
+      #   options:
+      #     - "autosaver"
+      #     - "dashboard"
+      #     - "node-proxy"
+      #     - "nodesight"
+      #     - "stats-api"
+      #     - "syslog-app"
+      #     - "traefik-conf"
+      #     - "all"
+      autosaver:
+        description: "Autosaver"
         required: true
-        default: "none"
-        type: choice
-        options:
-          - "autosaver"
-          - "dashboard"
-          - "node-proxy"
-          - "nodesight"
-          - "stats-api"
-          - "syslog-app"
-          - "traefik-conf"
-          - "all"
-      bool-test:
-        description: "Test boolean"
+        type: boolean
+      dashboard:
+        description: "Dashboard"
+        required: true
+        type: boolean
+      node-proxy:
+        description: "Node Proxy"
+        required: true
+        type: boolean
+      nodesight:
+        description: "Nodesight"
+        required: true
+        type: boolean
+      stats-api:
+        description: "Stats API"
+        required: true
+        type: boolean
+      syslog-app:
+        description: "Syslog App"
+        required: true
+        type: boolean
+      traefik-conf:
+        description: "Traefik Conf"
         required: true
         type: boolean
 
@@ -39,14 +63,24 @@ jobs:
     outputs:
       apps-names: ${{ steps.get-app-name.outputs.apps-names }}
     steps:
+      # - name: Get app names
+      #   id: get-app-name
+      #   run: |
+      #     if [ "${{ inputs.app-name }}" == "all" ]; then
+      #       echo "apps-names=[\"autosaver\", \"dashboard\", \"node-proxy\", \"nodesight\", \"stats-api\", \"syslog-app\", \"traefik-conf\"]" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "apps-names=[\"${{ inputs.app-name }}\"]" >> $GITHUB_OUTPUT
+      #     fi
       - name: Get app names
         id: get-app-name
         run: |
-          if [ "${{ inputs.app-name }}" == "all" ]; then
-            echo "apps-names=[\"autosaver\", \"dashboard\", \"node-proxy\", \"nodesight\", \"stats-api\", \"syslog-app\", \"traefik-conf\"]" >> $GITHUB_OUTPUT
-          else
-            echo "apps-names=[\"${{ inputs.app-name }}\"]" >> $GITHUB_OUTPUT
-          fi
+          apps_names=()
+          for app in autosaver dashboard node-proxy nodesight stats-api syslog-app traefik-conf; do
+            if [ "${{ inputs.${app} }}" == "true" ]; then
+              apps_names+=("${app}")
+            fi
+          done
+          echo "apps-names=[\"${apps_names[@]}\"]" >> $GITHUB_OUTPUT
   run-publish-workflow:
     needs: get-apps-to-build
     uses: ./.github/workflows/build-and-publish-app.yml
