@@ -1,13 +1,14 @@
 name: Publish version
-run-name: "Increment: ${{ inputs.version-upgrade }} Apps: ${{ format(
+run-name: "Inc: ${{ inputs.version-upgrade }}
+  ${{ format(
   '{0}{1}{2}{3}{4}{5}{6}',
-  inputs['autosaver'] && 'autosaver ' || '',
-  inputs['dashboard'] && 'dashboard ' || '',
-  inputs['node-proxy'] && 'node-proxy ' || '',
-  inputs['nodesight'] && 'nodesight ' || '',
-  inputs['stats-api'] && 'stats-api ' || '',
-  inputs['syslog-app'] && 'syslog-app ' || '',
-  inputs['traefik-conf'] && 'traefik-conf ' || ''
+  inputs['autosaver'] && 'Autosaver ' || '',
+  inputs['dashboard'] && 'Dashboard ' || '',
+  inputs['node-proxy'] && 'Node-proxy ' || '',
+  inputs['nodesight'] && 'Nodesight ' || '',
+  inputs['stats-api'] && 'Stats-api ' || '',
+  inputs['syslog-app'] && 'Syslog-app ' || '',
+  inputs['traefik-conf'] && 'Traefik-conf ' || ''
   ) }}"
 
 on:
@@ -63,16 +64,10 @@ jobs:
       - name: Get app names
         id: get-app-name
         run: |
-          apps_names=""
-          if [ "${{ inputs.autosaver }}" == "true" ]; then apps_names+="\"autosaver\","; fi
-          if [ "${{ inputs.dashboard }}" == "true" ]; then apps_names+="\"dashboard\","; fi
-          if [ "${{ inputs.node-proxy }}" == "true" ]; then apps_names+="\"node-proxy\","; fi
-          if [ "${{ inputs.nodesight }}" == "true" ]; then apps_names+="\"nodesight\","; fi
-          if [ "${{ inputs.stats-api }}" == "true" ]; then apps_names+="\"stats-api\","; fi
-          if [ "${{ inputs.syslog-app }}" == "true" ]; then apps_names+="\"syslog-app\","; fi
-          if [ "${{ inputs.traefik-conf }}" == "true" ]; then apps_names+="\"traefik-conf\","; fi
-          apps_names=${apps_names::-1}
-          echo "apps-names=[$apps_names]" >> $GITHUB_OUTPUT
+          echo "${{
+          join('test test1 test2', ',')
+          }}${{'test test1 test2'.replace(' ', ',')}}"
+
   # run-publish-workflow:
   #   needs: get-apps-to-build
   #   uses: ./.github/workflows/build-and-publish-app.yml
