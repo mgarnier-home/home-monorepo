@@ -38,6 +38,8 @@ jobs:
     needs: get-version
     name: Build amd64
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Build app for amd64
         uses: ./.github/actions/build
         with:
@@ -48,6 +50,8 @@ jobs:
     needs: get-version
     name: Build arm64
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Build app for arm64
         uses: ./.github/actions/build
         with:
