@@ -53,34 +53,42 @@ on:
         type: boolean
 
 jobs:
-  get-apps-to-build:
-    runs-on: ubuntu-latest
-    name: Get apps to build
-    outputs:
-      apps-names: ${{ steps.get-app-name.outputs.apps-names }}
-    steps:
-      # - name: Test
-      #   run: echo "${{ (inputs.*).filter(v => v) }}"
-      - name: Get app names
-        id: get-app-name
-        run: |
-          echo ${{join('test test1 test2', ',')}}
-          echo "apps-names=[\"test\",,\"test1\"]" >> $GITHUB_OUTPUT
-      - name: test
-        run: |
-          echo "${{toJSON(fromJSON(steps.get-app-name.outputs.apps-names))}}"
+  # get-apps-to-build:
+  #   runs-on: ubuntu-latest
+  #   name: Get apps to build
+  #   outputs:
+  #     apps-names: ${{ steps.get-app-name.outputs.apps-names }}
+  #   steps:
+  #     # - name: Test
+  #     #   run: echo "${{ (inputs.*).filter(v => v) }}"
+  #     - name: Get app names
+  #       id: get-app-name
+  #       run: |
+  #         echo ${{join('test test1 test2', ',')}}
+  #         echo "apps-names=[\"test\",,\"test1\"]" >> $GITHUB_OUTPUT
+  #     - name: test
+  #       run: |
+  #         echo "${{toJSON(fromJSON(steps.get-app-name.outputs.apps-names))}}"
 
-  # run-publish-workflow:
-  #   needs: get-apps-to-build
-  #   uses: ./.github/workflows/build-and-publish-app.yml
-  #   name: ${{ matrix.app }}
-  #   with:
-  #     app-to-publish: ${{ matrix.app }}
-  #     version-upgrade: ${{ inputs.version-upgrade }}
-  #   secrets: inherit
-  #   strategy:
-  #     matrix:
-  #       app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
+  run-publish-workflow:
+    # needs: get-apps-to-build
+    uses: ./.github/workflows/build-and-publish-app.yml
+    name: ${{ matrix.app }}
+    with:
+      app-to-publish: ${{ matrix.app }}
+      version-upgrade: ${{ inputs.version-upgrade }}
+    secrets: inherit
+    strategy:
+      matrix:
+        # app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
+        app:
+          - ${{ inputs.autosaver && 'autosaver' || '' }}
+          - ${{ inputs.dashboard && 'dashboard' || '' }}
+          - ${{ inputs.node-proxy && 'node-proxy' || '' }}
+          - ${{ inputs.nodesight && 'nodesight' || '' }}
+          - ${{ inputs.stats-api && 'stats-api' || '' }}
+          - ${{ inputs.syslog-app && 'syslog-app' || '' }}
+          - ${{ inputs.traefik-conf && 'traefik-conf' || '' }}
 
   # build-app-version:
   #   runs-on: linux/${{ matrix.platform }}
