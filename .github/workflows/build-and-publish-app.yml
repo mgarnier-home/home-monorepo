@@ -39,7 +39,7 @@ jobs:
     name: Build amd64
     steps:
       - name: Build app for amd64
-        uses: ./.github/actions/build.yml
+        uses: ./.github/actions/build
         with:
           app-name: ${{ inputs.app-to-publish }}
           version: ${{ needs.get-version.outputs.new-app-version }}
@@ -49,7 +49,7 @@ jobs:
     name: Build arm64
     steps:
       - name: Build app for arm64
-        uses: ./.github/actions/build.yml
+        uses: ./.github/actions/build
         with:
           app-name: ${{ inputs.app-to-publish }}
           version: ${{ needs.get-version.outputs.new-app-version }}

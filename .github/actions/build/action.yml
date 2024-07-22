@@ -19,6 +19,7 @@ runs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build application sources
+      shell: bash
       run: >
         echo "
         docker build
@@ -29,6 +30,7 @@ runs:
         .
         "
     - name: Build application runtime
+      shell: bash
       run: >
         echo "
         docker build
@@ -37,5 +39,6 @@ runs:
         .
         "
     - name: Push application runtime
+      shell: bash
       run: |
         echo "docker push mgarnier11/${{ inputs.app-name }}:${{ runner.platform }}"
