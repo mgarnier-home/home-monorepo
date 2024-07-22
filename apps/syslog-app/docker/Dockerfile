@@ -1,27 +1,25 @@
-ARG deps=mgarnier11/my-home:$TARGETARCH
+FROM build AS build
 
-FROM $deps as deps
-
-FROM deps as build
-
-WORKDIR /build
-
-COPY --from=deps /build .
-COPY ./apps/syslog-app ./apps/syslog-app
-COPY --from=deps /apps/syslog-app/node_modules ./apps/syslog-app/node_modules
-
-RUN npx nx build syslog-app
-
-FROM node:18-alpine AS app
-
-ENV NODE_ENV=production
+FROM node:20-alpine AS app
 
 WORKDIR /app
 
-COPY --from=build /build/apps/syslog-app/server-dist ./server-dist
-COPY --from=build /build/apps/syslog-app/app-dist ./app-dist
+COPY --from=build /dist/server ./server
+COPY --from=build /dist/app/browser ./app
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3000 || exit 1
 
-CMD ["node", "./server-dist/main.js"]
+ENV NODE_ENV="production"
+ENV SERVER_PORT="3000"
+ENV SYSLOG_PORT="514"
+ENV STORAGE_PATH="/storage"
+ENV APP_DIST_PATH="/app/app"
+ENV HOSTS_MAP="{}"
+# 1024 * 1024 * 256 = 268435456 = 256MB
+ENV MAX_LOG_FILE_SIZE="268435456"
+
+EXPOSE 3000
+EXPOSE 514
+
+CMD ["node", "./server/main.js"]

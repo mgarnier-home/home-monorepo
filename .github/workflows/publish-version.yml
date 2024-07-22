@@ -1,5 +1,5 @@
 name: Publish version
-run-name: "${{ inputs.app-name }}, increment : ${{ inputs.version-upgrade }}"
+run-name: "${{ matrix.app }}, increment : ${{ inputs.version-upgrade }}"
 
 on:
   workflow_dispatch:
@@ -26,16 +26,34 @@ on:
           - "stats-api"
           - "syslog-app"
           - "traefik-conf"
+          - "all"
 
 jobs:
-  build-version:
+  get-apps-to-build:
+    runs-on: ubuntu-latest
+    name: Get apps to build
+    outputs:
+      apps-names: ${{ steps.get-app-name.outputs.apps-names }}
+    steps:
+      - name: Get app names
+        id: get-app-name
+        run: |
+          if [ "${{ matrix.app }}" == "all" ]; then
+            echo "apps-names=[\"autosaver\", \"dashboard\", \"node-proxy\", \"nodesight\", \"stats-api\", \"syslog-app\", \"traefik-conf\"]"
+          else
+            echo "apps-names=[\"${{ matrix.app }}\"]"
+          fi
+
+  build-app-version:
     runs-on: linux/${{ matrix.platform }}
     name: Build version
+    needs: get-apps-to-build
     strategy:
       matrix:
         platform:
           - amd64
           - arm64
+        app: ${{ fromJson(needs.get-apps-to-build.outputs.apps-names) }}
     outputs:
       new-version: ${{ steps.increment-version.outputs.new-version }}
     steps:
@@ -58,7 +76,7 @@ jobs:
         with:
           api-url: https://hub.docker.com/v2/repositories
           image-author: mgarnier11
-          image-name: ${{ inputs.app-name }}
+          image-name: ${{ matrix.app }}
       - name: Increment the version
         uses: mgarnier11/gh-actions/increment-version@latest
         id: increment-version
@@ -69,42 +87,42 @@ jobs:
         run: echo "${{ steps.increment-version.outputs.new-version }}"
       - name: Print architecture
         run: echo "${{ runner.os }} ${{ runner.arch }} ${{ runner.platform }}"
-      - name: Build application sources
-        run: >
-          docker build 
-          -t build 
-          --build-arg APP=${{ inputs.app-name }} 
-          --build-arg APP_VERSION=${{ steps.increment-version.outputs.new-version }} 
-          -f docker/build.Dockerfile 
-          .
-      - name: Build application runtime
-        run: >
-          docker build 
-          -t mgarnier11/${{ inputs.app-name }}:${{ matrix.platform }} 
-          -f apps/${{ inputs.app-name }}/docker/Dockerfile 
-          .
-      - name: Push application runtime
-        run: |
-          docker push mgarnier11/${{ inputs.app-name }}:${{ matrix.platform }}
+  #     - name: Build application sources
+  #       run: >
+  #         docker build
+  #         -t build
+  #         --build-arg APP=${{ matrix.app }}
+  #         --build-arg APP_VERSION=${{ steps.increment-version.outputs.new-version }}
+  #         -f docker/build.Dockerfile
+  #         .
+  #     - name: Build application runtime
+  #       run: >
+  #         docker build
+  #         -t mgarnier11/${{ matrix.app }}:${{ matrix.platform }}
+  #         -f apps/${{ matrix.app }}/docker/Dockerfile
+  #         .
+  #     - name: Push application runtime
+  #       run: |
+  #         docker push mgarnier11/${{ matrix.app }}:${{ matrix.platform }}
 
-  publish-version:
-    runs-on: ubuntu-latest
-    name: Publish version
-    needs: build-version
-    steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish version ${{ needs.build-version.outputs.new-version }} for ${{ inputs.app-name }}
-        run: >
-          docker buildx imagetools create 
-          --tag mgarnier11/${{ inputs.app-name }}:latest 
-          --tag mgarnier11/${{ inputs.app-name }}:${{ needs.build-version.outputs.new-version }}
-          mgarnier11/${{ inputs.app-name }}:amd64 
-          mgarnier11/${{ inputs.app-name }}:arm64
+  # publish-version:
+  #   runs-on: ubuntu-latest
+  #   name: Publish version
+  #   needs: build-app-version
+  #   steps:
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Publish version ${{ needs.build-version.outputs.new-version }} for ${{ matrix.app }}
+  #       run: >
+  #         docker buildx imagetools create
+  #         --tag mgarnier11/${{ matrix.app }}:latest
+  #         --tag mgarnier11/${{ matrix.app }}:${{ needs.build-version.outputs.new-version }}
+  #         mgarnier11/${{ matrix.app }}:amd64
+  #         mgarnier11/${{ matrix.app }}:arm64

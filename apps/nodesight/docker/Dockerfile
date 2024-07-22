@@ -1,16 +1,4 @@
-ARG deps=mgarnier11/my-home:$TARGETARCH
-
-FROM $deps as deps
-
-FROM deps as build
-
-WORKDIR /build
-
-COPY --from=deps /build .
-COPY ./apps/nodesight ./apps/nodesight
-COPY --from=deps /apps/nodesight/node_modules ./apps/nodesight/node_modules
-
-RUN npx nx build nodesight
+FROM build AS build
 
 FROM nvidia/cuda:12.2.0-base-ubuntu20.04 AS deps-amd64-nvidia
 
@@ -45,10 +33,18 @@ RUN echo "Target Arch : $TARGETARCH, Target Platform : $TARGETPLATFORM, Target V
 WORKDIR /app
 
 # Copy compiled files from build stage
-COPY --from=build /build/apps/nodesight/dist ./dist
+COPY --from=build /dist .
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget -q --spider --timeout=5 --tries=1 http://localhost:3000 || exit 1
 
+ENV NODE_ENV="production"
+ENV SERVER_PORT="3000"
+ENV UPDATE_INTERVAL="15000"
+ENV ENABLE_STATS_API="false"
+ENV DISABLE_CPU_TEMPS="false"
+
+EXPOSE 3000
+
 # Define the command to run the app
-CMD ["node", "./dist/main.js"]
+CMD ["node", "./main.js"]
