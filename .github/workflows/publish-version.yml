@@ -107,7 +107,7 @@ jobs:
           "
       - name: Push application runtime
         run: |
-          docker push mgarnier11/${{ matrix.app }}:${{ matrix.platform }}
+          echo "docker push mgarnier11/${{ matrix.app }}:${{ matrix.platform }}"
 
   publish-app-version:
     runs-on: ubuntu-latest
