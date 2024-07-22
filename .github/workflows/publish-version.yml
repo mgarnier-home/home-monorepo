@@ -8,7 +8,7 @@ run-name: "${{ format(
   (inputs.*)[4] && 'stats-api ' || '',
   (inputs.*)[5] && 'syslog-app ' || '',
   (inputs.*)[6] && 'traefik-conf ' || ''
-  ) }} increment : ${{ inputs.version-upgrade }} ${{ fromJSON(toJSON(inputs.*))[1] }} ${{ toJSON(inputs) }} ${{ toJSON(inputs[1]) }}"
+  ) }} increment : ${{ inputs.version-upgrade }} ${{ fromJSON(toJSON(inputs.*))[1] }} ${{ toJSON(inputs) }} ${{ inputs['autosaver'] }}"
 
 on:
   workflow_dispatch:
