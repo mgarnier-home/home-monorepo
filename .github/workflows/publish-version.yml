@@ -32,7 +32,6 @@ jobs:
   get-apps-to-build:
     runs-on: ubuntu-latest
     name: Get apps to build
-    if: ${{ inputs.app-name != '' }}
     outputs:
       apps-names: ${{ steps.get-app-name.outputs.apps-names }}
     steps:

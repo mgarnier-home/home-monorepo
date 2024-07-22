@@ -36,7 +36,7 @@ jobs:
   build:
     runs-on: linux/${{ matrix.platform }}
     needs: get-version
-    name: Build ${{ matrix.platform }}
+    name: Build ${{ needs.get-version.outputs.new-app-version }} on ${{ matrix.platform }}
     strategy:
       matrix:
         platform:
@@ -58,7 +58,7 @@ jobs:
     needs:
       - get-version
       - build
-    name: Publish
+    name: Publish ${{ needs.get-version.outputs.new-app-version }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
