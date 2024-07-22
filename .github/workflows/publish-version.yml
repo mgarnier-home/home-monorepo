@@ -46,7 +46,7 @@ jobs:
           fi
   run-publish-workflow:
     needs: get-apps-to-build
-    uses: ./.github/workflows/build-and-publish.yml
+    uses: ./.github/workflows/build-and-publish-app.yml
     with:
       app-to-publish: ${{ matrix.app }}
       version-upgrade: ${{ inputs.version-upgrade }}
