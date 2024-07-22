@@ -64,9 +64,7 @@ jobs:
       - name: Get app names
         id: get-app-name
         run: |
-          echo "${{
-          join('test test1 test2', ',')
-          }}${{fromJSON('[\'test\',,\'test1\']')}}"
+          echo ${{join('test test1 test2', ',')}}${{fromJSON("[\"test\",,\"test1\"]")}}
 
   # run-publish-workflow:
   #   needs: get-apps-to-build
