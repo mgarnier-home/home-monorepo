@@ -83,7 +83,7 @@ jobs:
           if [ "${{ inputs.syslog-app }}" == "true" ]; then apps_names+="\"syslog-app\","; fi
           if [ "${{ inputs.traefik-conf }}" == "true" ]; then apps_names+="\"traefik-conf\","; fi
           apps_names=${apps_names::-1}
-          echo "apps-names=[\"${apps_names[@]}\"]" >> $GITHUB_OUTPUT
+          echo "apps-names=[$apps_names]" >> $GITHUB_OUTPUT
   run-publish-workflow:
     needs: get-apps-to-build
     uses: ./.github/workflows/build-and-publish-app.yml
