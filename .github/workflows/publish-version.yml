@@ -1,5 +1,14 @@
 name: Publish version
-run-name: "${{ jobs.get-apps-to-build.outputs.apps-names }} increment : ${{ inputs.version-upgrade }}"
+run-name: "${{ format(
+  {0}{1}{2}{3}{4}{5}{6}{7},
+  inputs[0] && 'autosaver ' || '',
+  inputs[1] && 'dashboard ' || '',
+  inputs[2] && 'node-proxy ' || '',
+  inputs[3] && 'nodesight ' || '',
+  inputs[4] && 'stats-api ' || '',
+  inputs[5] && 'syslog-app ' || '',
+  inputs[6] && 'traefik-conf ' || ''
+  ) }} increment : ${{ inputs.version-upgrade }}"
 
 on:
   workflow_dispatch:
