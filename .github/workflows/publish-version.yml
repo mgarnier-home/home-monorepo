@@ -1,5 +1,5 @@
 name: Publish version
-run-name: "${{ inputs.app-name }}, increment : ${{ inputs.version-upgrade }}"
+run-name: "increment : ${{ inputs.version-upgrade }}"
 
 on:
   workflow_dispatch:
@@ -13,20 +13,6 @@ on:
           - "patch"
           - "minor"
           - "major"
-      # app-name:
-      #   description: "The name of the application"
-      #   required: true
-      #   default: "none"
-      #   type: choice
-      #   options:
-      #     - "autosaver"
-      #     - "dashboard"
-      #     - "node-proxy"
-      #     - "nodesight"
-      #     - "stats-api"
-      #     - "syslog-app"
-      #     - "traefik-conf"
-      #     - "all"
       autosaver:
         description: "Autosaver"
         required: true
@@ -63,14 +49,8 @@ jobs:
     outputs:
       apps-names: ${{ steps.get-app-name.outputs.apps-names }}
     steps:
-      # - name: Get app names
-      #   id: get-app-name
-      #   run: |
-      #     if [ "${{ inputs.app-name }}" == "all" ]; then
-      #       echo "apps-names=[\"autosaver\", \"dashboard\", \"node-proxy\", \"nodesight\", \"stats-api\", \"syslog-app\", \"traefik-conf\"]" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "apps-names=[\"${{ inputs.app-name }}\"]" >> $GITHUB_OUTPUT
-      #     fi
+      - name: Test
+        run: echo "${{ inputs.*.value }}"
       - name: Get app names
         id: get-app-name
         run: |
@@ -84,17 +64,17 @@ jobs:
           if [ "${{ inputs.traefik-conf }}" == "true" ]; then apps_names+="\"traefik-conf\","; fi
           apps_names=${apps_names::-1}
           echo "apps-names=[$apps_names]" >> $GITHUB_OUTPUT
-  run-publish-workflow:
-    needs: get-apps-to-build
-    uses: ./.github/workflows/build-and-publish-app.yml
-    name: ${{ matrix.app }}
-    with:
-      app-to-publish: ${{ matrix.app }}
-      version-upgrade: ${{ inputs.version-upgrade }}
-    secrets: inherit
-    strategy:
-      matrix:
-        app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
+  # run-publish-workflow:
+  #   needs: get-apps-to-build
+  #   uses: ./.github/workflows/build-and-publish-app.yml
+  #   name: ${{ matrix.app }}
+  #   with:
+  #     app-to-publish: ${{ matrix.app }}
+  #     version-upgrade: ${{ inputs.version-upgrade }}
+  #   secrets: inherit
+  #   strategy:
+  #     matrix:
+  #       app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
 
   # build-app-version:
   #   runs-on: linux/${{ matrix.platform }}
