@@ -66,7 +66,7 @@ jobs:
         run: |
           echo "${{
           join('test test1 test2', ',')
-          }}${{fromJSON("[\"test\",,\"test1\"]")}}"
+          }}${{fromJSON('[\'test\',,\'test1\']')}}"
 
   # run-publish-workflow:
   #   needs: get-apps-to-build
