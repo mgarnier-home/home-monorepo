@@ -1,0 +1,41 @@
+name: "Build app"
+description: "Build the app passed as input"
+inputs:
+  app-name:
+    required: true
+    description: "The name of the application to build"
+  version:
+    required: true
+    description: "Version to build"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build application sources
+      run: >
+        echo "
+        docker build
+        -t build
+        --build-arg APP=${{ inputs.app-name }}
+        --build-arg APP_VERSION=${{ inputs.version }}
+        -f docker/build.Dockerfile
+        .
+        "
+    - name: Build application runtime
+      run: >
+        echo "
+        docker build
+        -t mgarnier11/${{ inputs.app-name }}:${{ runner.platform }}
+        -f apps/${{ inputs.app-name }}/docker/Dockerfile
+        .
+        "
+    - name: Push application runtime
+      run: |
+        echo "docker push mgarnier11/${{ inputs.app-name }}:${{ runner.platform }}"

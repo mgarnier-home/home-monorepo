@@ -47,6 +47,7 @@ jobs:
   run-publish-workflow:
     needs: get-apps-to-build
     uses: ./.github/workflows/build-and-publish-app.yml
+    name: ${{ matrix.app }}
     with:
       app-to-publish: ${{ matrix.app }}
       version-upgrade: ${{ inputs.version-upgrade }}

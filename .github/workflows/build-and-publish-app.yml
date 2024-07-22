@@ -16,7 +16,7 @@ on:
 jobs:
   get-version:
     runs-on: ubuntu-latest
-    name: Get and update version of ${{ inputs.app-to-publish }}
+    name: Get version
     outputs:
       new-app-version: ${{ steps.increment-version.outputs.new-version }}
     steps:
@@ -38,18 +38,27 @@ jobs:
     needs: get-version
     name: Build amd64
     steps:
-      - run: echo "Building amd64 ${{ inputs.app-to-publish }} version ${{ needs.get-version.outputs.new-app-version }}"
+      - name: Build app for amd64
+        uses: ./.github/actions/build.yml
+        with:
+          app-name: ${{ inputs.app-to-publish }}
+          version: ${{ needs.get-version.outputs.new-app-version }}
   build-arm64:
     runs-on: linux/arm64
     needs: get-version
     name: Build arm64
     steps:
-      - run: echo "Building arm64 ${{ inputs.app-to-publish }} version ${{ needs.get-version.outputs.new-app-version }}"
+      - name: Build app for arm64
+        uses: ./.github/actions/build.yml
+        with:
+          app-name: ${{ inputs.app-to-publish }}
+          version: ${{ needs.get-version.outputs.new-app-version }}
   publish:
     runs-on: ubuntu-latest
     needs:
+      - get-version
       - build-amd64
       - build-arm64
-    name: Publish ${{ inputs.app-to-publish }}
+    name: Publish
     steps:
       - run: echo "Publishing ${{ inputs.app-to-publish }} version ${{ needs.get-version.outputs.new-app-version }}"
