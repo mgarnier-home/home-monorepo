@@ -1,5 +1,5 @@
 name: Publish version
-run-name: "increment : ${{ inputs.version-upgrade }}"
+run-name: "${{ jobs.get-apps-to-build.outputs.apps-names }} increment : ${{ inputs.version-upgrade }}"
 
 on:
   workflow_dispatch:
@@ -49,8 +49,8 @@ jobs:
     outputs:
       apps-names: ${{ steps.get-app-name.outputs.apps-names }}
     steps:
-      - name: Test
-        run: echo "${{ (inputs.*).filter(v => v) }}"
+      # - name: Test
+      #   run: echo "${{ (inputs.*).filter(v => v) }}"
       - name: Get app names
         id: get-app-name
         run: |
