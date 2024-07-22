@@ -50,7 +50,7 @@ jobs:
       apps-names: ${{ steps.get-app-name.outputs.apps-names }}
     steps:
       - name: Test
-        run: echo "${{ toJSON(inputs.*.true) }}"
+        run: echo "${{ (inputs.*).filter(v => v) }}"
       - name: Get app names
         id: get-app-name
         run: |
