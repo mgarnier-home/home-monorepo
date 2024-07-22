@@ -34,7 +34,6 @@ runs:
         --build-arg APP_VERSION=${{ inputs.version }}
         -f docker/build.Dockerfile
         .
-        "
     - name: Build application runtime
       shell: bash
       run: >
