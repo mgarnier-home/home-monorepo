@@ -10,6 +10,10 @@ run-name: "Inc: ${{ inputs.version-upgrade }}
   inputs['syslog-app'] && 'Syslog-app ' || '',
   inputs['traefik-conf'] && 'Traefik-conf ' || ''
   ) }}"
+# Cette expression permet de générer un nom de workflow dynamique en fonction des inputs, par exemple:
+# - Si tous les inputs sont à false, le nom sera "Inc: XXX"
+# - Si on a les inputs autosaver, dashboard et stats-api à true, le nom sera "Inc: XXX Autosaver Dashboard Stats-api"
+# La syntaxe 'a && b || c' permet de dire "si a est vrai, alors b, sinon c"
 
 on:
   workflow_dispatch:
@@ -53,25 +57,7 @@ on:
         type: boolean
 
 jobs:
-  # get-apps-to-build:
-  #   runs-on: ubuntu-latest
-  #   name: Get apps to build
-  #   outputs:
-  #     apps-names: ${{ steps.get-app-name.outputs.apps-names }}
-  #   steps:
-  #     # - name: Test
-  #     #   run: echo "${{ (inputs.*).filter(v => v) }}"
-  #     - name: Get app names
-  #       id: get-app-name
-  #       run: |
-  #         echo ${{join('test test1 test2', ',')}}
-  #         echo "apps-names=[\"test\",,\"test1\"]" >> $GITHUB_OUTPUT
-  #     - name: test
-  #       run: |
-  #         echo "${{toJSON(fromJSON(steps.get-app-name.outputs.apps-names))}}"
-
   run-publish-workflow:
-    # needs: get-apps-to-build
     uses: ./.github/workflows/build-and-publish-app.yml
     name: ${{ matrix.app }}
     with:
@@ -80,7 +66,8 @@ jobs:
     secrets: inherit
     strategy:
       matrix:
-        # app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
+        # La matrice par défaut est la liste de toutes les applications, on exclut celles qui ne sont pas sélectionnées dans les inputs
+        # Avec la meme syntaxe 'a && b || c'
         app:
           - autosaver
           - dashboard
@@ -97,97 +84,3 @@ jobs:
           - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
           - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
           - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
-
-  # build-app-version:
-  #   runs-on: linux/${{ matrix.platform }}
-  #   name: Build version
-  #   needs: get-apps-to-build
-  #   strategy:
-  #     matrix:
-  #       platform:
-  #         - amd64
-  #         - arm64
-  #       app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
-  #   outputs:
-  #     new-version: ${{ steps.increment-version.outputs.new-version }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-
-  #     # - name: Set up QEMU
-  #     #   uses: docker/setup-qemu-action@v3
-  #     # - name: Set up Docker Buildx
-  #     #   uses: docker/setup-buildx-action@v3
-  #     - name: Login to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  #     - name: Get versions of app from docker hub
-  #       uses: mgarnier11/gh-actions/get-docker-versions@latest
-  #       id: get-docker-versions
-  #       with:
-  #         api-url: https://hub.docker.com/v2/repositories
-  #         image-author: mgarnier11
-  #         image-name: ${{ matrix.app }}
-  #     - name: Increment the version
-  #       uses: mgarnier11/gh-actions/increment-version@latest
-  #       id: increment-version
-  #       with:
-  #         version: ${{ steps.get-docker-versions.outputs.latest-version }}
-  #         upgrade: ${{ inputs.version-upgrade }}
-  #     - name: Print the new version
-  #       run: echo "${{ steps.increment-version.outputs.new-version }}"
-  #     - name: Print architecture
-  #       run: echo "${{ runner.os }} ${{ runner.arch }} ${{ runner.platform }}"
-  #     - name: Build application sources
-  #       run: >
-  #         echo "
-  #         docker build
-  #         -t build
-  #         --build-arg APP=${{ matrix.app }}
-  #         --build-arg APP_VERSION=${{ steps.increment-version.outputs.new-version }}
-  #         -f docker/build.Dockerfile
-  #         .
-  #         "
-  #     - name: Build application runtime
-  #       run: >
-  #         echo "
-  #         docker build
-  #         -t mgarnier11/${{ matrix.app }}:${{ matrix.platform }}
-  #         -f apps/${{ matrix.app }}/docker/Dockerfile
-  #         .
-  #         "
-  #     - name: Push application runtime
-  #       run: |
-  #         echo "docker push mgarnier11/${{ matrix.app }}:${{ matrix.platform }}"
-
-  # publish-app-version:
-  #   runs-on: ubuntu-latest
-  #   name: Publish version
-  #   needs:
-  #     - get-apps-to-build
-  #     - build-app-version
-  #   strategy:
-  #     matrix:
-  #       app: ${{ fromJSON(needs.get-apps-to-build.outputs.apps-names) }}
-  #   steps:
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v3
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v3
-  #     - name: Login to Docker Hub
-  #       uses: docker/login-action@v3
-  #       with:
-  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
-  #     - name: Publish version ${{ needs.build-app-version.outputs.new-version }} for ${{ matrix.app }}
-  #       run: >
-  #         echo "
-  #         docker buildx imagetools create
-  #         --tag mgarnier11/${{ matrix.app }}:latest
-  #         --tag mgarnier11/${{ matrix.app }}:${{ needs.build-app-version.outputs.new-version }}
-  #         mgarnier11/${{ matrix.app }}:amd64
-  #         mgarnier11/${{ matrix.app }}:arm64
-  #         "
