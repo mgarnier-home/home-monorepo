@@ -90,13 +90,13 @@ jobs:
           - syslog-app
           - traefik-conf
         exclude:
-          - app: ${{ inputs.autosaver && 'autosaver' || '' }}
-          - app: ${{ inputs.dashboard && 'dashboard' || '' }}
-          - app: ${{ inputs.node-proxy && 'node-proxy' || '' }}
-          - app: ${{ inputs.nodesight && 'nodesight' || '' }}
-          - app: ${{ inputs.stats-api && 'stats-api' || '' }}
-          - app: ${{ inputs.syslog-app && 'syslog-app' || '' }}
-          - app: ${{ inputs.traefik-conf && 'traefik-conf' || '' }}
+          - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
+          - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
+          - app: ${{ !inputs.node-proxy && 'node-proxy' || '' }}
+          - app: ${{ !inputs.nodesight && 'nodesight' || '' }}
+          - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
+          - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
+          - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
 
   # build-app-version:
   #   runs-on: linux/${{ matrix.platform }}
