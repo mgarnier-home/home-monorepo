@@ -28,7 +28,6 @@ runs:
     - name: Build application sources
       shell: bash
       run: >
-        echo "
         docker build
         -t build
         --build-arg APP=${{ inputs.app-name }}
@@ -39,12 +38,10 @@ runs:
     - name: Build application runtime
       shell: bash
       run: >
-        echo "
         docker build
         -t mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}
         -f apps/${{ inputs.app-name }}/docker/Dockerfile
         .
-        "
     - name: Push application runtime
       shell: bash
       run: echo "docker push mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}"
