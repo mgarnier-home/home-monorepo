@@ -1,5 +1,5 @@
 name: Publish version
-run-name: "${{ matrix.app }}, increment : ${{ inputs.version-upgrade }}"
+run-name: "${{ inputs.app-name }}, increment : ${{ inputs.version-upgrade }}"
 
 on:
   workflow_dispatch:
