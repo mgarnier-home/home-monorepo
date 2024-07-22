@@ -7,6 +7,9 @@ inputs:
   version:
     required: true
     description: "Version to build"
+  platform:
+    required: true
+    description: "Platform to build for"
   dockerhub-username:
     required: true
     description: "Docker Hub username"
@@ -38,11 +41,10 @@ runs:
       run: >
         echo "
         docker build
-        -t mgarnier11/${{ inputs.app-name }}:${{ runner.platform }}
+        -t mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}
         -f apps/${{ inputs.app-name }}/docker/Dockerfile
         .
         "
     - name: Push application runtime
       shell: bash
-      run: |
-        echo "docker push mgarnier11/${{ inputs.app-name }}:${{ runner.platform }}"
+      run: echo "docker push mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}"
