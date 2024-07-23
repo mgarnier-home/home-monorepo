@@ -17,4 +17,4 @@ ENV SERVER_PORT="3000"
 EXPOSE 3000
 
 # Define the command to run the app
-CMD ["node", "./dist/main.js"]
+CMD ["node", "./main.js"]
