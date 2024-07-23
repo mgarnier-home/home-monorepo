@@ -4,6 +4,8 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+pnpmfileChecksum: 6c7gahe4cmm2xvqrx7etx6u6ri
+
 importers:
 
   .:
@@ -228,8 +230,8 @@ importers:
   apps/nodesight:
     dependencies:
       systeminformation:
-        specifier: ^5.21.11
-        version: 5.21.22
+        specifier: ^5.22.11
+        version: 5.22.11
 
   apps/stats-api:
     dependencies:
@@ -2593,10 +2595,6 @@ packages:
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
 
-  buildcheck@0.0.6:
-    resolution: {integrity: sha512-8f9ZJCUXyT1M35Jx7MkBgmBMo3oHTTBIPLiY9xyL0pl3T5RwcPEY8cUHr5LBNfu/fk6c2T4DJZuVM/8ZZT2D2A==}
-    engines: {node: '>=10.0.0'}
-
   builtins@5.0.1:
     resolution: {integrity: sha512-qwVpFEHNfhYJIzNRBvd2C1kyo6jz3ZSMPyyuR47OPdiKWlbYnZNyDWuyR175qDnAJLiCo5fBBqPb3RiXgWlkOQ==}
 
@@ -2852,10 +2850,6 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
-
-  cpu-features@0.0.9:
-    resolution: {integrity: sha512-AKjgn2rP2yJyfbepsmLfiYcmtNn/2eUvocUyM/09yB0YDiz39HteK/5/T4Onf0pmdYDMgkBoGvRLvEguzyL7wQ==}
-    engines: {node: '>=10.0.0'}
 
   cpy@11.0.1:
     resolution: {integrity: sha512-VIvf1QNOHnIZ5QT8zWxNJq+YYIpbFhgeMwnVngX+AhhUQd3Rns3x6gcvb0fGpNxZQ0q629mX6+GvDtvbO/Hutg==}
@@ -5416,8 +5410,8 @@ packages:
     resolution: {integrity: sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==}
     engines: {node: '>=0.10'}
 
-  systeminformation@5.21.22:
-    resolution: {integrity: sha512-gNHloAJSyS+sKWkwvmvozZ1eHrdVTEsynWMTY6lvLGBB70gflkBQFw8drXXr1oEXY84+Vr9tOOrN8xHZLJSycA==}
+  systeminformation@5.22.11:
+    resolution: {integrity: sha512-aLws5yi4KCHTb0BVvbodQY5bY8eW4asMRDTxTW46hqw9lGjACX6TlLdJrkdoHYRB0qs+MekqEq1zG7WDnWE8Ug==}
     engines: {node: '>=8.0.0'}
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
@@ -8670,9 +8664,6 @@ snapshots:
       base64-js: 1.5.1
       ieee754: 1.2.1
 
-  buildcheck@0.0.6:
-    optional: true
-
   builtins@5.0.1:
     dependencies:
       semver: 7.6.2
@@ -8925,12 +8916,6 @@ snapshots:
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.5.2
-
-  cpu-features@0.0.9:
-    dependencies:
-      buildcheck: 0.0.6
-      nan: 2.18.0
-    optional: true
 
   cpy@11.0.1:
     dependencies:
@@ -11881,7 +11866,6 @@ snapshots:
       asn1: 0.2.6
       bcrypt-pbkdf: 1.0.2
     optionalDependencies:
-      cpu-features: 0.0.9
       nan: 2.18.0
 
   ssri@10.0.5:
@@ -12007,7 +11991,7 @@ snapshots:
 
   symbol-observable@4.0.0: {}
 
-  systeminformation@5.21.22: {}
+  systeminformation@5.22.11: {}
 
   tailwindcss@3.4.6(ts-node@10.9.2(@swc/core@1.6.13)(@types/node@20.14.11)(typescript@5.5.2)):
     dependencies:

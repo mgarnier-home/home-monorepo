@@ -7,7 +7,7 @@
     "dev": "webpack build --mode development --watch"
   },
   "dependencies": {
-    "systeminformation": "^5.21.11"
+    "systeminformation": "^5.22.11"
   },
   "version": "1.0.0"
 }

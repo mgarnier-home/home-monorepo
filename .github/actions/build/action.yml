@@ -44,3 +44,6 @@ runs:
     - name: Push application runtime
       shell: bash
       run: echo "docker push mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}"
+    - name: Remove build image
+      shell: bash
+      run: docker rmi build
