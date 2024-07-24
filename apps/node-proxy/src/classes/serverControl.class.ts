@@ -4,6 +4,7 @@ import { Client } from 'ssh2';
 import Wol from 'wol';
 
 import { Container, Docker } from '@libs/docker-api';
+import { getEnvVariable } from '@libs/env-config';
 import { logger } from '@libs/logger';
 
 import { Protocol, ServiceConfig } from '../utils/interfaces';
@@ -200,10 +201,18 @@ export class ServerControl {
         const traefikConfPort = container.Labels['traefik-conf.port'];
 
         if (traefikConfPort && !isNaN(parseInt(traefikConfPort))) {
+          const proxyPort =
+            parseInt(traefikConfPort) +
+            (getEnvVariable<string>('NODE_ENV', false, 'development') === 'production' ? 0 : 10000);
+          const name = container.Names[0].replace('/', '');
+          logger.debug(
+            `Found service ${name} on port ${traefikConfPort}, proxying on localport : ${proxyPort} to ${serverIp}:${traefikConfPort}`
+          );
+
           services.push({
             name: container.Names[0].replace('/', ''),
             servicePort: parseInt(traefikConfPort),
-            proxyPort: parseInt(traefikConfPort),
+            proxyPort,
             protocol: Protocol.TCP,
           });
         }
