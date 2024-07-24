@@ -61,7 +61,7 @@ export const setupConfigListenner = () => {
     hosts.push(...configs.map((config) => new Host(config, hostConfigUpdated)));
   };
 
-  setInterval(async () => {
+  const checkConfig = async () => {
     const config = await loadConfig();
 
     if (JSON.stringify(config) !== JSON.stringify(lastConfig)) {
@@ -72,7 +72,11 @@ export const setupConfigListenner = () => {
 
       configFileChanged(config);
     }
-  }, 30 * 1000);
+  };
+
+  setInterval(checkConfig, 30 * 1000);
+
+  checkConfig();
 };
 
 export const disposeHosts = async () => {
