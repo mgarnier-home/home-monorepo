@@ -67,6 +67,7 @@ const run = async () => {
       : `${backupConfig.backupPath}/${cifsDirectory.mountPath}`;
 
   logger.info('Backup script started');
+
   executionInterval = setInterval(async () => {
     logger.info('Backup script running');
     if (config.keepAliveUrl) {
@@ -74,7 +75,7 @@ const run = async () => {
 
       const text = await response.text();
 
-      logger.info('Keep alive response : ', text);
+      logger.debug(`Keep alive : ${config.keepAliveUrl} => ${response.status} : ${text}`);
     }
   }, 1000 * 60);
   try {
