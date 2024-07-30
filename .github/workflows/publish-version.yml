@@ -8,7 +8,7 @@ run-name: "Inc: ${{ inputs.version-upgrade }}
   inputs['nodesight'] && 'Nodesight ' || '',
   inputs['stats-api'] && 'Stats-api ' || '',
   inputs['syslog-app'] && 'Syslog-app ' || '',
-  inputs['traefik-conf'] && 'Traefik-conf ' || ''
+  inputs['traefik-conf'] && 'Traefik-conf ' || '',
   inputs['public-api'] && 'Public-api ' || ''
   ) }}"
 # Cette expression permet de générer un nom de workflow dynamique en fonction des inputs, par exemple:
