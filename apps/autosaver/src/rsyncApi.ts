@@ -30,6 +30,8 @@ export namespace RsyncApi {
       rsyncSpawn.stdout.on('data', (data: Buffer) => {
         const dataString = data.toString();
 
+        logger.debug(dataString);
+
         const matches = dataString.match(/\s*(\d+(?:,\d{3})*)\s+(\d+)%\s+([\d.]+[KMGTPEZY]B\/s)/);
 
         if (matches) {
@@ -49,6 +51,8 @@ export namespace RsyncApi {
 
       rsyncSpawn.stderr.on('data', (data: Buffer) => {
         errorBuffers.push(data);
+
+        logger.debug(data.toString());
       });
 
       rsyncSpawn.on('close', (code, signal) => {
