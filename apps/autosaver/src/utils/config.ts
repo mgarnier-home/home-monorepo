@@ -18,6 +18,7 @@ const loadConfig = (): Config => {
     backupConfigPath: fullBackupConfigPath,
     cronSchedule: getEnvVariable('CRON_SCHEDULE', false, '0 0 * * *'),
     archiveApiType: getEnvVariable<ArchiveApiType>('ARCHIVE_API_TYPE', false, ArchiveApiType.TAR),
+    keepAliveUrl: getEnvVariable<string>('KEEP_ALIVE_URL', false, ''),
   };
 
   return config;

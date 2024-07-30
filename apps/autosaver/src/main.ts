@@ -21,7 +21,7 @@ import { CifsDirectory, DirectoryToBackup, DirectoryType } from './utils/types';
 logger.setAppName('autosaver');
 
 let lastExecutionSuccess = false;
-let isExecuting = false;
+let executionInterval: NodeJS.Timeout | undefined = undefined;
 
 const printRecapTable = (foldersToBackup: DirectoryToBackup[]) => {
   const table = new Table({
@@ -51,7 +51,7 @@ const printRecapTable = (foldersToBackup: DirectoryToBackup[]) => {
 };
 
 const run = async () => {
-  if (isExecuting) {
+  if (executionInterval) {
     logger.info('Autosaver already running');
 
     return;
@@ -67,7 +67,12 @@ const run = async () => {
       : `${backupConfig.backupPath}/${cifsDirectory.mountPath}`;
 
   logger.info('Backup script started');
-  isExecuting = true;
+  executionInterval = setInterval(() => {
+    logger.info('Backup script running');
+    if (config.keepAliveUrl) {
+      fetch(config.keepAliveUrl);
+    }
+  }, 1000 * 60);
   try {
     logger.info('Step 1 => Mounting rsync');
     if (backupConfig.rsync && backupConfig.rsync.type === DirectoryType.cifs) {
@@ -228,7 +233,9 @@ const run = async () => {
 
     lastExecutionSuccess = false;
   }
-  isExecuting = false;
+
+  clearInterval(executionInterval);
+  executionInterval = undefined;
 };
 
 cron.schedule(config.cronSchedule, run);
@@ -240,11 +247,7 @@ const app = express();
 setVersionEndpoint(app);
 
 app.get('/', (req, res) => {
-  if (isExecuting) {
-    res.status(204).send('OK');
-  } else {
-    res.status(200).send('OK');
-  }
+  res.status(200).send(executionInterval ? 'Running' : 'Stopped');
 });
 
 app.get('/last', (req, res) => {
@@ -252,7 +255,7 @@ app.get('/last', (req, res) => {
 });
 
 app.get('/run', (req, res) => {
-  if (isExecuting) {
+  if (executionInterval) {
     res.status(200).send('Autosave already running');
     logger.info('Autosave already running');
   } else {

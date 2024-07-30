@@ -49,6 +49,7 @@ export type Config = {
   backupConfigPath: string;
   cronSchedule: string;
   archiveApiType: ArchiveApiType;
+  keepAliveUrl: string;
 };
 
 export type DirectoryToBackup = {
