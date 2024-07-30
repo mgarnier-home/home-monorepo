@@ -1,7 +1,7 @@
 name: Publish version
 run-name: "Inc: ${{ inputs.version-upgrade }}
   ${{ format(
-  '{0}{1}{2}{3}{4}{5}{6}',
+  '{0}{1}{2}{3}{4}{5}{6}{7}',
   inputs['autosaver'] && 'Autosaver ' || '',
   inputs['dashboard'] && 'Dashboard ' || '',
   inputs['node-proxy'] && 'Node-proxy ' || '',
