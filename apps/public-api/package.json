@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "name": "public-api",
+  "scripts": {
+    "build": "webpack build",
+    "start": "npm run build && node --env-file ../../.env dist/main.js",
+    "dev": "webpack build --mode development --watch"
+  },
+  "dependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "dotenv": "^16.3.1",
+    "js-yaml": "^4.1.0"
+  },
+  "version": "1.0.0"
+}

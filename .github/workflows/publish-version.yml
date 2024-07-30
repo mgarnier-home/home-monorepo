@@ -9,6 +9,7 @@ run-name: "Inc: ${{ inputs.version-upgrade }}
   inputs['stats-api'] && 'Stats-api ' || '',
   inputs['syslog-app'] && 'Syslog-app ' || '',
   inputs['traefik-conf'] && 'Traefik-conf ' || ''
+  inputs['public-api'] && 'Public-api ' || ''
   ) }}"
 # Cette expression permet de générer un nom de workflow dynamique en fonction des inputs, par exemple:
 # - Si tous les inputs sont à false, le nom sera "Inc: XXX"
@@ -55,6 +56,10 @@ on:
         description: "Traefik Conf"
         required: true
         type: boolean
+      public-api:
+        description: "Public API"
+        required: true
+        type: boolean
 
 jobs:
   run-publish-workflow:
@@ -76,6 +81,7 @@ jobs:
           - stats-api
           - syslog-app
           - traefik-conf
+          - public-api
         exclude:
           - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
           - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
@@ -84,3 +90,4 @@ jobs:
           - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
           - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
           - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
+          - app: ${{ !inputs.public-api && 'public-api' || '' }}
