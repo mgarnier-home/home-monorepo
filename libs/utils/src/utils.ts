@@ -1,3 +1,4 @@
+import jsYaml from 'js-yaml';
 import path from 'path';
 
 export namespace Utils {
@@ -74,5 +75,15 @@ export namespace Utils {
     return pathToResolve.startsWith('/')
       ? pathToResolve
       : path.resolve(callerDirname || __dirname, '../', pathToResolve);
+  };
+
+  export const mergeYamls = (yamlFiles: string[]): string => {
+    const yamls: any[] = yamlFiles.map((yaml) => jsYaml.load(yaml));
+
+    const mergedYaml = yamls.reduce((acc, curr) => {
+      return Utils.deepMerge(acc, curr);
+    }, {});
+
+    return jsYaml.dump(mergedYaml);
   };
 }
