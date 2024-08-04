@@ -47,7 +47,6 @@ export type BackupConfig = {
 export type Config = {
   serverPort: number;
   backupConfigPath: string;
-  cronSchedule: string;
   archiveApiType: ArchiveApiType;
   keepAliveUrl: string;
 };

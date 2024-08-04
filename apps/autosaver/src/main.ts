@@ -2,7 +2,6 @@ import { Table } from 'console-table-printer';
 import express from 'express';
 import fs from 'fs';
 import generator from 'generate-password';
-import cron from 'node-cron';
 import path from 'path';
 
 import { setVersionEndpoint } from '@libs/api-version';
@@ -242,10 +241,6 @@ const run = async () => {
   clearInterval(executionInterval);
   executionInterval = undefined;
 };
-
-cron.schedule(config.cronSchedule, run);
-
-logger.info('Script scheduled with the following cron schedule : ', config.cronSchedule);
 
 const app = express();
 

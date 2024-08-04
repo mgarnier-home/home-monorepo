@@ -16,7 +16,6 @@ const loadConfig = (): Config => {
   const config: Config = {
     serverPort: getEnvVariable('SERVER_PORT', false, 3000),
     backupConfigPath: fullBackupConfigPath,
-    cronSchedule: getEnvVariable('CRON_SCHEDULE', false, '0 0 * * *'),
     archiveApiType: getEnvVariable<ArchiveApiType>('ARCHIVE_API_TYPE', false, ArchiveApiType.TAR),
     keepAliveUrl: getEnvVariable<string>('KEEP_ALIVE_URL', false, ''),
   };
