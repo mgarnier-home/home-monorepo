@@ -3,13 +3,13 @@ run-name: "Inc: ${{ inputs.version-upgrade }}
   ${{ format(
   '{0}{1}{2}{3}{4}{5}{6}{7}',
   inputs['autosaver'] && 'Autosaver ' || '',
+  inputs['cron-runner'] && 'Cron-runner' ' || '',
   inputs['dashboard'] && 'Dashboard ' || '',
   inputs['node-proxy'] && 'Node-proxy ' || '',
   inputs['nodesight'] && 'Nodesight ' || '',
   inputs['stats-api'] && 'Stats-api ' || '',
   inputs['syslog-app'] && 'Syslog-app ' || '',
   inputs['traefik-conf'] && 'Traefik-conf ' || '',
-  inputs['public-api'] && 'Public-api ' || ''
   ) }}"
 # Cette expression permet de générer un nom de workflow dynamique en fonction des inputs, par exemple:
 # - Si tous les inputs sont à false, le nom sera "Inc: XXX"
@@ -30,6 +30,10 @@ on:
           - "major"
       autosaver:
         description: "Autosaver"
+        required: true
+        type: boolean
+      cron-runner:
+        description: "Cron Runner"
         required: true
         type: boolean
       dashboard:
@@ -56,10 +60,6 @@ on:
         description: "Traefik Conf"
         required: true
         type: boolean
-      public-api:
-        description: "Public API"
-        required: true
-        type: boolean
 
 jobs:
   run-publish-workflow:
@@ -75,19 +75,19 @@ jobs:
         # Avec la meme syntaxe 'a && b || c'
         app:
           - autosaver
+          - cron-runner
           - dashboard
           - node-proxy
           - nodesight
           - stats-api
           - syslog-app
           - traefik-conf
-          - public-api
         exclude:
           - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
+          - app: ${{ !inputs.cron-runner && 'cron-runner' || '' }}
           - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
           - app: ${{ !inputs.node-proxy && 'node-proxy' || '' }}
           - app: ${{ !inputs.nodesight && 'nodesight' || '' }}
           - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
           - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
           - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
-          - app: ${{ !inputs.public-api && 'public-api' || '' }}

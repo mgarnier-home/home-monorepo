@@ -1,13 +1,15 @@
 {
   "private": true,
-  "name": "traefik-conf",
+  "name": "cron-runner",
   "scripts": {
     "build": "webpack build",
     "start": "npm run build && node --env-file ../../.env dist/main.js",
     "dev": "webpack build --mode development --watch"
   },
   "dependencies": {
-    "dotenv": "^16.3.1"
+    "@types/node-cron": "^3.0.8",
+    "cron": "^3.1.7",
+    "node-cron": "^3.0.2"
   },
   "version": "1.0.0"
 }

@@ -15,8 +15,7 @@
     "cpy": "^11.0.1",
     "generate-password": "^1.7.0",
     "node-cron": "^3.0.2",
-    "nodemailer": "^6.9.3",
-    "yaml": "^2.4.0"
+    "nodemailer": "^6.9.3"
   },
   "version": "1.0.0"
 }

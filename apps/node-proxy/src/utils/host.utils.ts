@@ -1,6 +1,6 @@
 import fs from 'fs';
-import jsYaml from 'js-yaml';
 import path from 'path';
+import * as YAML from 'yaml';
 
 import { getEnvVariable } from '@libs/env-config';
 import { logger } from '@libs/logger';
@@ -22,7 +22,7 @@ const loadConfig = async (): Promise<HostConfig[]> => {
         if (configFilePath.endsWith('on')) {
           return JSON.parse(dataStr) as HostConfig[];
         }
-        return jsYaml.load(dataStr) as HostConfig[];
+        return YAML.parse(dataStr, { merge: true }) as HostConfig[];
       }
     } else {
       logger.warn('Config file not found : ', configFilePath);
@@ -35,7 +35,7 @@ const loadConfig = async (): Promise<HostConfig[]> => {
 };
 
 const saveConfig = async (data: HostConfig[]) => {
-  const stringData = configFilePath.endsWith('on') ? JSON.stringify(data, null, 4) : jsYaml.dump(data);
+  const stringData = configFilePath.endsWith('on') ? JSON.stringify(data, null, 4) : YAML.stringify(data);
 
   await fs.promises.writeFile(configFilePath, stringData, 'utf-8');
 };

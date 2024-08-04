@@ -7,14 +7,12 @@
     "dev": "webpack build --mode development --watch"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.5",
     "@types/node-ssh": "^7.0.1",
     "@types/ping": "^0.4.1",
     "@types/ssh2": "^1.11.6",
     "@types/wol": "^1.0.1"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0",
     "node-ssh": "^13.0.0",
     "ping": "^0.4.2",
     "wol": "^1.0.7"

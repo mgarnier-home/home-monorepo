@@ -1,6 +1,6 @@
 import express from 'express';
 import fs from 'fs';
-import jsYaml from 'js-yaml';
+import * as YAML from 'yaml';
 
 import { setVersionEndpoint } from '@libs/api-version';
 import { Container, Docker } from '@libs/docker-api';
@@ -15,7 +15,7 @@ logger.setAppName('traefik-conf');
 const containersMap = new Map<string, Container[]>();
 
 const saveData = async (data: AppData) => {
-  const stringData = config.dataFilePath.endsWith('.json') ? JSON.stringify(data, null, 4) : jsYaml.dump(data);
+  const stringData = config.dataFilePath.endsWith('.json') ? JSON.stringify(data, null, 4) : YAML.stringify(data);
 
   await fs.promises.writeFile(config.dataFilePath, stringData, 'utf-8');
 };
@@ -30,7 +30,7 @@ const loadData = async (): Promise<AppData> => {
         if (config.dataFilePath.endsWith('.json')) {
           return JSON.parse(dataStr) as AppData;
         }
-        return jsYaml.load(dataStr) as AppData;
+        return YAML.parse(dataStr, { merge: true }) as AppData;
       }
     }
   } catch (error) {
@@ -96,7 +96,7 @@ const main = async () => {
       }
     }
 
-    res.status(200).send(jsYaml.dump(traefikConf, { indent: 2 }));
+    res.status(200).send(YAML.stringify(traefikConf, { indent: 2 }));
   });
 
   app.get('/proxy-enable/:proxyIndex', async (req, res) => {

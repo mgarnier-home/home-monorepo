@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { cwd } from 'node:process';
-import { parse as ymlParse } from 'yaml';
+import * as YAML from 'yaml';
 
 import { getEnvVariable } from '@libs/env-config';
 
@@ -28,7 +28,7 @@ export const config = loadConfig();
 
 export const getBackupConfig = (): BackupConfig => {
   const backupConfigYml = fs.readFileSync(config.backupConfigPath, 'utf-8');
-  const backupConfig: BackupConfig = ymlParse(backupConfigYml, { merge: true })?.config as BackupConfig;
+  const backupConfig: BackupConfig = YAML.parse(backupConfigYml, { merge: true })?.config as BackupConfig;
 
   return backupConfig;
 };
