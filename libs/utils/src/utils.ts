@@ -1,5 +1,5 @@
-import jsYaml from 'js-yaml';
 import path from 'path';
+import YAML from 'yaml';
 
 export namespace Utils {
   export async function fetchWithTimeout(url: RequestInfo | URL, timeout = 5000, init?: RequestInit | undefined) {
@@ -78,12 +78,12 @@ export namespace Utils {
   };
 
   export const mergeYamls = (yamlFiles: string[]): string => {
-    const yamls: any[] = yamlFiles.map((yaml) => jsYaml.load(yaml));
+    const yamls: any[] = yamlFiles.map((yaml) => YAML.parse(yaml));
 
     const mergedYaml = yamls.reduce((acc, curr) => {
       return Utils.deepMerge(acc, curr);
     }, {});
 
-    return jsYaml.dump(mergedYaml);
+    return YAML.stringify(mergedYaml);
   };
 }
