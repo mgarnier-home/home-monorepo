@@ -89,9 +89,6 @@ const setupCronConfig = (config: CronConfig) => {
         addExecution(cron.name, cronExecution);
       },
       null,
-      true,
-      null,
-      null,
       true
     );
 

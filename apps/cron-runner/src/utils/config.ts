@@ -9,11 +9,11 @@ import { Config, CronConfig } from './interfaces';
 
 const loadConfig = (): Config => {
   const cronConfigPath = getEnvVariable<string>('CRON_CONFIG_PATH', false, './config.yml');
-  const fullCronConfigP = cronConfigPath.startsWith('/') ? cronConfigPath : resolve(cwd(), cronConfigPath);
+  const fullCronConfigPath = cronConfigPath.startsWith('/') ? cronConfigPath : resolve(cwd(), cronConfigPath);
 
   const config: Config = {
     serverPort: getEnvVariable('SERVER_PORT', false, 3000),
-    dataFilePath: fullCronConfigP,
+    dataFilePath: fullCronConfigPath,
   };
 
   return config;
