@@ -184,6 +184,7 @@ export class ServerControl {
   }
 
   static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<ServiceConfig[]> {
+    const devOffset = getEnvVariable<string>('NODE_ENV', false, 'development') === 'production' ? 0 : 10000;
     try {
       const docker = new Docker(`${serverIp}`, dockerPort);
 
@@ -196,25 +197,34 @@ export class ServerControl {
 
     const services: ServiceConfig[] = [];
 
+    const checkPortAndAddService = (containerName: string, port: string) => {
+      if (port && !isNaN(parseInt(port))) {
+        const proxyPort = parseInt(port) + devOffset;
+
+        logger.debug(
+          `Found service ${name} on port ${port}, proxying on localport : ${proxyPort} to ${serverIp}:${port}`
+        );
+
+        services.push({
+          name: containerName,
+          servicePort: parseInt(port),
+          proxyPort,
+          protocol: Protocol.TCP,
+        });
+      }
+    };
+
     if (containers) {
       for (const container of containers) {
         const traefikConfPort = container.Labels['traefik-conf.port'];
+        const additionalForwardedPorts = container.Labels['additional-forwarded-ports'];
 
-        if (traefikConfPort && !isNaN(parseInt(traefikConfPort))) {
-          const proxyPort =
-            parseInt(traefikConfPort) +
-            (getEnvVariable<string>('NODE_ENV', false, 'development') === 'production' ? 0 : 10000);
-          const name = container.Names[0].replace('/', '');
-          logger.debug(
-            `Found service ${name} on port ${traefikConfPort}, proxying on localport : ${proxyPort} to ${serverIp}:${traefikConfPort}`
-          );
+        const name = container.Names[0].replace('/', '');
 
-          services.push({
-            name: container.Names[0].replace('/', ''),
-            servicePort: parseInt(traefikConfPort),
-            proxyPort,
-            protocol: Protocol.TCP,
-          });
+        checkPortAndAddService(name, traefikConfPort);
+
+        if (additionalForwardedPorts) {
+          const ports = additionalForwardedPorts.split(',').forEach((port) => checkPortAndAddService(name, port));
         }
       }
     }
