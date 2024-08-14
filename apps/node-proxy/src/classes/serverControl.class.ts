@@ -202,7 +202,7 @@ export class ServerControl {
         const proxyPort = parseInt(port) + devOffset;
 
         logger.debug(
-          `Found service ${name} on port ${port}, proxying on localport : ${proxyPort} to ${serverIp}:${port}`
+          `Found service ${containerName} on port ${port}, proxying on localport : ${proxyPort} to ${serverIp}:${port}`
         );
 
         services.push({
@@ -219,12 +219,14 @@ export class ServerControl {
         const traefikConfPort = container.Labels['traefik-conf.port'];
         const additionalForwardedPorts = container.Labels['node-proxy.ports'];
 
-        const name = container.Names[0].replace('/', '');
+        const containerName = container.Names[0].replace('/', '');
 
-        checkPortAndAddService(name, traefikConfPort);
+        checkPortAndAddService(containerName, traefikConfPort);
 
         if (additionalForwardedPorts) {
-          const ports = additionalForwardedPorts.split(',').forEach((port) => checkPortAndAddService(name, port));
+          const ports = additionalForwardedPorts
+            .split(',')
+            .forEach((port) => checkPortAndAddService(containerName, port));
         }
       }
     }
