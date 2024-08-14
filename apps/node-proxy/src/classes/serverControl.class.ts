@@ -217,7 +217,7 @@ export class ServerControl {
     if (containers) {
       for (const container of containers) {
         const traefikConfPort = container.Labels['traefik-conf.port'];
-        const additionalForwardedPorts = container.Labels['additional-forwarded-ports'];
+        const additionalForwardedPorts = container.Labels['node-proxy.ports'];
 
         const name = container.Names[0].replace('/', '');
 
