@@ -5,11 +5,7 @@ import { Worker } from 'worker_threads';
 import { logger } from '@libs/logger';
 
 import {
-  HostConfig,
-  ManagerThreadMessage,
-  ServiceConfig,
-  ThreadMessageType,
-  WorkerThreadMessage,
+    HostConfig, ManagerThreadMessage, ServiceConfig, ThreadMessageType, WorkerThreadMessage
 } from '../utils/interfaces';
 import { sendStoppingServer } from '../utils/ntfy.utils';
 import { ServerControl } from './serverControl.class';
@@ -176,6 +172,8 @@ export class Host {
 
   private async disposeWorker(workerId: string, worker: Worker) {
     this.sendMessageToWorker(worker, { type: ThreadMessageType.DISPOSE_WORKER });
+
+    this.log(`Disposing worker ${worker.threadId} for ${workerId}`);
 
     await setTimeout(1500);
 

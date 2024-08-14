@@ -3,12 +3,8 @@ import { parentPort, threadId } from 'worker_threads';
 import { logger } from '@libs/logger';
 
 import {
-  HostStatusThreadMessageData,
-  ManagerThreadMessage,
-  Protocol,
-  StartProxyThreadMessageData,
-  ThreadMessageType,
-  WorkerThreadMessage,
+    HostStatusThreadMessageData, ManagerThreadMessage, Protocol, StartProxyThreadMessageData,
+    ThreadMessageType, WorkerThreadMessage
 } from '../utils/interfaces';
 import { TCPServiceProxy } from './tcpServiceProxy.class';
 
@@ -48,6 +44,7 @@ export class ProxyWorker {
   }
 
   private dispose() {
+    this.log('Disposing worker');
     this.proxy?.dispose();
   }
 
