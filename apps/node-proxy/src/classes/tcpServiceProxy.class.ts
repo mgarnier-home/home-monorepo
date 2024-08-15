@@ -118,31 +118,36 @@ export class TCPServiceProxy {
   }
 
   private async handleIncomingDataFromClient(context: SocketContext, data: Buffer): Promise<boolean | undefined> {
-    // this.log("Incoming data from client", data.toString());
+    // this.log('Incoming data from client', data.toString());
 
     if (context.serviceConnected && context.serviceSocket) {
       this.proxyWorker.notifyPacketReceived();
 
       context.serviceSocket.write(data);
     } else {
-      const [headersSection] = data.toString().split('\r\n\r\n', 1) as [string];
-      const headersArray = headersSection.split('\r\n').slice(1);
-      const headers: { [key: string]: string } = {};
+      const isHttpRequest = data.toString().includes('HTTP');
+      let incomingIp: string | undefined;
 
-      headersArray.forEach((headerLine) => {
-        const [key, value] = headerLine.split(': ', 2) as [string, string];
-        headers[key.toLowerCase()] = value.toLowerCase();
-      });
+      if (isHttpRequest) {
+        const [headersSection] = data.toString().split('\r\n\r\n', 1) as [string];
+        const headersArray = headersSection.split('\r\n').slice(1);
+        const headers: { [key: string]: string } = {};
 
-      const incomingIp = headers['x-real-ip'] || headers['x-forwarded-for'];
+        headersArray.forEach((headerLine) => {
+          const [key, value] = headerLine.split(': ', 2) as [string, string];
+          headers[key.toLowerCase()] = value.toLowerCase();
+        });
 
-      if (incomingIp) {
-        this.log(`Request coming from ${incomingIp}`);
-      }
+        incomingIp = headers['x-real-ip'] || headers['x-forwarded-for'];
 
-      if (headers['status'] === 'true' && !this.proxyWorker.hostStarted) {
-        this.log('Status packet and host is not started => ignoring');
-        return true;
+        if (incomingIp) {
+          this.log(`Request coming from ${incomingIp}`);
+        }
+
+        if (headers['status'] === 'true' && !this.proxyWorker.hostStarted) {
+          this.log('Status packet and host is not started => ignoring');
+          return true;
+        }
       }
 
       this.proxyWorker.notifyPacketReceived();

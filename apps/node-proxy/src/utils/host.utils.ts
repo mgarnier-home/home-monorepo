@@ -1,5 +1,6 @@
 import fs from 'fs';
-import path from 'path';
+import path, { resolve } from 'path';
+import { cwd } from 'process';
 import * as YAML from 'yaml';
 
 import { getEnvVariable } from '@libs/env-config';
@@ -9,23 +10,24 @@ import { Host } from '../classes/host.class';
 import { HostConfig } from './interfaces';
 
 const hosts: Host[] = [];
-const configFilePath = path.resolve(__dirname, getEnvVariable('CONFIG_FILE', false, '../config.yml'));
+const configFilePath = getEnvVariable('CONFIG_FILE', false, '../config.yml');
+const fullConfigPath = configFilePath.startsWith('/') ? configFilePath : resolve(cwd(), configFilePath);
 
 const lastConfig: HostConfig[] = [];
 
 const loadConfig = async (): Promise<HostConfig[]> => {
   try {
-    if (fs.existsSync(configFilePath)) {
-      const dataStr = await fs.promises.readFile(configFilePath, 'utf-8');
+    if (fs.existsSync(fullConfigPath)) {
+      const dataStr = await fs.promises.readFile(fullConfigPath, 'utf-8');
 
       if (dataStr !== '') {
-        if (configFilePath.endsWith('on')) {
+        if (fullConfigPath.endsWith('on')) {
           return JSON.parse(dataStr) as HostConfig[];
         }
         return YAML.parse(dataStr, { merge: true }) as HostConfig[];
       }
     } else {
-      logger.warn('Config file not found : ', configFilePath);
+      logger.warn('Config file not found : ', fullConfigPath);
     }
   } catch (err) {
     logger.error('Error loading config file : ', err);
@@ -35,9 +37,9 @@ const loadConfig = async (): Promise<HostConfig[]> => {
 };
 
 const saveConfig = async (data: HostConfig[]) => {
-  const stringData = configFilePath.endsWith('on') ? JSON.stringify(data, null, 4) : YAML.stringify(data);
+  const stringData = fullConfigPath.endsWith('json') ? JSON.stringify(data, null, 4) : YAML.stringify(data);
 
-  await fs.promises.writeFile(configFilePath, stringData, 'utf-8');
+  await fs.promises.writeFile(fullConfigPath, stringData, 'utf-8');
 };
 
 const hostConfigUpdated = () => {
@@ -47,11 +49,12 @@ const hostConfigUpdated = () => {
 };
 
 export const getHost = (host: string): Host | undefined => {
+  logger.debug('Getting host : ', host);
   return hosts.find((h) => h.config.name.toLowerCase() === host.toLowerCase());
 };
 
 export const setupConfigListenner = () => {
-  logger.debug('Loading config from : ', configFilePath);
+  logger.debug('Loading config from : ', fullConfigPath);
 
   const configFileChanged = async (configs: HostConfig[]) => {
     await disposeHosts();
