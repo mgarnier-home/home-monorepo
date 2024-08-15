@@ -224,9 +224,10 @@ export class ServerControl {
         checkPortAndAddService(containerName, traefikConfPort);
 
         if (additionalForwardedPorts) {
-          const ports = additionalForwardedPorts
+          logger.debug(`Found additional forwarded ports for ${containerName} : ${additionalForwardedPorts}`);
+          additionalForwardedPorts
             .split(',')
-            .forEach((port) => checkPortAndAddService(containerName, port));
+            .forEach((port, index) => checkPortAndAddService(`${containerName}-${index + 2}`, port));
         }
       }
     }
