@@ -7,6 +7,6 @@ coverage
 .nx
 .pnpm-store
 conf.yml
-
+bin
 conf.json
 config.yml

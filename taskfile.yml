@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+includes:
+  go-proxy:
+    taskfile: ./apps/go-proxy/taskfile.yml
+    dir: ./apps/go-proxy
+# tasks:
+#   build-test-proxy:
+#     dir: tests/test-proxy
+#     cmds:
+#       - go build -o ../../bin/test-proxy
+#     silent: true
+#   start-test-proxy:
+#     dir: tests/test-proxy
+#     cmds:
+#       - task: build-test-proxy
+#       - ../../bin/test-proxy
+#     silent: true
