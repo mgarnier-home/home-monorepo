@@ -75,6 +75,7 @@ jobs:
       version-upgrade: ${{ inputs.version-upgrade }}
     secrets: inherit
     strategy:
+      fail-fast: false
       matrix:
         # La matrice par défaut est la liste de toutes les applications, on exclut celles qui ne sont pas sélectionnées dans les inputs
         # Avec la meme syntaxe 'a && b || c'
