@@ -1,10 +1,11 @@
 name: Publish version
 run-name: "Inc: ${{ inputs.version-upgrade }}
   ${{ format(
-  '{0}{1}{2}{3}{4}{5}{6}{7}',
+  '{0}{1}{2}{3}{4}{5}{6}{7}{8}',
   inputs['autosaver'] && 'Autosaver ' || '',
   inputs['cron-runner'] && 'Cron-runner ' || '',
   inputs['dashboard'] && 'Dashboard ' || '',
+  inputs['go-proxy'] && 'Go-proxy ' || '',
   inputs['node-proxy'] && 'Node-proxy ' || '',
   inputs['nodesight'] && 'Nodesight ' || '',
   inputs['stats-api'] && 'Stats-api ' || '',
@@ -38,6 +39,10 @@ on:
         type: boolean
       dashboard:
         description: "Dashboard"
+        required: true
+        type: boolean
+      go-proxy:
+        description: "Go Proxy"
         required: true
         type: boolean
       node-proxy:
@@ -77,6 +82,7 @@ jobs:
           - autosaver
           - cron-runner
           - dashboard
+          - go-proxy
           - node-proxy
           - nodesight
           - stats-api
@@ -86,6 +92,7 @@ jobs:
           - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
           - app: ${{ !inputs.cron-runner && 'cron-runner' || '' }}
           - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
+          - app: ${{ !inputs.go-proxy && 'go-proxy' || '' }}
           - app: ${{ !inputs.node-proxy && 'node-proxy' || '' }}
           - app: ${{ !inputs.nodesight && 'nodesight' || '' }}
           - app: ${{ !inputs.stats-api && 'stats-api' || '' }}

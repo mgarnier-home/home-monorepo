@@ -3,6 +3,6 @@ version: "3"
 
 tasks:
   build:
-    dir: ./src
+    dir: .
     cmds:
-      - go build -o ../bin/go-proxy
+      - go build -o ./dist/go-proxy

@@ -25,27 +25,9 @@ runs:
       with:
         username: ${{ inputs.dockerhub-username }}
         password: ${{ inputs.dockerhub-token }}
-    - name: Build application sources
+    - name: Build application
       shell: bash
-      run: |
-        if [[ -f apps/${{ inputs.app-name }}/package.json ]]; then
-          echo "${{ inputs.app-name }} is a node app"
-          docker build \
-              -t build \
-              --build-arg APP=${{ inputs.app-name }} \
-              --build-arg APP_VERSION=${{ inputs.version }} \
-              -f docker/node.build.Dockerfile \
-              .
-        else
-          echo "Cant build, no package.json found"
-        fi
-    - name: Build application runtime
-      shell: bash
-      run: >
-        docker build
-        -t mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}
-        -f apps/${{ inputs.app-name }}/docker/Dockerfile
-        .
+      run: bash build-app.sh ${{ inputs.app-name }} ${{ inputs.version }}
     - name: Push application runtime
       shell: bash
       run: docker push mgarnier11/${{ inputs.app-name }}:${{ inputs.platform }}
