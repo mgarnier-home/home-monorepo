@@ -1,7 +1,7 @@
 FROM build AS build
 
 
-FROM node:20-alpine AS runtime
+FROM scratch AS runtime
 
 WORKDIR /dist
 

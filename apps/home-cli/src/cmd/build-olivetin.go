@@ -163,7 +163,7 @@ func saveConfig(config *compose.Config) {
 		printActions(actions)
 	}
 
-	os.Mkdir(utils.GetDir(utils.OliveTinConfigDir), 0755)
+	os.Mkdir(utils.GetEnvVariable(utils.OliveTinConfigDir), 0755)
 	file, err := os.OpenFile(utils.GetFileInDir(utils.OliveTinConfigDir, "config.yaml"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Println(err)

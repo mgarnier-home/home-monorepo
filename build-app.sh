@@ -18,14 +18,11 @@ echo "Deleted build image"
 
 BUILD_IMAGE_ARGS=("-t" "build" "--build-arg" "APP=$APP_NAME" "--build-arg" "APP_VERSION=$APP_VERSION" ".")
 RUNTIME_IMAGE_ARGS=("-t" "mgarnier11/$APP_NAME:latest" "-f" "apps/$APP_NAME/docker/Dockerfile" ".")
-# BUILD_IMAGE_ARGS="-t build -f docker/build.Dockerfile --build-arg APP=$PROJECT_NAME --build-arg APP_VERSION=test --progress plain ."
-# DOCKER_BUILD_RUN_ARGS="--no-cache -t mgarnier11/$PROJECT_NAME:latest -f apps/$PROJECT_NAME/docker/Dockerfile --progress plain ."
-
 
 if [[ -f "apps/$APP_NAME/package.json" ]]; then
   echo "Node app detected"
   BUILD_IMAGE_ARGS=("-f" "docker/node.build.Dockerfile" "${BUILD_IMAGE_ARGS[@]}")
-elif [[ -f "apps/$APP_NAME/go.mod" ]]; then
+elif [[ -f "apps/$APP_NAME/src/go.mod" ]]; then
   echo "Golang app detected"
   BUILD_IMAGE_ARGS=("-f" "docker/golang.build.Dockerfile" "${BUILD_IMAGE_ARGS[@]}")
 fi

@@ -1,10 +1,16 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 version: "3"
 
+dotenv:
+  - .env
+
 includes:
   go-proxy:
     taskfile: ./apps/go-proxy/taskfile.yml
     dir: ./apps/go-proxy
+  home-cli:
+    taskfile: ./apps/home-cli/taskfile.yml
+    dir: ./apps/home-cli
 # tasks:
 #   build-test-proxy:
 #     dir: tests/test-proxy

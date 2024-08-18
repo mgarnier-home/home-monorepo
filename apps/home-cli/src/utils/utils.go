@@ -9,16 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type ConfigDir struct {
-	envVar     string
-	defaultDir string
+type EnvVariable struct {
+	Variable     string
+	DefaultValue string
 }
 
 var (
-	ComposeDir        = ConfigDir{"COMPOSE_DIR", "/workspaces/home-config/compose"}
-	EnvDir            = ConfigDir{"ENV_DIR", "/workspaces/home-config/compose"}
-	AnsibleDir        = ConfigDir{"ANSIBLE_DIR", "/workspaces/home-config/ansible"}
-	OliveTinConfigDir = ConfigDir{"OLIVETIN_CONFIG_DIR", "/workspaces/home-config/olivetin"}
+	ComposeDir        = EnvVariable{"COMPOSE_DIR", "/workspaces/home-config/compose"}
+	EnvDir            = EnvVariable{"ENV_DIR", "/workspaces/home-config/compose"}
+	OliveTinConfigDir = EnvVariable{"OLIVETIN_CONFIG_DIR", "/workspaces/home-config/olivetin"}
 )
 
 var (
@@ -27,26 +26,22 @@ var (
 	ActionList = getActions()
 )
 
-func getDirInEnv(envVariable string, defaultValue string) string {
-	envDir := os.Getenv(envVariable)
+func GetEnvVariable(env EnvVariable) string {
+	envDir := os.Getenv(env.Variable)
 
 	if envDir == "" {
-		envDir = defaultValue
+		envDir = env.DefaultValue
 	}
 
 	return envDir
 }
 
-func GetDir(dir ConfigDir) string {
-	return getDirInEnv(dir.envVar, dir.defaultDir)
-}
-
-func GetFileInDir(dir ConfigDir, file string) string {
-	return path.Join(GetDir(dir), file)
+func GetFileInDir(dir EnvVariable, file string) string {
+	return path.Join(GetEnvVariable(dir), file)
 }
 
 func getStacks() []string {
-	entries, err := os.ReadDir(GetDir(ComposeDir))
+	entries, err := os.ReadDir(GetEnvVariable(ComposeDir))
 	if err != nil {
 		return []string{}
 	}
@@ -68,7 +63,7 @@ func getHosts() []string {
 	hosts := []string{}
 
 	for _, stack := range getStacks() {
-		entries, err := os.ReadDir(path.Join(GetDir(ComposeDir), stack))
+		entries, err := os.ReadDir(path.Join(GetEnvVariable(ComposeDir), stack))
 		if err != nil {
 			continue
 		}
@@ -88,7 +83,7 @@ func getHosts() []string {
 }
 
 func stackFileExists(stack string, host string) bool {
-	_, err := os.Stat(path.Join(GetDir(ComposeDir), stack, host+"."+stack+".yml"))
+	_, err := os.Stat(path.Join(GetEnvVariable(ComposeDir), stack, host+"."+stack+".yml"))
 	return err == nil
 }
 

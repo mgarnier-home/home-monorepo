@@ -6,3 +6,8 @@ tasks:
     dir: ./src
     cmds:
       - go build -o ../dist/home-cli
+  start:
+    dir: ./src
+    cmds:
+      - task: build
+      - ../dist/home-cli {{.CLI_ARGS}}
