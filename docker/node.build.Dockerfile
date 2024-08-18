@@ -1,7 +1,7 @@
-FROM node:20-bookworm
-
 ARG APP=none
 ARG APP_VERSION=none
+
+FROM node:20-bookworm
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"

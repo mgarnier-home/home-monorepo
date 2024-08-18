@@ -27,13 +27,18 @@ runs:
         password: ${{ inputs.dockerhub-token }}
     - name: Build application sources
       shell: bash
-      run: >
-        docker build
-        -t build
-        --build-arg APP=${{ inputs.app-name }}
-        --build-arg APP_VERSION=${{ inputs.version }}
-        -f docker/build.Dockerfile
-        .
+      run: |
+        if [[ -f apps/${{ inputs.app-name }}/package.json ]]; then
+          echo "${{ inputs.app-name }} is a node app"
+          docker build \
+              -t build \
+              --build-arg APP=${{ inputs.app-name }} \
+              --build-arg APP_VERSION=${{ inputs.version }} \
+              -f docker/node.build.Dockerfile \
+              .
+        else
+          echo "Cant build, no package.json found"
+        fi
     - name: Build application runtime
       shell: bash
       run: >
