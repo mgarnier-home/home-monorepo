@@ -5,4 +5,4 @@ tasks:
   build:
     dir: ./src
     cmds:
-      - go build -o ../dist/go-proxy
+      - go build -o ../dist/home-cli
