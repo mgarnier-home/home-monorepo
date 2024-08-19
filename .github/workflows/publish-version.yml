@@ -38,14 +38,14 @@ on:
         description: "Cron Runner"
         required: true
         type: boolean
-      dashboard:
-        description: "Dashboard"
-        required: true
-        type: boolean
-      # go-proxy:
-      #   description: "Go Proxy"
+      # dashboard:
+      #   description: "Dashboard"
       #   required: true
       #   type: boolean
+      go-proxy:
+        description: "Go Proxy"
+        required: true
+        type: boolean
       home-cli:
         description: "Home CLI"
         required: true
