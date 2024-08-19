@@ -42,10 +42,10 @@ on:
         description: "Dashboard"
         required: true
         type: boolean
-      go-proxy:
-        description: "Go Proxy"
-        required: true
-        type: boolean
+      # go-proxy:
+      #   description: "Go Proxy"
+      #   required: true
+      #   type: boolean
       home-cli:
         description: "Home CLI"
         required: true
