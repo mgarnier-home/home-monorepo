@@ -8,9 +8,11 @@ includes:
   go-proxy:
     taskfile: ./apps/go-proxy/taskfile.yml
     dir: ./apps/go-proxy
+    optional: true
   home-cli:
     taskfile: ./apps/home-cli/taskfile.yml
     dir: ./apps/home-cli
+    optional: true
 # tasks:
 #   build-test-proxy:
 #     dir: tests/test-proxy
