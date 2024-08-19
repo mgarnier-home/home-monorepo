@@ -38,11 +38,14 @@ jobs:
           echo "matrix-apps=$matrix_apps" >> $GITHUB_OUTPUT
   run-publish-workflow:
     name: ${{ matrix.app }}
-    uses: ./.github/workflows/build-and-publish-app.yml
-    with:
-      app-to-publish: ${{ matrix.app }}
-      version-upgrade: ${{ inputs.version-upgrade }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running ${{ matrix.app }} - ${{ inputs.version-upgrade }}"
+    # uses: ./.github/workflows/build-and-publish-app.yml
+    # with:
+    #   app-to-publish: ${{ matrix.app }}
+    #   version-upgrade: ${{ inputs.version-upgrade }}
+    # secrets: inherit
     needs: get-matrix
     strategy:
       fail-fast: false
