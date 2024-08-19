@@ -1,23 +1,60 @@
-APP_NAME=${1:-""}
+#!/bin/bash
 
-APP_VERSION=${2:-"test"}
+# Default values
+APP_NAME=""
+VERSION="test"
+TAG="latest"
+USE_CACHE="true"
+PROGRESS="false"
 
-USE_CACHE=${3:-"true"}
-PROGRESS=${4:-"false"}
-
-if [ -z "${APP_NAME}" ]; then
-  echo "Usage: $0 <app_name>"
+# Function to display usage
+usage() {
+  echo "Usage: $0 --name <app_name> [--version <VERSION>] [--tag <tag>] [--no-cache] [--progress]"
   exit 1
+}
+
+# Parse named parameters
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --name)
+      APP_NAME="$2"
+      shift 2
+      ;;
+    --version)
+      VERSION="$2"
+      shift 2
+      ;;
+    --tag)
+      TAG="$2"
+      shift 2
+      ;;
+    --no-cache)
+      USE_CACHE="false"
+      shift
+      ;;
+    --progress)
+      PROGRESS="true"
+      shift
+      ;;
+    *)
+      echo "Unknown parameter: $1"
+      usage
+      ;;
+  esac
+done
+
+# Check if APP_NAME is provided
+if [ -z "${APP_NAME}" ]; then
+  usage
 fi
 
-echo "Building app : $APP_NAME version : $APP_VERSION"
-
+echo "Building app : $APP_NAME version : $VERSION tag : $TAG"
 
 docker rmi build
 echo "Deleted build image"
 
-BUILD_IMAGE_ARGS=("-t" "build" "--build-arg" "APP=$APP_NAME" "--build-arg" "APP_VERSION=$APP_VERSION" ".")
-RUNTIME_IMAGE_ARGS=("-t" "mgarnier11/$APP_NAME:latest" "-f" "apps/$APP_NAME/docker/Dockerfile" ".")
+BUILD_IMAGE_ARGS=("-t" "build" "--build-arg" "APP=$APP_NAME" "--build-arg" "VERSION=$VERSION" ".")
+RUNTIME_IMAGE_ARGS=("-t" "mgarnier11/$APP_NAME:$TAG" "-f" "apps/$APP_NAME/docker/Dockerfile" ".")
 
 if [[ -f "apps/$APP_NAME/package.json" ]]; then
   echo "Node app detected"
