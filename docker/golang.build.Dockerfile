@@ -13,7 +13,5 @@ COPY apps/$APP ./apps/$APP
 COPY taskfile.yml .
 
 RUN task ${APP}:build; \
-  cp -r apps/$APP/dist /dist; \
-  ls -la /dist; \
-  ls -la /build/apps/$APP/dist
+  cp -r apps/$APP/dist /dist
 
