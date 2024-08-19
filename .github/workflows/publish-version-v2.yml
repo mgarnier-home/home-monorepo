@@ -26,47 +26,52 @@ on:
 jobs:
   get-matrix:
     runs-on: ubuntu-latest
+    outputs:
+      matrix-apps: ${{ steps.set-matrix-output.outputs.matrix-apps }}
     steps:
-      - run: |
+      - id: set-matrix-output
+        run: |
           apps=($(echo ${{ inputs.apps }} | tr "," "\n"))
-          for app in "${apps[@]}"; do
-            echo "Publishing $app"
-          done
-  # run-publish-workflow:
+          matrix_apps=$(printf "\"%s\"," "${apps[@]}")
+          matrix_apps="[${matrix_apps%,}]"
+          echo "matrix-apps=$matrix_apps" >> $GITHUB_OUTPUT
+  run-publish-workflow:
     
-  #   runs-on: ubuntu-latest
-  #   steps: 
-  #     - run: echo "${{ matrix.app }}"
-  #   name: ${{ matrix.app }}
-  #   # uses: ./.github/workflows/build-and-publish-app.yml
-  #   # with:
-  #   #   app-to-publish: ${{ matrix.app }}
-  #   #   version-upgrade: ${{ inputs.version-upgrade }}
-  #   # secrets: inherit
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       # La matrice par défaut est la liste de toutes les applications, on exclut celles qui ne sont pas sélectionnées dans les inputs
-  #       # Avec la meme syntaxe 'a && b || c'
-  #       app:
-  #         - autosaver
-  #         - cron-runner
-  #         - dashboard
-  #         - go-proxy
-  #         - home-cli
-  #         - node-proxy
-  #         - nodesight
-  #         - stats-api
-  #         - syslog-app
-  #         - traefik-conf
-  #       exclude:
-  #         - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
-  #         - app: ${{ !inputs.cron-runner && 'cron-runner' || '' }}
-  #         - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
-  #         - app: ${{ !inputs.go-proxy && 'go-proxy' || '' }}
-  #         - app: ${{ !inputs.home-cli && 'home-cli' || '' }}
-  #         - app: ${{ !inputs.node-proxy && 'node-proxy' || '' }}
-  #         - app: ${{ !inputs.nodesight && 'nodesight' || '' }}
-  #         - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
-  #         - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
-  #         - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
+    runs-on: ubuntu-latest
+    steps: 
+      - run: echo "${{ matrix.app }}"
+    name: ${{ matrix.app }}
+    # uses: ./.github/workflows/build-and-publish-app.yml
+    # with:
+    #   app-to-publish: ${{ matrix.app }}
+    #   version-upgrade: ${{ inputs.version-upgrade }}
+    # secrets: inherit
+    needs: get-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        # La matrice par défaut est la liste de toutes les applications, on exclut celles qui ne sont pas sélectionnées dans les inputs
+        # Avec la meme syntaxe 'a && b || c'
+        app: ${{ fromJson(needs.get-matrix.outputs.matrix-apps) }}
+        # app:
+        #   - autosaver
+        #   - cron-runner
+        #   - dashboard
+        #   - go-proxy
+        #   - home-cli
+        #   - node-proxy
+        #   - nodesight
+        #   - stats-api
+        #   - syslog-app
+        #   - traefik-conf
+        # exclude:
+        #   - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
+        #   - app: ${{ !inputs.cron-runner && 'cron-runner' || '' }}
+        #   - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
+        #   - app: ${{ !inputs.go-proxy && 'go-proxy' || '' }}
+        #   - app: ${{ !inputs.home-cli && 'home-cli' || '' }}
+        #   - app: ${{ !inputs.node-proxy && 'node-proxy' || '' }}
+        #   - app: ${{ !inputs.nodesight && 'nodesight' || '' }}
+        #   - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
+        #   - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
+        #   - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
