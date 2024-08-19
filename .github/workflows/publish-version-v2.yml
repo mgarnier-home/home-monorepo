@@ -24,17 +24,25 @@ on:
         default: "autosaver,cron-runner,dashboard,go-proxy,home-cli,node-proxy,nodesight,stats-api,syslog-app,traefik-conf"
       
 jobs:
-  test:
+  get-matrix:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Hello, World! ${{ inputs.apps }}"
+      - run: |
+          apps=($(echo ${{ inputs.apps }} | tr "," "\n"))
+          for app in "${apps[@]}"; do
+            echo "Publishing $app"
+          done
   # run-publish-workflow:
-  #   uses: ./.github/workflows/build-and-publish-app.yml
+    
+  #   runs-on: ubuntu-latest
+  #   steps: 
+  #     - run: echo "${{ matrix.app }}"
   #   name: ${{ matrix.app }}
-  #   with:
-  #     app-to-publish: ${{ matrix.app }}
-  #     version-upgrade: ${{ inputs.version-upgrade }}
-  #   secrets: inherit
+  #   # uses: ./.github/workflows/build-and-publish-app.yml
+  #   # with:
+  #   #   app-to-publish: ${{ matrix.app }}
+  #   #   version-upgrade: ${{ inputs.version-upgrade }}
+  #   # secrets: inherit
   #   strategy:
   #     fail-fast: false
   #     matrix:
