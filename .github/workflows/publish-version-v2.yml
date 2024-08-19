@@ -1,0 +1,60 @@
+name: Publish version V2
+run-name: "Inc: ${{ inputs.version-upgrade }}"
+# Cette expression permet de générer un nom de workflow dynamique en fonction des inputs, par exemple:
+# - Si tous les inputs sont à false, le nom sera "Inc: XXX"
+# - Si on a les inputs autosaver, dashboard et stats-api à true, le nom sera "Inc: XXX Autosaver Dashboard Stats-api"
+# La syntaxe 'a && b || c' permet de dire "si a est vrai, alors b, sinon c"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-upgrade:
+        description: "How to upgrade the version"
+        required: true
+        type: choice
+        options:
+          - "false"
+          - "patch"
+          - "minor"
+          - "major"
+      apps:
+        description: "Applications to publish"
+        required: true
+        type: string
+        default: "autosaver,cron-runner,dashboard,go-proxy,home-cli,node-proxy,nodesight,stats-api,syslog-app,traefik-conf"
+      
+jobs:
+  run-publish-workflow:
+    uses: ./.github/workflows/build-and-publish-app.yml
+    name: ${{ matrix.app }}
+    with:
+      app-to-publish: ${{ matrix.app }}
+      version-upgrade: ${{ inputs.version-upgrade }}
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        # La matrice par défaut est la liste de toutes les applications, on exclut celles qui ne sont pas sélectionnées dans les inputs
+        # Avec la meme syntaxe 'a && b || c'
+        app:
+          - autosaver
+          - cron-runner
+          - dashboard
+          - go-proxy
+          - home-cli
+          - node-proxy
+          - nodesight
+          - stats-api
+          - syslog-app
+          - traefik-conf
+        exclude:
+          - app: ${{ !inputs.autosaver && 'autosaver' || '' }}
+          - app: ${{ !inputs.cron-runner && 'cron-runner' || '' }}
+          - app: ${{ !inputs.dashboard && 'dashboard' || '' }}
+          - app: ${{ !inputs.go-proxy && 'go-proxy' || '' }}
+          - app: ${{ !inputs.home-cli && 'home-cli' || '' }}
+          - app: ${{ !inputs.node-proxy && 'node-proxy' || '' }}
+          - app: ${{ !inputs.nodesight && 'nodesight' || '' }}
+          - app: ${{ !inputs.stats-api && 'stats-api' || '' }}
+          - app: ${{ !inputs.syslog-app && 'syslog-app' || '' }}
+          - app: ${{ !inputs.traefik-conf && 'traefik-conf' || '' }}
