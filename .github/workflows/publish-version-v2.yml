@@ -18,6 +18,11 @@ on:
         required: true
         type: string
         default: "autosaver,cron-runner,dashboard,go-proxy,home-cli,node-proxy,nodesight,stats-api,syslog-app,traefik-conf"
+      test:
+        description: "Test"
+        required: true
+        type: boolean
+        default: true
       
 jobs:
   get-matrix:
