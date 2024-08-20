@@ -1,7 +1,7 @@
 FROM node:20-bookworm
 
 ARG APP=none
-ARG APP_VERSION=none
+ARG VERSION=none
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -22,4 +22,4 @@ RUN pnpm run --filter=$APP build
 
 RUN cp -r apps/$APP/dist /dist
 
-RUN echo $APP_VERSION > /dist/version.txt
+RUN echo $VERSION > /dist/version.txt

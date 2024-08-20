@@ -1,7 +1,7 @@
 FROM golang:1.22.3-alpine3.18
 
 ARG APP=none
-ARG APP_VERSION=none
+ARG VERSION=none
 
 RUN apk add curl
 
