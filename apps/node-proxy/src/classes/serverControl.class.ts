@@ -1,15 +1,15 @@
+import Dockerode, { ContainerInfo } from 'dockerode';
 import { NodeSSH } from 'node-ssh';
 import Ping from 'ping';
 import { Client } from 'ssh2';
 import Wol from 'wol';
 
-import { Container, Docker } from '@libs/docker-api';
 import { getEnvVariable } from '@libs/env-config';
 import { logger } from '@libs/logger';
 
 import { Protocol, ServiceConfig } from '../utils/interfaces';
 
-const containersMap = new Map<string, Container[]>();
+const containersMap = new Map<string, ContainerInfo[]>();
 
 export class ServerControl {
   public static getServerStatus(hostIP: string) {
@@ -186,7 +186,7 @@ export class ServerControl {
   static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<ServiceConfig[]> {
     const devOffset = getEnvVariable<string>('NODE_ENV', false, 'development') === 'production' ? 0 : 10000;
     try {
-      const docker = new Docker(`${serverIp}`, dockerPort);
+      const docker = new Dockerode({ protocol: 'http', host: serverIp, port: dockerPort });
 
       containersMap.set(serverIp, await docker.listContainers());
     } catch (error) {

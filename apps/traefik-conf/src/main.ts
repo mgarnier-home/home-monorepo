@@ -1,9 +1,9 @@
+import Dockerode, { ContainerInfo } from 'dockerode';
 import express from 'express';
 import fs from 'fs';
 import * as YAML from 'yaml';
 
 import { setVersionEndpoint } from '@libs/api-version';
-import { Container, Docker } from '@libs/docker-api';
 import { logger } from '@libs/logger';
 
 import { config } from './utils/config';
@@ -12,7 +12,7 @@ import { parseTraefikLabels } from './utils/traefikUtils';
 
 logger.setAppName('traefik-conf');
 
-const containersMap = new Map<string, Container[]>();
+const containersMap = new Map<string, ContainerInfo[]>();
 
 const saveData = async (data: AppData) => {
   const stringData = config.dataFilePath.endsWith('.json') ? JSON.stringify(data, null, 4) : YAML.stringify(data);
@@ -72,7 +72,7 @@ const main = async () => {
 
     for (const host of appData.hosts) {
       try {
-        const docker = new Docker(`${host.ip}`, host.apiPort);
+        const docker = new Dockerode({ protocol: 'http', host: host.ip, port: host.apiPort });
 
         containersMap.set(host.ip, await docker.listContainers());
       } catch (error) {

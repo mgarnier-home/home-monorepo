@@ -38,18 +38,21 @@ if (config.nodeEnv === 'development') {
   logger.info('Running in development mode');
 
   const source = new EventSource(config.smeeUrl);
-  source.onmessage = (event: any) => {
+  source.onmessage = async (event: any) => {
     logger.debug('Received event from smee');
     const webhookEvent = JSON.parse(event.data);
-
-    webhooks
-      .verifyAndReceive({
+    try {
+      await webhooks.verifyAndReceive({
         id: webhookEvent['x-request-id'],
         name: webhookEvent['x-github-event'],
         signature: webhookEvent['x-hub-signature-256'],
         payload: JSON.stringify(webhookEvent.body),
-      })
-      .catch(console.error);
+      });
+
+      logger.debug('Webhook verified and received successfully');
+    } catch (error) {
+      console.error('Error while verifying and receiving webhook : ', error);
+    }
   };
 }
 
@@ -65,6 +68,8 @@ app.get('/', (req, res) => {
 
 app.post('/webhooks', async (req, res) => {
   try {
+    logger.debug('Received webhook');
+
     await webhooks.verifyAndReceive({
       id: req.headers['x-request-id'] as string,
       name: req.headers['x-github-event'] as any,
