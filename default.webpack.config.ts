@@ -23,6 +23,9 @@ export const getConfig = (env: Env, args: Args, app: string): webpack.Configurat
       filename: '[name].js',
       path: path.join(getAppPath(app), 'dist'),
     },
+    optimization: {
+      nodeEnv: false,
+    },
     cache: {
       type: 'filesystem',
       cacheDirectory: path.resolve(__dirname, '.build_cache'),

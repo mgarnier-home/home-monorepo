@@ -19,6 +19,7 @@ on:
         type: choice
         options:
           - 'autosaver'
+          - 'autoscaler'
           - 'cron-runner'
           - 'dashboard'
           - 'go-proxy'

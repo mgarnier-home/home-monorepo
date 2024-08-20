@@ -7,53 +7,55 @@
 import EventSource from 'eventsource';
 import express from 'express';
 
+import { setVersionEndpoint } from '@libs/api-version';
+import { logger } from '@libs/logger';
 import { Webhooks } from '@octokit/webhooks';
+
+import { config } from './utils/config';
+
+logger.setAppName('autoscaler');
 
 // TODO : add a secret via env variable
 const webhooks = new Webhooks({
-  secret: 'SecureSecret',
+  secret: config.webhookSecret,
 });
 
-webhooks.on('workflow_run', (event) => {
-  console.log('===============================');
-  console.log('workflow run event');
-  console.log('workflow.name : ', event.payload.workflow?.name);
-  console.log('workflow_run.name : ', event.payload.workflow_run.name);
-  console.log('workflow_run.status : ', event.payload.workflow_run.status);
-  console.log('workflow_run.conclusion : ', event.payload.workflow_run.conclusion);
-  console.log('===============================');
-});
+// webhooks.on('workflow_run', (event) => {
+//   console.log('===============================');
+//   console.log('workflow run event');
+//   console.log('workflow.name : ', event.payload.workflow?.name);
+//   console.log('workflow_run.name : ', event.payload.workflow_run.name);
+//   console.log('workflow_run.status : ', event.payload.workflow_run.status);
+//   console.log('workflow_run.conclusion : ', event.payload.workflow_run.conclusion);
+//   console.log('===============================');
+// });
 
 webhooks.on('workflow_job', (event) => {
-  console.log('===============================');
-  console.log('workflow job event');
-  console.log('workflow_job.name : ', event.payload.workflow_job.name);
-  console.log('workflow_job.status : ', event.payload.workflow_job.status);
-  console.log('workflow_job.conclusion : ', event.payload.workflow_job.conclusion);
-  console.log('===============================');
+  logger.debug('===============================');
+  logger.debug('workflow job event');
+  logger.debug('workflow_job.name : ', event.payload.workflow_job.name);
+  logger.debug('workflow_job.status : ', event.payload.workflow_job.status);
+  logger.debug('workflow_job.conclusion : ', event.payload.workflow_job.conclusion);
+  logger.debug('workflow_job.labels : ', event.payload.workflow_job.labels);
+  logger.debug('===============================');
+
+  if (
+    event.payload.workflow_job.labels.includes('linux/arm64') ||
+    event.payload.workflow_job.labels.includes('linux/amd64')
+  ) {
+    if (event.payload.workflow_job.status === 'queued') {
+      logger.info('Should deploy a new runner');
+    } else if (event.payload.workflow_job.status === 'completed') {
+      logger.info('Should remove the runner');
+    }
+  }
 });
-//TODO : pourquoi node_env ne marche pas ?
-console.log(process.env, process.env['MODE'], process.env.MODE === 'production');
 
-if (process.env.MODE !== 'production') {
-  console.log('Running in development mode');
-  const webhookProxyUrl = 'https://smee.io/ZThAp1B0Bb5aTYu'; // replace with your own Webhook Proxy URL
-  const source = new EventSource(webhookProxyUrl);
-  source.onmessage = (event: any) => {
-    const webhookEvent = JSON.parse(event.data);
-
-    webhooks
-      .verifyAndReceive({
-        id: webhookEvent['x-request-id'],
-        name: webhookEvent['x-github-event'],
-        signature: webhookEvent['x-hub-signature-256'],
-        payload: JSON.stringify(webhookEvent.body),
-      })
-      .catch(console.error);
-  };
-} else {
-  console.log('Running in production mode');
+if (config.nodeEnv === 'production') {
+  logger.info('Running in production mode');
   const app = express();
+
+  setVersionEndpoint(app);
 
   app.use(express.json());
 
@@ -66,7 +68,7 @@ if (process.env.MODE !== 'production') {
         payload: JSON.stringify(req.body),
       });
 
-      console.log('Webhook verified and received successfully');
+      logger.debug('Webhook verified and received successfully');
 
       res.status(200).send('OK');
     } catch (error) {
@@ -75,7 +77,23 @@ if (process.env.MODE !== 'production') {
     }
   });
 
-  app.listen(3000, () => {
-    console.log('App listening on port 3000');
+  app.listen(config.serverPort, () => {
+    logger.info(`App listening on port ${config.serverPort}`);
   });
+} else {
+  logger.info('Running in development mode');
+
+  const source = new EventSource(config.smeeUrl);
+  source.onmessage = (event: any) => {
+    const webhookEvent = JSON.parse(event.data);
+
+    webhooks
+      .verifyAndReceive({
+        id: webhookEvent['x-request-id'],
+        name: webhookEvent['x-github-event'],
+        signature: webhookEvent['x-hub-signature-256'],
+        payload: JSON.stringify(webhookEvent.body),
+      })
+      .catch(console.error);
+  };
 }
