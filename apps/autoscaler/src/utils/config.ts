@@ -1,18 +1,34 @@
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { cwd } from 'process';
+import * as YAML from 'yaml';
+
 import { getEnvVariable } from '@libs/env-config';
 
-import { Config } from './interfaces';
+import { AutoscalerConfig, Config } from './interfaces';
 
 const loadConfig = (): Config => {
+  const autoscalerConfigPath = getEnvVariable<string>('AUTOSCALER_CONFIG_PATH', false, './config.yml');
+  const fullAutoscalerConfigPath = autoscalerConfigPath.startsWith('/')
+    ? autoscalerConfigPath
+    : resolve(cwd(), autoscalerConfigPath);
+
   const config: Config = {
     serverPort: getEnvVariable('SERVER_PORT', false, 3000),
     nodeEnv: getEnvVariable('NODE_ENV', false, 'development'),
     webhookSecret: getEnvVariable('WEBHOOK_SECRET', true),
-    arm64Host: getEnvVariable('ARM64_HOST', true),
-    amd64Host: getEnvVariable('AMD64_HOST', true),
     smeeUrl: getEnvVariable('SMEE_URL', false, ''),
+    autoscalerConfigPath: fullAutoscalerConfigPath,
   };
 
   return config;
 };
 
 export const config = loadConfig();
+
+export const getAutoscalerConfig = (): AutoscalerConfig => {
+  const autoscalerConfigYml = readFileSync(config.autoscalerConfigPath, 'utf-8');
+  const autoscalerConfig: AutoscalerConfig = YAML.parse(autoscalerConfigYml, { merge: true }) as AutoscalerConfig;
+
+  return autoscalerConfig;
+};

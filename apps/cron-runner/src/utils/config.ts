@@ -13,7 +13,7 @@ const loadConfig = (): Config => {
 
   const config: Config = {
     serverPort: getEnvVariable('SERVER_PORT', false, 3000),
-    dataFilePath: fullCronConfigPath,
+    cronConfigPath: fullCronConfigPath,
   };
 
   return config;
@@ -22,7 +22,7 @@ const loadConfig = (): Config => {
 export const config = loadConfig();
 
 export const getCronConfig = (): CronConfig => {
-  const cronConfigYml = readFileSync(config.dataFilePath, 'utf-8');
+  const cronConfigYml = readFileSync(config.cronConfigPath, 'utf-8');
   const cronConfig: CronConfig = YAML.parse(cronConfigYml, { merge: true }) as CronConfig;
 
   return cronConfig;

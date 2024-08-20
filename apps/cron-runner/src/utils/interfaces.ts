@@ -1,6 +1,6 @@
 export interface Config {
   serverPort: number;
-  dataFilePath: string;
+  cronConfigPath: string;
 }
 
 export interface Cron {

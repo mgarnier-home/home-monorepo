@@ -2,7 +2,16 @@ export interface Config {
   webhookSecret: string;
   serverPort: number;
   nodeEnv: string;
-  arm64Host: string;
-  amd64Host: string;
   smeeUrl: string;
+  autoscalerConfigPath: string;
+}
+
+export interface DockerHost {
+  label: string;
+  ip: string;
+  dockerPort: number;
+}
+
+export interface AutoscalerConfig {
+  autoscalerHosts: DockerHost[];
 }
