@@ -5,6 +5,7 @@ export interface Config {
   smeeUrl: string;
   autoscalerConfigPath: string;
   runnerImage: string;
+  runnerOrgName: string;
   runnerRepoUrl: string;
   runnerAccessToken: string;
 }

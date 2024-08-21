@@ -55,7 +55,7 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
     Env: [
       `ACCESS_TOKEN=${config.runnerAccessToken}`,
       `RUNNER_SCOPE=org`,
-      `ORG_NAME=mgarnier-home`,
+      `ORG_NAME=${config.runnerOrgName}`,
       `REPO_URL=${config.runnerRepoUrl}`,
       `RUNNER_NAME=runner-${host.label.replace('/', '-')}-${jobId}`,
       `LABELS=${host.label}`,
