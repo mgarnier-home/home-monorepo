@@ -18,6 +18,9 @@ const loadConfig = (): Config => {
     nodeEnv: getEnvVariable('NODE_ENV', false, 'development'),
     webhookSecret: getEnvVariable('WEBHOOK_SECRET', true),
     smeeUrl: getEnvVariable('SMEE_URL', false, ''),
+    runnerImage: getEnvVariable('RUNNER_IMAGE', false, 'myoung34/github-runner:latest'),
+    runnerRepoUrl: getEnvVariable('RUNNER_REPO_URL', true),
+    runnerAccessToken: getEnvVariable('RUNNER_ACCESS_TOKEN', true),
     autoscalerConfigPath: fullAutoscalerConfigPath,
   };
 

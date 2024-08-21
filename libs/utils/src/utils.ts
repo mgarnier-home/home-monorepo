@@ -2,6 +2,10 @@ import path from 'path';
 import YAML from 'yaml';
 
 export namespace Utils {
+  export async function sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   export async function fetchWithTimeout(url: RequestInfo | URL, timeout = 5000, init?: RequestInit | undefined) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);

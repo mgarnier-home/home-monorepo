@@ -4,6 +4,9 @@ export interface Config {
   nodeEnv: string;
   smeeUrl: string;
   autoscalerConfigPath: string;
+  runnerImage: string;
+  runnerRepoUrl: string;
+  runnerAccessToken: string;
 }
 
 export interface DockerHost {

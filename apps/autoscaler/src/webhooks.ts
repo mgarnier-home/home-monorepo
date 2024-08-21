@@ -1,7 +1,8 @@
 import { logger } from '@libs/logger';
 import { Webhooks } from '@octokit/webhooks';
 
-import { config } from './utils/config';
+import { startRunner, stopRunner } from './docker';
+import { config, getAutoscalerConfig } from './utils/config';
 
 const webhooks = new Webhooks({
   secret: config.webhookSecret,
@@ -14,16 +15,34 @@ webhooks.on('workflow_job', (event) => {
   logger.debug('workflow_job.status : ', event.payload.workflow_job.status);
   logger.debug('workflow_job.conclusion : ', event.payload.workflow_job.conclusion);
   logger.debug('workflow_job.labels : ', event.payload.workflow_job.labels);
+  logger.debug('workflow_job.id : ', event.payload.workflow_job.id);
+  logger.debug('workflow_job.run_id : ', event.payload.workflow_job.run_id);
   logger.debug('===============================');
 
-  if (
-    event.payload.workflow_job.labels.includes('linux/arm64') ||
-    event.payload.workflow_job.labels.includes('linux/amd64')
-  ) {
-    if (event.payload.workflow_job.status === 'queued') {
-      logger.info('Should deploy a new runner');
-    } else if (event.payload.workflow_job.status === 'completed') {
-      logger.info('Should remove the runner');
+  const autoscalerConfig = getAutoscalerConfig();
+
+  const targetHost = autoscalerConfig.autoscalerHosts.find((host) => {
+    return event.payload.workflow_job.labels.includes(host.label);
+  });
+
+  if (!targetHost) {
+    logger.error('No host found for the given label', event.payload.workflow_job.labels);
+    return;
+  }
+
+  if (event.payload.workflow_job.status === 'queued') {
+    try {
+      logger.info(`Should add a runner to ${targetHost.label}`);
+      startRunner(targetHost, event.payload.workflow_job.id);
+    } catch (error) {
+      logger.error('Error while starting runner', error);
+    }
+  } else if (event.payload.workflow_job.status === 'completed') {
+    try {
+      logger.info(`Should remove a runner from ${targetHost.label}`);
+      stopRunner(targetHost, event.payload.workflow_job.id);
+    } catch (error) {
+      logger.error('Error while stopping runner', error);
     }
   }
 });
