@@ -1,4 +1,5 @@
 import { logger } from '@libs/logger';
+import { NtfyUtils } from '@libs/ntfy-utils';
 import { Webhooks } from '@octokit/webhooks';
 
 import { startRunner, stopRunner } from './docker';
@@ -36,6 +37,7 @@ webhooks.on('workflow_job', (event) => {
       startRunner(targetHost, event.payload.workflow_job.id);
     } catch (error) {
       logger.error('Error while starting runner', error);
+      NtfyUtils.sendNotification('Autoscaler error', `Error while starting runner\n${error}`, '');
     }
   } else if (event.payload.workflow_job.status === 'completed') {
     try {
@@ -43,6 +45,7 @@ webhooks.on('workflow_job', (event) => {
       stopRunner(targetHost, event.payload.workflow_job.id);
     } catch (error) {
       logger.error('Error while stopping runner', error);
+      NtfyUtils.sendNotification('Autoscaler error', `Error while stopping runner\n${error}`, '');
     }
   }
 });

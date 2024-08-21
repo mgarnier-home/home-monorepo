@@ -3,6 +3,7 @@ import express from 'express';
 
 import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
+import { NtfyUtils } from '@libs/ntfy-utils';
 
 import { config } from './utils/config';
 import { webhooks } from './webhooks';
@@ -56,6 +57,11 @@ const setupExpress = () => {
       res.status(200).send('OK');
     } catch (error) {
       console.error('Error while verifying and receiving webhook : ', error);
+      NtfyUtils.sendNotification(
+        'Autoscaler error',
+        `Error while verifying and receiving a webhook\n${error}\n${JSON.stringify(req.headers)}`, //
+        ''
+      );
       res.status(401).send('Unauthorized');
     }
   });
