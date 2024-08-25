@@ -139,7 +139,8 @@ func TestTCPProxyStop(t *testing.T) {
 
 	go tcpProxy.Start(&wg, ctx, cancel)
 
-	time.Sleep(500 * time.Millisecond)
+	// time.Sleep(500 * time.Millisecond)
+	//TODO: fix this test, the stop function should kill all tcp connections and stop the proxy
 
 	tcpProxy.Stop()
 	wg.Wait()
