@@ -22,6 +22,19 @@ type TCPProxy struct {
 	stop context.CancelFunc
 }
 
+type CustomWriter struct {
+	io.Writer
+	onWrite func(int)
+}
+
+func (cw *CustomWriter) Write(p []byte) (int, error) {
+	n, err := cw.Writer.Write(p)
+	if err == nil {
+		cw.onWrite(n)
+	}
+	return n, err
+}
+
 func NewTCPProxy(hostConfig *config.HostConfig, proxyConfig *config.ProxyConfig, hostStarted func() (bool, error), startHost func() error, packetReceived func() error) *TCPProxy {
 	tcpProxy := &TCPProxy{
 		ListenAddr:     fmt.Sprintf("%s:%d", "0.0.0.0", proxyConfig.ListenPort),
@@ -67,18 +80,7 @@ func (proxy *TCPProxy) Start(wg *sync.WaitGroup, ctx context.Context, stop conte
 		}
 		log.Printf("Accepted connection from %s", clientConn.RemoteAddr())
 
-		forwardProxy, err := proxy.shouldForwardProxy(clientConn)
-
-		if err != nil {
-			log.Printf("Failed to check host status: %v", err)
-			clientConn.Close()
-			continue
-		}
-
-		if forwardProxy {
-			log.Printf("Forwarding connection to %s", proxy.TargetAddr)
-			go proxy.handleTCPConnection(clientConn, proxy.TargetAddr)
-		}
+		go proxy.handleTCPConnection(clientConn, proxy.TargetAddr)
 	}
 }
 
@@ -122,6 +124,20 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn net.Conn) (bool, error) {
 func (proxy *TCPProxy) handleTCPConnection(clientConn net.Conn, targetAddr string) {
 	defer clientConn.Close()
 
+	forwardProxy, err := proxy.shouldForwardProxy(clientConn)
+
+	if err != nil {
+		log.Printf("Failed to check host status: %v", err)
+		return
+	}
+
+	if !forwardProxy {
+		log.Printf("Dropping connection")
+		return
+	}
+
+	log.Printf("Forwarding connection to %s", proxy.TargetAddr)
+
 	targetConn, err := net.Dial("tcp", targetAddr)
 	if err != nil {
 		log.Printf("Failed to connect to target %s: %v", targetAddr, err)
@@ -129,8 +145,19 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn net.Conn, targetAddr strin
 	}
 	defer targetConn.Close()
 
+	done := make(chan struct{})
+
+	onDataTransfer := func(bytesTransferred int) {
+		log.Printf("Data transferred: %d bytes", bytesTransferred)
+
+		proxy.PacketReceived()
+	}
+
+	clientToTargetWriter := &CustomWriter{Writer: targetConn, onWrite: onDataTransfer}
+
 	go func() {
-		_, err := io.Copy(targetConn, clientConn)
+		defer close(done)
+		_, err := io.Copy(clientToTargetWriter, clientConn)
 		if err != nil {
 			log.Printf("Error copying from client to target: %v", err)
 		}
@@ -140,4 +167,9 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn net.Conn, targetAddr strin
 	if err != nil {
 		log.Printf("Error copying from target to client: %v", err)
 	}
+
+	<-done
+
+	log.Println("Closing TCP connection")
+
 }

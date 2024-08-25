@@ -2,6 +2,7 @@ package proxies
 
 import (
 	"context"
+	"log"
 	"mgarnier11/go-proxy/config"
 	"net"
 	"sync"
@@ -43,16 +44,39 @@ var proxyConfig = &config.ProxyConfig{
 	Name:       "test",
 }
 
-func sendAndCheckBytes(tcpProxy *TCPProxy, data []byte) (dataReceived []byte, err error) {
+func setupDefaultProxyAndSendData(tcpProxyMock *MockedTCPProxy) ([]byte, []byte, error) {
+	tcpProxy := NewTCPProxy(hostConfig, proxyConfig, tcpProxyMock.HostStarted, tcpProxyMock.StartHost, tcpProxyMock.PacketReceived)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	go tcpProxy.Start(&wg, ctx, cancel)
+
+	dataSent, dataReceived, err := sendAndReceiveBytes(tcpProxy, []byte("This is the data"), []byte("Here is the response"))
+
+	time.Sleep(500 * time.Millisecond)
+
+	tcpProxy.Stop()
+	wg.Wait()
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	return dataSent, dataReceived, err
+}
+
+func sendAndReceiveBytes(tcpProxy *TCPProxy, data []byte, response []byte) (dataSent []byte, responseReceived []byte, err error) {
 	listener, err := net.Listen("tcp", tcpProxy.TargetAddr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer listener.Close()
 
 	sender, err := net.Dial("tcp", tcpProxy.ListenAddr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer sender.Close()
 
@@ -61,17 +85,25 @@ func sendAndCheckBytes(tcpProxy *TCPProxy, data []byte) (dataReceived []byte, er
 	// Accept the connection from the listener
 	conn, err := listener.Accept()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer conn.Close()
 
-	buf := make([]byte, 2048)
-	n, err := conn.Read(buf)
+	bufTarget := make([]byte, 128)
+	nTarget, err := conn.Read(bufTarget)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return buf[:n], nil
+	conn.Write(response)
+
+	bufResponse := make([]byte, 128)
+	nResponse, err := sender.Read(bufResponse)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return bufTarget[:nTarget], bufResponse[:nResponse], nil
 }
 
 func TestNewTCPProxy(t *testing.T) {
@@ -88,24 +120,14 @@ func TestSendData(t *testing.T) {
 	tcpProxyMock.On("HostStarted").Return(true, nil)
 	tcpProxyMock.On("StartHost").Return(nil)
 	tcpProxyMock.On("PacketReceived").Return(nil)
-	tcpProxy := NewTCPProxy(hostConfig, proxyConfig, tcpProxyMock.HostStarted, tcpProxyMock.StartHost, tcpProxyMock.PacketReceived)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go tcpProxy.Start(&wg, ctx, cancel)
-
-	dataReceived, err := sendAndCheckBytes(tcpProxy, []byte("Hello World"))
-
-	time.Sleep(500 * time.Millisecond)
-
-	tcpProxy.Stop()
-	wg.Wait()
+	dataSent, dataReceived, err := setupDefaultProxyAndSendData(tcpProxyMock)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "Hello World", string(dataReceived))
-
+	assert.Equal(t, "This is the data", string(dataSent))
+	assert.Equal(t, "Here is the response", string(dataReceived))
+	tcpProxyMock.AssertNumberOfCalls(t, "HostStarted", 1)
+	tcpProxyMock.AssertNumberOfCalls(t, "PacketReceived", 1)
 }
 
 func TestTCPProxyStop(t *testing.T) {
@@ -122,7 +144,7 @@ func TestTCPProxyStop(t *testing.T) {
 	tcpProxy.Stop()
 	wg.Wait()
 
-	_, err := sendAndCheckBytes(tcpProxy, []byte("Hello World"))
+	_, _, err := sendAndReceiveBytes(tcpProxy, []byte("This is the data"), []byte("Here is the response"))
 
 	assert.NotNil(t, err)
 
@@ -132,25 +154,13 @@ func TestStartingHost(t *testing.T) {
 	tcpProxyMock := new(MockedTCPProxy)
 	tcpProxyMock.On("HostStarted").Return(true, nil)
 	tcpProxyMock.On("StartHost").Return(nil)
-	tcpProxy := NewTCPProxy(hostConfig, proxyConfig, tcpProxyMock.HostStarted, tcpProxyMock.StartHost, tcpProxyMock.PacketReceived)
+	tcpProxyMock.On("PacketReceived").Return(nil)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go tcpProxy.Start(&wg, ctx, cancel)
-
-	dataReceived, err := sendAndCheckBytes(tcpProxy, []byte("Hello World"))
-
-	time.Sleep(500 * time.Millisecond)
-
-	tcpProxy.Stop()
-	wg.Wait()
+	dataSent, dataReceived, err := setupDefaultProxyAndSendData(tcpProxyMock)
 
 	assert.Nil(t, err)
-	assert.Equal(t, "Hello World", string(dataReceived))
-	// tcpProxyMock.AssertExpectations(t)
+	assert.Equal(t, "This is the data", string(dataSent))
+	assert.Equal(t, "Here is the response", string(dataReceived))
 	tcpProxyMock.AssertNumberOfCalls(t, "HostStarted", 1)
 	tcpProxyMock.AssertNumberOfCalls(t, "StartHost", 0)
-	// tcpProxyMock.AssertNumberOfCalls(t, "PacketReceived", 0)
 }

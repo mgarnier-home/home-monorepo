@@ -15,4 +15,11 @@ tasks:
   test:
     dir: ./src
     cmds:
+      - go clean -testcache
       - go test -v ./...
+
+  build-prod:
+    dir: ./src
+    cmds:
+      - task test
+      - go build -o ../dist/go-proxy
