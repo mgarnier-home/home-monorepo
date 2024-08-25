@@ -6,3 +6,13 @@ tasks:
     dir: ./src
     cmds:
       - go build -o ../dist/go-proxy
+
+  start:
+    cmds:
+      - task build
+      - ./dist/go-proxy
+
+  test:
+    dir: ./src
+    cmds:
+      - go test -v ./...
