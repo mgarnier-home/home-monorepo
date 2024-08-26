@@ -15,9 +15,9 @@ import (
 type TCPProxy struct {
 	ListenAddr     string
 	TargetAddr     string
-	HostStarted    func() (bool, error)
-	StartHost      func() error
-	PacketReceived func() error
+	HostStarted    func(proxy *TCPProxy) (bool, error)
+	StartHost      func(proxy *TCPProxy) error
+	PacketReceived func(proxy *TCPProxy) error
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -26,9 +26,9 @@ type TCPProxy struct {
 type TCPProxyArgs struct {
 	HostConfig     *config.HostConfig
 	ProxyConfig    *config.ProxyConfig
-	HostStarted    func() (bool, error)
-	StartHost      func() error
-	PacketReceived func() error
+	HostStarted    func(proxy *TCPProxy) (bool, error)
+	StartHost      func(proxy *TCPProxy) error
+	PacketReceived func(proxy *TCPProxy) error
 }
 
 type CustomWriter struct {
@@ -44,7 +44,9 @@ func (cw *CustomWriter) Write(p []byte) (int, error) {
 	return n, err
 }
 
-func NewTCPProxy(ctx context.Context, cancel context.CancelFunc, args *TCPProxyArgs) *TCPProxy {
+func NewTCPProxy(ctx context.Context, args *TCPProxyArgs) *TCPProxy {
+	ctx, cancel := context.WithCancel(ctx)
+
 	tcpProxy := &TCPProxy{
 		ListenAddr:     fmt.Sprintf("%s:%d", "0.0.0.0", args.ProxyConfig.ListenPort),
 		TargetAddr:     fmt.Sprintf("%s:%d", args.HostConfig.Ip, args.ProxyConfig.TargetPort),
@@ -63,7 +65,7 @@ func (proxy *TCPProxy) Start(wg *sync.WaitGroup) {
 
 	listener, err := net.Listen("tcp", proxy.ListenAddr)
 	if err != nil {
-		log.Fatalf("Failed to listen on %s: %v", proxy.ListenAddr, err)
+		log.Printf("Failed to listen on %s: %v", proxy.ListenAddr, err)
 	}
 	defer listener.Close()
 
@@ -92,7 +94,7 @@ func (proxy *TCPProxy) Start(wg *sync.WaitGroup) {
 		log.Printf("Accepted connection from %s", clientConn.RemoteAddr())
 
 		wg.Add(1)
-		go proxy.handleTCPConnection(wg, clientConn, proxy.TargetAddr)
+		go proxy.handleTCPConnection(wg, clientConn)
 	}
 }
 
@@ -102,17 +104,21 @@ func (proxy *TCPProxy) Stop() {
 }
 
 func (proxy *TCPProxy) shouldForwardProxy(clientConn net.Conn) (bool, error) {
-	started, err := proxy.HostStarted()
+	if proxy.HostStarted == nil {
+		return false, fmt.Errorf("HostStarted function not set")
+	}
+
+	started, err := proxy.HostStarted(proxy)
 	if err != nil {
 		return false, err
 	}
 
 	if !started {
 		reader := bufio.NewReader(clientConn)
-		peek, err := reader.Peek(reader.Buffered())
+		peek, err := reader.Peek(utils.Min(1024, reader.Buffered()))
 
-		if err != nil {
-			return false, err
+		if err != nil && err != io.EOF {
+			return false, fmt.Errorf("failed to peek data: %w", err)
 		}
 
 		if utils.IsHTTPRequest(peek) {
@@ -124,18 +130,23 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn net.Conn) (bool, error) {
 			}
 		}
 
-		err = proxy.StartHost()
+		if proxy.StartHost == nil {
+			return false, fmt.Errorf("StartHost function not set")
+		}
+
+		err = proxy.StartHost(proxy)
 
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to start host: %w", err)
 		}
 	}
 
 	return true, nil
 }
 
-func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Conn, targetAddr string) {
+func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Conn) {
 	defer wg.Done()
+
 	defer clientConn.Close()
 
 	forwardProxy, err := proxy.shouldForwardProxy(clientConn)
@@ -152,9 +163,9 @@ func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Co
 
 	log.Printf("Forwarding connection to %s", proxy.TargetAddr)
 
-	targetConn, err := net.Dial("tcp", targetAddr)
+	targetConn, err := net.Dial("tcp", proxy.TargetAddr)
 	if err != nil {
-		log.Printf("Failed to connect to target %s: %v", targetAddr, err)
+		log.Printf("Failed to connect to target %s: %v", proxy.TargetAddr, err)
 		return
 	}
 	defer targetConn.Close()
@@ -164,7 +175,12 @@ func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Co
 	onDataTransfer := func(bytesTransferred int) {
 		log.Printf("Data transferred: %d bytes", bytesTransferred)
 
-		proxy.PacketReceived()
+		if proxy.PacketReceived == nil {
+			log.Printf("Error calling PacketReceived")
+			return
+		}
+
+		proxy.PacketReceived(proxy)
 	}
 
 	clientToTargetWriter := &CustomWriter{Writer: targetConn, onWrite: onDataTransfer}

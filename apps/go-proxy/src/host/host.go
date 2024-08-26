@@ -1,6 +1,7 @@
 package host
 
 import (
+	"context"
 	"log"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/proxies"
@@ -22,7 +23,7 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	for _, proxyConfig := range hostConfig.Proxies {
 		if proxyConfig.Protocol == "tcp" {
-			h.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(nil, nil, &proxies.TCPProxyArgs{
+			h.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(context.TODO(), &proxies.TCPProxyArgs{
 				HostConfig:     hostConfig,
 				ProxyConfig:    proxyConfig,
 				HostStarted:    h.HostStarted,
@@ -34,18 +35,18 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 		}
 	}
 
-	h.StartHost()
+	// h.StartHost()
 	h.Started = true
 	h.LastPacketDate = time.Now()
 
 	return h
 }
 
-func (h *Host) HostStarted() (bool, error) {
+func (h *Host) HostStarted(proxy *proxies.TCPProxy) (bool, error) {
 	return h.Started, nil
 }
 
-func (h *Host) StartHost() error {
+func (h *Host) StartHost(proxy *proxies.TCPProxy) error {
 	log.Println("Starting host : " + h.Config.Name)
 	return nil
 }
@@ -55,7 +56,7 @@ func (h *Host) StopHost() error {
 	return nil
 }
 
-func (h *Host) PacketReceived() error {
+func (h *Host) PacketReceived(proxy *proxies.TCPProxy) error {
 	h.LastPacketDate = time.Now()
 	return nil
 }
