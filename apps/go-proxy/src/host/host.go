@@ -22,7 +22,13 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	for _, proxyConfig := range hostConfig.Proxies {
 		if proxyConfig.Protocol == "tcp" {
-			h.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(hostConfig, proxyConfig, h.HostStarted, h.StartHost, h.PacketReceived)
+			h.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(nil, nil, &proxies.TCPProxyArgs{
+				HostConfig:     hostConfig,
+				ProxyConfig:    proxyConfig,
+				HostStarted:    h.HostStarted,
+				StartHost:      h.StartHost,
+				PacketReceived: h.PacketReceived,
+			})
 		} else if proxyConfig.Protocol == "udp" {
 
 		}

@@ -19,7 +19,16 @@ type TCPProxy struct {
 	StartHost      func() error
 	PacketReceived func() error
 
-	stop context.CancelFunc
+	ctx    context.Context
+	cancel context.CancelFunc
+}
+
+type TCPProxyArgs struct {
+	HostConfig     *config.HostConfig
+	ProxyConfig    *config.ProxyConfig
+	HostStarted    func() (bool, error)
+	StartHost      func() error
+	PacketReceived func() error
 }
 
 type CustomWriter struct {
@@ -35,20 +44,21 @@ func (cw *CustomWriter) Write(p []byte) (int, error) {
 	return n, err
 }
 
-func NewTCPProxy(hostConfig *config.HostConfig, proxyConfig *config.ProxyConfig, hostStarted func() (bool, error), startHost func() error, packetReceived func() error) *TCPProxy {
+func NewTCPProxy(ctx context.Context, cancel context.CancelFunc, args *TCPProxyArgs) *TCPProxy {
 	tcpProxy := &TCPProxy{
-		ListenAddr:     fmt.Sprintf("%s:%d", "0.0.0.0", proxyConfig.ListenPort),
-		TargetAddr:     fmt.Sprintf("%s:%d", hostConfig.Ip, proxyConfig.TargetPort),
-		HostStarted:    hostStarted,
-		StartHost:      startHost,
-		PacketReceived: packetReceived,
+		ListenAddr:     fmt.Sprintf("%s:%d", "0.0.0.0", args.ProxyConfig.ListenPort),
+		TargetAddr:     fmt.Sprintf("%s:%d", args.HostConfig.Ip, args.ProxyConfig.TargetPort),
+		HostStarted:    args.HostStarted,
+		StartHost:      args.StartHost,
+		PacketReceived: args.PacketReceived,
+		ctx:            ctx,
+		cancel:         cancel,
 	}
 
 	return tcpProxy
 }
 
-func (proxy *TCPProxy) Start(wg *sync.WaitGroup, ctx context.Context, stop context.CancelFunc) {
-	proxy.stop = stop
+func (proxy *TCPProxy) Start(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	listener, err := net.Listen("tcp", proxy.ListenAddr)
@@ -61,7 +71,8 @@ func (proxy *TCPProxy) Start(wg *sync.WaitGroup, ctx context.Context, stop conte
 
 	stopChan := make(chan struct{})
 	go func() {
-		<-ctx.Done()
+		<-proxy.ctx.Done()
+		log.Printf("Context done")
 		close(stopChan)
 		listener.Close() // This will unblock the listener.Accept() call
 	}()
@@ -80,12 +91,14 @@ func (proxy *TCPProxy) Start(wg *sync.WaitGroup, ctx context.Context, stop conte
 		}
 		log.Printf("Accepted connection from %s", clientConn.RemoteAddr())
 
-		go proxy.handleTCPConnection(clientConn, proxy.TargetAddr)
+		wg.Add(1)
+		go proxy.handleTCPConnection(wg, clientConn, proxy.TargetAddr)
 	}
 }
 
 func (proxy *TCPProxy) Stop() {
-	proxy.stop()
+	log.Printf("Stop called on TCP proxy")
+	proxy.cancel()
 }
 
 func (proxy *TCPProxy) shouldForwardProxy(clientConn net.Conn) (bool, error) {
@@ -121,7 +134,8 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn net.Conn) (bool, error) {
 	return true, nil
 }
 
-func (proxy *TCPProxy) handleTCPConnection(clientConn net.Conn, targetAddr string) {
+func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Conn, targetAddr string) {
+	defer wg.Done()
 	defer clientConn.Close()
 
 	forwardProxy, err := proxy.shouldForwardProxy(clientConn)
@@ -168,8 +182,16 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn net.Conn, targetAddr strin
 		log.Printf("Error copying from target to client: %v", err)
 	}
 
-	<-done
+	select {
+	case <-proxy.ctx.Done():
+		log.Printf("Context done, force closing open connections")
+		clientConn.Close()
+		targetConn.Close()
+	case <-done:
+		log.Printf("Connection closed")
 
-	log.Println("Closing TCP connection")
+	}
+
+	log.Println("Handle TCP connections exiting")
 
 }
