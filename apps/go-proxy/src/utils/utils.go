@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/rand"
+	"io"
 	"strings"
 )
 
@@ -28,4 +29,17 @@ func GenerateRandomData(size int) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+type CustomWriter struct {
+	io.Writer
+	OnWrite func(int)
+}
+
+func (cw *CustomWriter) Write(p []byte) (int, error) {
+	n, err := cw.Writer.Write(p)
+	if err == nil {
+		cw.OnWrite(n)
+	}
+	return n, err
 }

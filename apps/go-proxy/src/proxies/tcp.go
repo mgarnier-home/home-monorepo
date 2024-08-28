@@ -31,19 +31,6 @@ type TCPProxyArgs struct {
 	PacketReceived func(proxy *TCPProxy) error
 }
 
-type CustomWriter struct {
-	io.Writer
-	onWrite func(int)
-}
-
-func (cw *CustomWriter) Write(p []byte) (int, error) {
-	n, err := cw.Writer.Write(p)
-	if err == nil {
-		cw.onWrite(n)
-	}
-	return n, err
-}
-
 func NewTCPProxy(ctx context.Context, args *TCPProxyArgs) *TCPProxy {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -172,8 +159,8 @@ func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Co
 
 	done := make(chan struct{})
 
-	onDataTransfer := func(bytesTransferred int) {
-		log.Printf("Data transferred: %d bytes", bytesTransferred)
+	onClientToTarget := func(bytesTransferred int) {
+		log.Printf("ClientToTarget: %d bytes", bytesTransferred)
 
 		if proxy.PacketReceived == nil {
 			log.Printf("Error calling PacketReceived")
@@ -183,7 +170,12 @@ func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Co
 		proxy.PacketReceived(proxy)
 	}
 
-	clientToTargetWriter := &CustomWriter{Writer: targetConn, onWrite: onDataTransfer}
+	onTargetToClient := func(bytesTransferred int) {
+		log.Printf("TargetToClient: %d bytes", bytesTransferred)
+	}
+
+	clientToTargetWriter := &utils.CustomWriter{Writer: targetConn, OnWrite: onClientToTarget}
+	targetToClientWriter := &utils.CustomWriter{Writer: clientConn, OnWrite: onTargetToClient}
 
 	go func() {
 		defer close(done)
@@ -193,7 +185,7 @@ func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn net.Co
 		}
 	}()
 
-	_, err = io.Copy(clientConn, targetConn)
+	_, err = io.Copy(targetToClientWriter, targetConn)
 	if err != nil {
 		log.Printf("Error copying from target to client: %v", err)
 	}
