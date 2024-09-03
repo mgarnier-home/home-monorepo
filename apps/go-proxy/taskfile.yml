@@ -10,7 +10,7 @@ tasks:
   start:
     cmds:
       - task build
-      - ./dist/go-proxy
+      - ENV_FILE_PATH=../../.env ./dist/go-proxy
 
   test:
     dir: ./src

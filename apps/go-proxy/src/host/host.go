@@ -5,6 +5,7 @@ import (
 	"log"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/proxies"
+	"sync"
 	"time"
 )
 
@@ -14,55 +15,79 @@ type Host struct {
 	Started        bool
 	LastPacketDate time.Time
 	Config         *config.HostConfig
+	waitGroup      sync.WaitGroup
 }
 
-func NewHost(hostConfig *config.HostConfig) *Host {
-	h := &Host{
-		Config: hostConfig,
+func NewHost(ctx context.Context, hostConfig *config.HostConfig) *Host {
+	host := &Host{
+		Config:     hostConfig,
+		TCPProxies: make(map[string]*proxies.TCPProxy),
+		UDPProxies: make(map[string]*proxies.UDPProxy),
+		waitGroup:  sync.WaitGroup{},
 	}
 
 	for _, proxyConfig := range hostConfig.Proxies {
 		if proxyConfig.Protocol == "tcp" {
-			h.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(context.TODO(), &proxies.TCPProxyArgs{
+			host.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(context.Background(), &proxies.TCPProxyArgs{
 				HostConfig:     hostConfig,
 				ProxyConfig:    proxyConfig,
-				HostStarted:    h.HostStarted,
-				StartHost:      h.StartHost,
-				PacketReceived: h.PacketReceived,
+				HostStarted:    host.HostStarted,
+				StartHost:      host.StartHost,
+				PacketReceived: host.PacketReceived,
 			})
+
+			host.waitGroup.Add(1)
+			go host.TCPProxies[proxyConfig.Name].Start(&host.waitGroup)
+
 		} else if proxyConfig.Protocol == "udp" {
 
 		}
 	}
 
-	// h.StartHost()
-	h.Started = true
-	h.LastPacketDate = time.Now()
+	host.StartHost(nil)
+	host.Started = true
+	host.LastPacketDate = time.Now()
 
-	return h
+	log.Println("Host created : " + host.Config.Name)
+
+	return host
 }
 
-func (h *Host) HostStarted(proxy *proxies.TCPProxy) (bool, error) {
-	return h.Started, nil
+func (host *Host) HostStarted(proxy *proxies.TCPProxy) (bool, error) {
+	return host.Started, nil
 }
 
-func (h *Host) StartHost(proxy *proxies.TCPProxy) error {
-	log.Println("Starting host : " + h.Config.Name)
+func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
+	log.Println("Starting host : " + host.Config.Name)
 	return nil
 }
 
-func (h *Host) StopHost() error {
-	log.Println("Stopping host : " + h.Config.Name)
+func (host *Host) StopHost() error {
+	log.Println("Stopping host : " + host.Config.Name)
 	return nil
 }
 
-func (h *Host) PacketReceived(proxy *proxies.TCPProxy) error {
-	h.LastPacketDate = time.Now()
+func (host *Host) PacketReceived(proxy *proxies.TCPProxy) error {
+	host.LastPacketDate = time.Now()
 	return nil
 }
 
-func (h *Host) StartProxies() {
-	// for _, tcpProxy := range h.TCPProxies {
+func (host *Host) StartProxies() {
+	// for _, tcpProxy := range host.TCPProxies {
 	// 	// tcpProxy.Start()
 	// }
+}
+
+func (host *Host) Dispose() {
+	for _, tcpProxy := range host.TCPProxies {
+		tcpProxy.Stop()
+
+		log.Printf("TCP Proxy %s disposed\n", tcpProxy.ListenAddr)
+	}
+
+	log.Println("Waiting for all proxies to stop")
+
+	host.waitGroup.Wait()
+
+	log.Println("Host disposed : " + host.Config.Name)
 }

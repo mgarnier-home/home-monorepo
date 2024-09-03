@@ -4,35 +4,57 @@ import (
 	"context"
 	"log"
 	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/docker"
+	"mgarnier11/go-proxy/host"
 )
 
-var hostConfig = &config.HostConfig{
-	Name:       "test",
-	Ip:         "100.64.98.100",
-	DockerPort: 4321,
-}
-
-var proxyConfig = &config.ProxyConfig{
-	ListenPort: 8080,
-	TargetPort: 12004,
-	Protocol:   "tcp",
-	Name:       "test",
-}
+var hosts map[string]*host.Host = make(map[string]*host.Host)
 
 func main() {
-	println("Hello, World!")
 	context := context.Background()
 
-	proxies, err := docker.GetProxiesFromDocker(context, hostConfig.Ip, hostConfig.DockerPort)
+	for newConfigFile := range config.SetupConfigListener() {
+		log.Println("Config file changed")
 
-	if err != nil {
-		panic(err)
-	}
+		for _, host := range hosts {
+			host.Dispose()
 
-	for _, proxy := range proxies {
-		log.Printf("Proxy: %v\n", proxy)
+			log.Printf("Host %s disposed\n", host.Config.Name)
+
+		}
+
+		hosts = make(map[string]*host.Host)
+
+		for _, hostConfig := range newConfigFile.ProxyHosts {
+			hosts[hostConfig.Name] = host.NewHost(context, hostConfig)
+		}
+
 	}
+	// appConfig, configFile, err := config.GetAppConfig()
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// log.Printf("AppConfig: %+v\n", appConfig)
+	// log.Printf("ConfigFile: %+v\n", configFile)
+
+	// context := context.Background()
+
+	// for _, hostConfig := range configFile.ProxyHosts {
+	// 	host := host.NewHost(context, hostConfig)
+	// }
+
+	// context := context.Background()
+
+	// proxies, err := docker.GetProxiesFromDocker(context, hostConfig.Ip, hostConfig.DockerPort)
+
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// for _, proxy := range proxies {
+	// 	log.Printf("Proxy: %v\n", proxy)
+	// }
 
 	// tcpProxy := proxies.NewTCPProxy(context, &proxies.TCPProxyArgs{
 	// 	ProxyConfig: proxyConfig,
