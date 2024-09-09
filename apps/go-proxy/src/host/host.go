@@ -2,55 +2,80 @@ package host
 
 import (
 	"context"
-	"log"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/proxies"
 	"sync"
 	"time"
+
+	"github.com/charmbracelet/log"
 )
 
 type Host struct {
-	TCPProxies     map[string]*proxies.TCPProxy
-	UDPProxies     map[string]*proxies.UDPProxy
+	Proxies        map[string]*proxies.TCPProxy
 	Started        bool
 	LastPacketDate time.Time
 	Config         *config.HostConfig
-	waitGroup      sync.WaitGroup
+
+	waitGroup sync.WaitGroup
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
 
-func NewHost(ctx context.Context, hostConfig *config.HostConfig) *Host {
+func NewHost(hostConfig *config.HostConfig) *Host {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	host := &Host{
-		Config:     hostConfig,
-		TCPProxies: make(map[string]*proxies.TCPProxy),
-		UDPProxies: make(map[string]*proxies.UDPProxy),
-		waitGroup:  sync.WaitGroup{},
-	}
-
-	for _, proxyConfig := range hostConfig.Proxies {
-		if proxyConfig.Protocol == "tcp" {
-			host.TCPProxies[proxyConfig.Name] = proxies.NewTCPProxy(context.Background(), &proxies.TCPProxyArgs{
-				HostConfig:     hostConfig,
-				ProxyConfig:    proxyConfig,
-				HostStarted:    host.HostStarted,
-				StartHost:      host.StartHost,
-				PacketReceived: host.PacketReceived,
-			})
-
-			host.waitGroup.Add(1)
-			go host.TCPProxies[proxyConfig.Name].Start(&host.waitGroup)
-
-		} else if proxyConfig.Protocol == "udp" {
-
-		}
+		Config:    hostConfig,
+		Proxies:   make(map[string]*proxies.TCPProxy),
+		waitGroup: sync.WaitGroup{},
+		ctx:       ctx,
+		cancel:    cancel,
 	}
 
 	host.StartHost(nil)
 	host.Started = true
 	host.LastPacketDate = time.Now()
 
-	log.Println("Host created : " + host.Config.Name)
+	host.setupProxies(hostConfig.Proxies)
+
+	// host.waitGroup.Add(1)
+	// go func() {
+	// 	defer host.waitGroup.Done()
+	// 	for dockerProxies := range docker.SetupDockerContainersListener(host.ctx, hostConfig.Ip, hostConfig.DockerPort) {
+	// 		log.Infof("Host %s received %d docker proxies", host.Config.Name, len(dockerProxies))
+	// 		host.setupProxies(dockerProxies)
+	// 	}
+
+	// 	log.Infof("Host %s stopped listening for docker containers", host.Config.Name)
+	// }()
+
+	log.Infof("Host %s created", host.Config.Name)
 
 	return host
+}
+
+func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
+	for _, proxyConfig := range proxyConfigs {
+		if host.Proxies[proxyConfig.Name] != nil {
+			log.Debugf("Proxy %s already exists", proxyConfig.Name)
+			continue
+		}
+
+		host.Proxies[proxyConfig.Name] = proxies.NewTCPProxy(&proxies.TCPProxyArgs{
+			HostIp:         host.Config.Ip,
+			ProxyConfig:    proxyConfig,
+			HostStarted:    host.HostStarted,
+			StartHost:      host.StartHost,
+			PacketReceived: host.PacketReceived,
+		})
+
+		host.waitGroup.Add(1)
+		go host.Proxies[proxyConfig.Name].Start(&host.waitGroup)
+	}
+}
+
+func (host *Host) Ref(proxy *proxies.TCPProxy) (bool, error) {
+	return host.Started, nil
 }
 
 func (host *Host) HostStarted(proxy *proxies.TCPProxy) (bool, error) {
@@ -58,12 +83,12 @@ func (host *Host) HostStarted(proxy *proxies.TCPProxy) (bool, error) {
 }
 
 func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
-	log.Println("Starting host : " + host.Config.Name)
+	log.Infof("Starting host : %s", host.Config.Name)
 	return nil
 }
 
 func (host *Host) StopHost() error {
-	log.Println("Stopping host : " + host.Config.Name)
+	log.Infof("Stopping host : %s", host.Config.Name)
 	return nil
 }
 
@@ -78,16 +103,32 @@ func (host *Host) StartProxies() {
 	// }
 }
 
-func (host *Host) Dispose() {
-	for _, tcpProxy := range host.TCPProxies {
-		tcpProxy.Stop()
+func (host *Host) DisposeProxy(proxyName string) {
+	proxy := host.Proxies[proxyName]
 
-		log.Printf("TCP Proxy %s disposed\n", tcpProxy.ListenAddr)
+	if proxy == nil {
+		log.Errorf("Cant dispose, proxy %s does not exist", proxyName)
+		return
 	}
 
-	log.Println("Waiting for all proxies to stop")
+	proxy.Stop()
+	delete(host.Proxies, proxyName)
+
+	log.Infof("Proxy %s disposed", proxy.ListenAddr)
+}
+
+func (host *Host) Dispose() {
+	log.Infof("Disposing host %s", host.Config.Name)
+
+	host.cancel()
+
+	for name := range host.Proxies {
+		host.DisposeProxy(name)
+	}
+
+	log.Infof("Host %s waiting for proxies to stop", host.Config.Name)
 
 	host.waitGroup.Wait()
 
-	log.Println("Host disposed : " + host.Config.Name)
+	log.Infof("Host %s disposed", host.Config.Name)
 }

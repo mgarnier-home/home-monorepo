@@ -1,31 +1,47 @@
 package main
 
 import (
-	"context"
-	"log"
+	"fmt"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/host"
+	"runtime"
+	"time"
+
+	_ "net/http/pprof"
+
+	"github.com/charmbracelet/log"
 )
 
 var hosts map[string]*host.Host = make(map[string]*host.Host)
 
 func main() {
-	context := context.Background()
+	log.SetLevel(log.DebugLevel)
+
+	go func() {
+		for {
+			time.Sleep(time.Second)
+
+			// Analyzing goroutine leaks
+			var stats runtime.MemStats
+			runtime.ReadMemStats(&stats)
+			fmt.Printf("Number of Goroutines: %d\n", runtime.NumGoroutine())
+		}
+	}()
 
 	for newConfigFile := range config.SetupConfigListener() {
-		log.Println("Config file changed")
+		log.Infof("Config file changed")
 
 		for _, host := range hosts {
 			host.Dispose()
 
-			log.Printf("Host %s disposed\n", host.Config.Name)
+			log.Infof("Finished disposing %s", host.Config.Name)
 
 		}
 
 		hosts = make(map[string]*host.Host)
 
 		for _, hostConfig := range newConfigFile.ProxyHosts {
-			hosts[hostConfig.Name] = host.NewHost(context, hostConfig)
+			hosts[hostConfig.Name] = host.NewHost(hostConfig)
 		}
 
 	}

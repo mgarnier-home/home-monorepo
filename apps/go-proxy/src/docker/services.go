@@ -4,14 +4,51 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"mgarnier11/go-proxy/config"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
+
+func SetupDockerContainersListener(ctx context.Context, hostIp string, hostDockerPort int) chan []*config.ProxyConfig {
+	proxiesChan := make(chan []*config.ProxyConfig)
+
+	go func() {
+		getProxies := func() {
+			proxies, err := GetProxiesFromDocker(hostIp, hostDockerPort)
+
+			if err != nil {
+				log.Errorf("Error while getting proxies from docker: %v", err)
+			} else {
+				proxiesChan <- proxies
+			}
+		}
+
+		getProxies()
+
+		ticker := time.NewTicker(5 * time.Second)
+
+		go func() {
+			log.Infof("Waiting for ctx.Done()")
+			<-ctx.Done()
+			log.Infof("ctx.Done() received")
+			ticker.Stop()
+			close(proxiesChan)
+			log.Infof("Docker containers listener stopped")
+		}()
+
+		for range ticker.C {
+			log.Infof("Getting proxies from docker")
+			getProxies()
+		}
+	}()
+
+	return proxiesChan
+}
 
 func checkPortAndAddService(containerName string, traefikConfPort string) (*config.ProxyConfig, error) {
 
@@ -35,7 +72,7 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 	return proxyConfig, nil
 }
 
-func GetProxiesFromDocker(ctx context.Context, hostIp string, hostDockerPort int) ([]*config.ProxyConfig, error) {
+func GetProxiesFromDocker(hostIp string, hostDockerPort int) ([]*config.ProxyConfig, error) {
 
 	dockerClient, err := client.NewClientWithOpts(client.WithHost(fmt.Sprintf("tcp://%s:%d", hostIp, hostDockerPort)), client.WithAPIVersionNegotiation())
 
@@ -44,7 +81,7 @@ func GetProxiesFromDocker(ctx context.Context, hostIp string, hostDockerPort int
 	}
 	defer dockerClient.Close()
 
-	containers, err := dockerClient.ContainerList(ctx, container.ListOptions{})
+	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{})
 
 	if err != nil {
 		panic(err)
@@ -55,15 +92,13 @@ func GetProxiesFromDocker(ctx context.Context, hostIp string, hostDockerPort int
 	for _, container := range containers {
 		containerName := strings.Replace(container.Names[0], "/", "", 1)
 
-		log.Println(containerName)
-
 		traefikConfPort := container.Labels["traefik-conf.port"]
 		additionalPorts := container.Labels["proxy.ports"]
 
 		proxyConfig, err := checkPortAndAddService(containerName, traefikConfPort)
 
 		if err != nil {
-			log.Println(err)
+			log.Debugf("Error while checking port and adding service for container %s: %v", containerName, err)
 			continue
 		}
 
@@ -76,7 +111,7 @@ func GetProxiesFromDocker(ctx context.Context, hostIp string, hostDockerPort int
 				proxyConfig, err := checkPortAndAddService(containerName, port)
 
 				if err != nil {
-					log.Println(err)
+					log.Debugf("Error while checking port and adding service for container %s: %v", containerName, err)
 					continue
 				}
 

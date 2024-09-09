@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"path"
 	"strconv"
@@ -9,6 +8,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
+
+	"github.com/charmbracelet/log"
 )
 
 type ProxyConfig struct {
@@ -45,7 +46,7 @@ func readFile(filePath string) []byte {
 		panic(err)
 	}
 
-	log.Printf("Read file %s\n", filePath)
+	log.Infof("Read file %s", filePath)
 
 	return bytes
 }
@@ -105,8 +106,8 @@ func GetAppConfig() (appConfig *AppConfig, err error) {
 	return appConfig, nil
 }
 
-func SetupConfigListener() chan ConfigFile {
-	newConfigFileChan := make(chan ConfigFile)
+func SetupConfigListener() chan *ConfigFile {
+	newConfigFileChan := make(chan *ConfigFile)
 
 	appConfig, err := GetAppConfig()
 
@@ -117,12 +118,12 @@ func SetupConfigListener() chan ConfigFile {
 	go func() {
 		// Read and send the initial config file
 		oldYamlFile := readFile(appConfig.ConfigFilePath)
-		newConfigFileChan <- *parseConfigFile(oldYamlFile)
+		newConfigFileChan <- parseConfigFile(oldYamlFile)
 		for range time.Tick(time.Second * 5) {
 			yamlFile := readFile(appConfig.ConfigFilePath)
 
 			if string(yamlFile) != string(oldYamlFile) {
-				newConfigFileChan <- *parseConfigFile(yamlFile)
+				newConfigFileChan <- parseConfigFile(yamlFile)
 			}
 
 			oldYamlFile = yamlFile
