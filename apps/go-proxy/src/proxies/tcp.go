@@ -154,7 +154,6 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 
 func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn *net.TCPConn) {
 	defer wg.Done()
-	// defer clientConn.Close()
 
 	forwardProxy, err := proxy.shouldForwardProxy(clientConn)
 
