@@ -24,7 +24,6 @@ jobs:
             -Dsonar.projectKey=mgarnier-home_home-monorepo_61b3faf5-9c41-4c08-a82b-5b82cf190b5a
             -Dsonar.verbose=true
             -Dsonar.language=ts
-            -Dsonar.branch.name=master
 
 
       # If you wish to fail your job when the Quality Gate is red, uncomment the
