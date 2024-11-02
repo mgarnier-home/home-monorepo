@@ -81,7 +81,7 @@ export class Host {
     try {
       this.servicesConfig = [
         ...(this.config.enableDocker === true
-          ? await ServerControl.getServicesFromDocker(this.config.ip, this.config.dockerPort)
+          ? await ServerControl.getServicesFromDocker(this.config.ip, this.config.sshPort)
           : []),
         ...(this.config.additionalServices || []),
       ];

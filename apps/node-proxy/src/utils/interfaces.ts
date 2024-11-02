@@ -14,7 +14,7 @@ export interface HostConfig {
   name: string;
   ip: string;
   enableDocker: boolean;
-  dockerPort: number;
+  sshPort: number;
   macAddress: string;
   sshUsername: string;
   sshPassword: string;
