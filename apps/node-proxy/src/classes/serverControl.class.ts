@@ -186,7 +186,15 @@ export class ServerControl {
   static async getServicesFromDocker(serverIp: string, dockerPort: number): Promise<ServiceConfig[]> {
     const devOffset = getEnvVariable<string>('NODE_ENV', false, 'development') === 'production' ? 0 : 10000;
     try {
-      const docker = new Dockerode({ protocol: 'http', host: serverIp, port: dockerPort });
+      const docker = new Dockerode({
+        protocol: 'ssh',
+        host: serverIp,
+        port: dockerPort,
+        username: getEnvVariable<string>('SSH_USER', true),
+        sshOptions: {
+          privateKey: getEnvVariable<string>('SSH_PRIVATE_KEY', true),
+        },
+      });
 
       containersMap.set(serverIp, await docker.listContainers());
     } catch (error) {
