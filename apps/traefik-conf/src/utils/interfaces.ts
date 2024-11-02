@@ -2,6 +2,8 @@ export interface Config {
   dataFilePath: string;
   serverPort: number;
   stacksToIgnore: string[];
+  sshUser: string;
+  sshPrivateKey: string;
 }
 
 export interface Proxy {
@@ -13,7 +15,7 @@ export interface Proxy {
 export interface Host {
   name: string;
   ip: string;
-  apiPort: number;
+  sshPort: number;
 }
 
 export interface AppData {

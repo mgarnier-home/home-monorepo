@@ -72,7 +72,13 @@ const main = async () => {
 
     for (const host of appData.hosts) {
       try {
-        const docker = new Dockerode({ protocol: 'http', host: host.ip, port: host.apiPort });
+        const docker = new Dockerode({
+          protocol: 'ssh',
+          host: host.ip,
+          port: host.sshPort,
+          username: config.sshUser,
+          sshOptions: { privateKey: config.sshPrivateKey },
+        });
 
         containersMap.set(host.ip, await docker.listContainers());
       } catch (error) {

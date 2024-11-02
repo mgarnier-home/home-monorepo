@@ -12,6 +12,8 @@ const loadConfig = (): Config => {
     stacksToIgnore: getEnvVariable('STACKS_TO_IGNORE', false, '') //
       .split(',') //
       .map((stack) => stack.toLowerCase()),
+    sshUser: getEnvVariable('SSH_USER', true),
+    sshPrivateKey: getEnvVariable('SSH_PRIVATE_KEY', true),
   };
 
   return config;
