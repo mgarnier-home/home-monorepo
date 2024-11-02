@@ -8,12 +8,14 @@ export interface Config {
   runnerOrgName: string;
   runnerRepoUrl: string;
   runnerAccessToken: string;
+  sshUser: string;
+  sshPrivateKey: string;
 }
 
 export interface DockerHost {
   label: string;
   ip: string;
-  dockerPort: number;
+  sshPort: number;
 }
 
 export interface AutoscalerConfig {

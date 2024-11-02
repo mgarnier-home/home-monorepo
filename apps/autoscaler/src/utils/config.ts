@@ -22,6 +22,8 @@ const loadConfig = (): Config => {
     runnerOrgName: getEnvVariable('RUNNER_ORG_NAME', true),
     runnerRepoUrl: getEnvVariable('RUNNER_REPO_URL', true),
     runnerAccessToken: getEnvVariable('RUNNER_ACCESS_TOKEN', true),
+    sshUser: getEnvVariable('SSH_USER', true),
+    sshPrivateKey: getEnvVariable('SSH_PRIVATE_KEY', true),
     autoscalerConfigPath: fullAutoscalerConfigPath,
   };
 

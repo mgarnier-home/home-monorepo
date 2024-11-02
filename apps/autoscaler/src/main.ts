@@ -11,6 +11,7 @@ import { webhooks } from './webhooks';
 logger.setAppName('autoscaler');
 
 const setupSmee = () => {
+  logger.info('Setting up smee');
   const source = new EventSource(config.smeeUrl);
   source.onmessage = async (event: any) => {
     logger.debug('Received event from smee');

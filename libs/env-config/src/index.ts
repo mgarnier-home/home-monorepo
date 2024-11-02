@@ -1,9 +1,18 @@
+import { readFileSync } from 'fs';
+
 export function getEnvVariable<T extends string | number | boolean>(
   variableName: string,
   required: boolean = false,
   defaultValue?: T
 ): T {
   let value: any = process.env[variableName];
+  if (typeof value === 'undefined') {
+    try {
+      value = readFileSync('/run/secrets/' + variableName.toLowerCase(), 'utf8');
+    } catch (error) {
+      value = undefined;
+    }
+  }
 
   if (required === true) {
     if (typeof value === 'undefined') {
