@@ -92,6 +92,8 @@ func getComposeCommandArgs(command *CliCommand) []string {
 		"env.env",
 		"--env-file",
 		"ports.env",
+		"--env-file",
+		"ssh.env",
 		"-f",
 		fmt.Sprintf("%s/%s.%s.yml", command.stack, command.host, command.stack),
 	}
