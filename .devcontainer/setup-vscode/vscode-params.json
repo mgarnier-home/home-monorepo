@@ -31,7 +31,7 @@
     "johnpapa.vscode-peacock",
     "github.vscode-github-actions",
     "me-dutour-mathieu.vscode-github-actions",
-    "shakram02.bash-beautify"
+    "shakram02.bash-beautify",
+    "golang.go"
   ]
-  
 }
