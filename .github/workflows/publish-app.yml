@@ -24,6 +24,7 @@ on:
           - 'dashboard'
           - 'go-proxy'
           - 'home-cli'
+          - 'home-container'
           - 'node-proxy'
           - 'nodesight'
           - 'stats-api'
@@ -68,8 +69,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build application
+        if: ${{ inputs.app != 'home-container'}}
         shell: bash
         run: bash build-app.sh --name ${{ inputs.app }} --version ${{ needs.get-version.outputs.new-app-version }} --tag ${{ matrix.platform }}
+      - name: Build home container
+        if: ${{ inputs.app == 'home-container'}}
+        shell: bash
+        run: bash build-home-container.sh --version ${{ needs.get-version.outputs.new-app-version }} --tag ${{ matrix.platform }}
       - name: Push application runtime
         shell: bash
         run: docker push mgarnier11/${{ inputs.app }}:${{ matrix.platform }}

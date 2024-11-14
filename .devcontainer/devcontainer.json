@@ -1,0 +1,11 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/debian
+{
+  "name": "Debian",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/home/mgarnier",
+  "overrideCommand": false,
+  "postStartCommand": "while [ ! -f ~/.setup_complete ]; do sleep 1; done; echo 'Setup complete !';",
+  "waitFor": "postStartCommand"
+}

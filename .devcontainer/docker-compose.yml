@@ -1,0 +1,50 @@
+name: home-devcontainer
+
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - SSHD_PORT=2222
+        - INSTALL_TASKS=true
+        - INSTALL_GO=true
+        - INSTALL_NVM=true
+        - INSTALL_ANSIBLE=true
+        - INSTALL_VSCODE=true
+    privileged: true
+    ports:
+      - 2222:2222
+      - 2223:8080
+    secrets: 
+      - SSH_PRIVATE_KEY
+    volumes:
+      - mnt-dev:/mnt/dev
+      - mnt-docker-data-athena:/mnt/docker-data/athena
+      - mnt-docker-data-zephyr:/mnt/docker-data/zephyr
+      - mnt-docker-data-apollon:/mnt/docker-data/apollon
+
+volumes:
+  mnt-dev:
+  mnt-docker-data-athena:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //100.64.98.100/share/docker-data
+      o: rw,vers=3.02,mfsymlinks,cache=none,username=mgarnier,password=password,iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777
+  mnt-docker-data-zephyr:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //100.64.98.97/share/docker-data
+      o: rw,vers=3.02,mfsymlinks,cache=none,username=mgarnier,password=password,iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777
+  mnt-docker-data-apollon:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: //100.64.98.99/share/docker-data
+      o: rw,vers=3.02,mfsymlinks,cache=none,username=mgarnier,password=password,iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777
+
+secrets:
+  SSH_PRIVATE_KEY:
+    file: ~/.ssh/id_rsa
