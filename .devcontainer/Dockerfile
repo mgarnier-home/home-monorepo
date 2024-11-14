@@ -89,7 +89,7 @@ SHELL ["/usr/bin/zsh", "-c"]
 RUN echo "[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh" >> ~/.zshrc
 
 # Tasks Installation
-ARG INSTALL_TASKS=false
+ARG INSTALL_TASKS=true
 RUN \
   if [ "${INSTALL_TASKS}" = "true" ]; then \
   sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b .local; \
@@ -97,7 +97,7 @@ RUN \
   fi
 
 # GO Installation
-ARG INSTALL_GO=false
+ARG INSTALL_GO=true
 RUN \
   if [ "${INSTALL_GO}" = "true" ]; then \
   curl -o go.tar.gz https://dl.google.com/go/go1.23.0.linux-amd64.tar.gz; \
@@ -108,7 +108,7 @@ RUN \
   fi
 
 # NVM Installation
-ARG INSTALL_NVM=false
+ARG INSTALL_NVM=true
 RUN \
   if [ "${INSTALL_NVM}" = "true" ]; then \
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash; \
@@ -119,7 +119,7 @@ RUN \
 
 
 # Ansible Installation
-ARG INSTALL_ANSIBLE=false
+ARG INSTALL_ANSIBLE=true
 RUN \
   if [ "${INSTALL_ANSIBLE}" = "true" ]; then \
   sudo add-apt-repository --yes --update ppa:ansible/ansible; \
@@ -130,7 +130,7 @@ RUN \
 # Copy entrypoint before setting up vscode, because vscode install script will modify the entrypoint
 COPY --chmod=755 --chown=${USER}:${USER} ./entrypoint.sh /entrypoint.sh
 
-ARG INSTALL_VSCODE=false
+ARG INSTALL_VSCODE=true
 COPY --chmod=755 --chown=${USER}:${USER} ./setup-vscode /setup-vscode
 RUN \
   if [ "${INSTALL_VSCODE}" = "true" ]; then \
