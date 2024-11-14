@@ -99,7 +99,7 @@ jobs:
           mgarnier11/${{ inputs.app }}:amd64
           mgarnier11/${{ inputs.app }}:arm64
   build-and-publish-home-container:
-    runs-on: ubuntu-latest
+    runs-on: linux/amd64
     if: ${{ inputs.app == 'home-container' }}
     needs: get-version
     name: Build and publish home-container-${{ needs.get-version.outputs.new-app-version }}
