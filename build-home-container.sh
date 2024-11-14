@@ -41,7 +41,7 @@ done
 
 echo "Building home-container : version : $VERSION tag : $TAG"
 
-BUILD_ARGS=("-t" "mgarnier11/home-container:$TAG" "--build-arg" "VERSION=$VERSION" "-f" ".devcontainer/Dockerfile" "./.devcontainer")
+BUILD_ARGS=("-t" "mgarnier11/home-container:$TAG" "-t" " mgarnier11/home-container:latest" "--build-arg" "VERSION=$VERSION" "-f" ".devcontainer/Dockerfile" "./.devcontainer")
 
 if [[ "$USE_CACHE" == "false" ]]; then
   BUILD_ARGS=("--no-cache" "${BUILD_ARGS[@]}")
