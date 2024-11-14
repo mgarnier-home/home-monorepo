@@ -147,3 +147,8 @@ COPY --chmod=755 --chown=${USER}:${USER} ./setup /setup
 
 
 ENTRYPOINT [ "/entrypoint.sh" ]
+
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD [ -f ~/.setup_complete ] && service ssh status > /dev/null 2>&1 || exit 1
+
