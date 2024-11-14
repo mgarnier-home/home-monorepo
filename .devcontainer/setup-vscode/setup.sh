@@ -78,6 +78,7 @@ echo "$EXTENSIONS" | jq -r '.[]' | while read extension; do
   fi
 done
 
-if [ -f "/setup/entrypoint.sh" ]; then
-  sed -i "1a ${VSCODE_WEB} serve-web $EXTENSION_ARG --port $PORT --host 0.0.0.0 --accept-server-license-terms --without-connection-token --telemetry-level off > $LOG_PATH 2>&1 &" /setup/entrypoint.sh
+if [ -f "/entrypoint.sh" ]; then
+  sudo sed -i "1a ${VSCODE_WEB} serve-web $EXTENSION_ARG --port $PORT --host 0.0.0.0 --accept-server-license-terms --without-connection-token --telemetry-level off > $LOG_PATH 2>&1 &" /entrypoint.sh
+  echo "entrypoint.sh has been updated"
 fi
