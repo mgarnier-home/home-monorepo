@@ -32,6 +32,11 @@
     "github.vscode-github-actions",
     "me-dutour-mathieu.vscode-github-actions",
     "shakram02.bash-beautify",
-    "golang.go"
+    "firsttris.vscode-jest-runner",
+    "bradlc.vscode-tailwindcss",
+    "angular.ng-template",
+    "golang.go",
+    "hashicorp.terraform",
+    "task.vscode-task"
   ]
 }
