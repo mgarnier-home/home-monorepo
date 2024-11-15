@@ -3,6 +3,7 @@ package host
 import (
 	"context"
 	"mgarnier11/go-proxy/config"
+	"mgarnier11/go-proxy/docker"
 	"mgarnier11/go-proxy/proxies"
 	"sync"
 	"time"
@@ -38,16 +39,16 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	host.setupProxies(hostConfig.Proxies)
 
-	// host.waitGroup.Add(1)
-	// go func() {
-	// 	defer host.waitGroup.Done()
-	// 	for dockerProxies := range docker.SetupDockerContainersListener(host.ctx, hostConfig.Ip, hostConfig.DockerPort) {
-	// 		log.Infof("Host %s received %d docker proxies", host.Config.Name, len(dockerProxies))
-	// 		host.setupProxies(dockerProxies)
-	// 	}
+	host.waitGroup.Add(1)
+	go func() {
+		defer host.waitGroup.Done()
+		for dockerProxies := range docker.SetupDockerContainersListener(host.ctx, hostConfig.SSHUsername, hostConfig.Ip) {
+			log.Infof("Host %s received %d docker proxies", host.Config.Name, len(dockerProxies))
+			host.setupProxies(dockerProxies)
+		}
 
-	// 	log.Infof("Host %s stopped listening for docker containers", host.Config.Name)
-	// }()
+		log.Infof("Host %s stopped listening for docker containers", host.Config.Name)
+	}()
 
 	log.Infof("Host %s created", host.Config.Name)
 

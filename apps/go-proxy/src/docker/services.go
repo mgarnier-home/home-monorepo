@@ -5,21 +5,23 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/charmbracelet/log"
+	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
-func SetupDockerContainersListener(ctx context.Context, hostIp string, hostDockerPort int) chan []*config.ProxyConfig {
+func SetupDockerContainersListener(ctx context.Context, sshUsername string, hostIp string) chan []*config.ProxyConfig {
 	proxiesChan := make(chan []*config.ProxyConfig)
 
 	go func() {
 		getProxies := func() {
-			proxies, err := GetProxiesFromDocker(hostIp, hostDockerPort)
+			proxies, err := GetProxiesFromDocker(sshUsername, hostIp)
 
 			if err != nil {
 				log.Errorf("Error while getting proxies from docker: %v", err)
@@ -72,9 +74,41 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 	return proxyConfig, nil
 }
 
-func GetProxiesFromDocker(hostIp string, hostDockerPort int) ([]*config.ProxyConfig, error) {
+func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Client, error) {
+	helper, err := connhelper.GetConnectionHelper(fmt.Sprintf("ssh://%s@%s:%d", sshUsername, hostIp, sshPort))
 
-	dockerClient, err := client.NewClientWithOpts(client.WithHost(fmt.Sprintf("tcp://%s:%d", hostIp, hostDockerPort)), client.WithAPIVersionNegotiation())
+	if err != nil {
+		return nil, err
+	}
+
+	httpClient := &http.Client{
+		// No tls
+		// No proxy
+		Transport: &http.Transport{
+			DialContext: helper.Dialer,
+		},
+	}
+
+	var clientOpts []client.Opt
+
+	clientOpts = append(clientOpts,
+		client.WithHTTPClient(httpClient),
+		client.WithHost(helper.Host),
+		client.WithDialContext(helper.Dialer),
+	)
+
+	client, err := client.NewClientWithOpts(clientOpts...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func GetProxiesFromDocker(sshUsername string, hostIp string) ([]*config.ProxyConfig, error) {
+
+	dockerClient, err := GetDockerClient(sshUsername, hostIp, 22)
 
 	if err != nil {
 		return nil, err
@@ -100,6 +134,8 @@ func GetProxiesFromDocker(hostIp string, hostDockerPort int) ([]*config.ProxyCon
 		if err != nil {
 			log.Debugf("Error while checking port and adding service for container %s: %v", containerName, err)
 			continue
+		} else {
+			log.Debugf("Proxy config: %v", proxyConfig)
 		}
 
 		proxies = append(proxies, proxyConfig)
@@ -111,14 +147,13 @@ func GetProxiesFromDocker(hostIp string, hostDockerPort int) ([]*config.ProxyCon
 				proxyConfig, err := checkPortAndAddService(containerName, port)
 
 				if err != nil {
-					log.Debugf("Error while checking port and adding service for container %s: %v", containerName, err)
+					log.Debugf("Error adding additionnal ports for container %s: %v", containerName, err)
 					continue
 				}
 
 				proxies = append(proxies, proxyConfig)
 			}
 		}
-
 	}
 
 	return proxies, nil
