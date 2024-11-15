@@ -28,31 +28,21 @@ func main() {
 		}
 	}()
 
-	for newConfigFile := range config.SetupConfigListener() {
-		log.Infof("Config file changed")
+	appConfig, err := config.GetAppConfig()
 
-		for _, host := range hosts {
-			host.Dispose()
-
-			log.Infof("Finished disposing %s", host.Config.Name)
-
-		}
-
-		hosts = make(map[string]*host.Host)
-
-		for _, hostConfig := range newConfigFile.ProxyHosts {
-			hosts[hostConfig.Name] = host.NewHost(hostConfig)
-		}
-
+	if err != nil {
+		panic(err)
 	}
-	// appConfig, configFile, err := config.GetAppConfig()
 
-	// if err != nil {
-	// 	panic(err)
-	// }
+	log.Printf("AppConfig: %+v\n", appConfig)
 
-	// log.Printf("AppConfig: %+v\n", appConfig)
-	// log.Printf("ConfigFile: %+v\n", configFile)
+	for configFile := range config.SetupConfigListener() {
+		for _, hostConfig := range configFile.ProxyHosts {
+			if hosts[hostConfig.Name] == nil {
+				hosts[hostConfig.Name] = host.NewHost(hostConfig)
+			}
+		}
+	}
 
 	// context := context.Background()
 

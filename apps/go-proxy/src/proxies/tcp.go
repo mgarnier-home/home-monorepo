@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"goUtils"
 	"io"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/utils"
@@ -123,7 +124,7 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 
 	if !started {
 		reader := bufio.NewReader(clientConn)
-		peek, err := reader.Peek(utils.Min(1024, reader.Buffered()))
+		peek, err := reader.Peek(goUtils.Min(1024, reader.Buffered()))
 
 		if err != nil && err != io.EOF {
 			return false, fmt.Errorf("%s: Failed to peek data: %v", proxy.Name, err)
@@ -194,8 +195,8 @@ func (proxy *TCPProxy) handleTCPConnection(wg *sync.WaitGroup, clientConn *net.T
 
 	}
 
-	clientToTargetWriter := &utils.CustomWriter{Writer: targetConn, OnWrite: onClientToTarget}
-	targetToClientWriter := &utils.CustomWriter{Writer: clientConn, OnWrite: onTargetToClient}
+	clientToTargetWriter := &goUtils.CustomWriter{Writer: targetConn, OnWrite: onClientToTarget}
+	targetToClientWriter := &goUtils.CustomWriter{Writer: clientConn, OnWrite: onTargetToClient}
 
 	doneCopyClientToTarget := make(chan struct{})
 	go func() {

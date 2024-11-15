@@ -3,8 +3,9 @@ package config
 import (
 	"os"
 	"path"
-	"strconv"
 	"time"
+
+	"goUtils"
 
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
@@ -28,7 +29,6 @@ type HostConfig struct {
 	SSHPassword  string         `yaml:"sshPassword"`
 	Autostop     bool           `yaml:"autostop"`
 	MaxAliveTime int            `yaml:"maxAliveTime"`
-	DockerPort   int            `yaml:"dockerPort"`
 }
 
 type ConfigFile struct {
@@ -60,30 +60,8 @@ func parseConfigFile(rawFile []byte) *ConfigFile {
 
 	return config
 }
-
-func getEnv[T bool | string | int](key string, defaultValue T) T {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-
-	switch any(defaultValue).(type) {
-	case bool:
-		if boolValue, err := strconv.ParseBool(value); err == nil {
-			return any(boolValue).(T)
-		}
-	case int:
-		if intValue, err := strconv.Atoi(value); err == nil {
-			return any(intValue).(T)
-		}
-	case string:
-		return any(value).(T)
-	}
-	return defaultValue
-}
-
 func GetAppConfig() (appConfig *AppConfig, err error) {
-	envFilePath := getEnv("ENV_FILE_PATH", "./.env")
+	envFilePath := goUtils.GetEnv("ENV_FILE_PATH", "./.env")
 
 	ex, err := os.Executable()
 	if err != nil {
@@ -99,8 +77,8 @@ func GetAppConfig() (appConfig *AppConfig, err error) {
 	godotenv.Load(envFilePath)
 
 	appConfig = &AppConfig{
-		ServerPort:     getEnv("SERVER_PORT", 8080),
-		ConfigFilePath: getEnv("CONFIG_FILE_PATH", "config.yaml"),
+		ServerPort:     goUtils.GetEnv("SERVER_PORT", 8080),
+		ConfigFilePath: goUtils.GetEnv("CONFIG_FILE_PATH", "config.yaml"),
 	}
 
 	return appConfig, nil
