@@ -37,7 +37,7 @@ func main() {
 
 	log.Printf("AppConfig: %+v\n", appConfig)
 
-	server := server.NewServer(appConfig.ServerPort)
+	server := server.NewServer(appConfig.ServerPort, &hosts)
 
 	go server.Start()
 
