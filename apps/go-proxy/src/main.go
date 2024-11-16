@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/host"
+	"mgarnier11/go-proxy/server"
 	"runtime"
 	"time"
 
@@ -35,6 +36,10 @@ func main() {
 	}
 
 	log.Printf("AppConfig: %+v\n", appConfig)
+
+	server := server.NewServer(appConfig.ServerPort)
+
+	go server.Start()
 
 	for configFile := range config.SetupConfigListener() {
 		for _, hostConfig := range configFile.ProxyHosts {
