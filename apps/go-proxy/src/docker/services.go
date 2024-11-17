@@ -16,45 +16,6 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func SetupDockerContainersListener(ctx context.Context, sshUsername string, hostIp string) chan []*config.ProxyConfig {
-	proxiesChan := make(chan []*config.ProxyConfig)
-
-	go func() {
-		getProxies := func() {
-			proxies, err := GetProxiesFromDocker(sshUsername, hostIp)
-
-			if err != nil {
-				log.Errorf("Error while getting proxies from docker: %v", err)
-			} else {
-				proxiesChan <- proxies
-			}
-		}
-
-		getProxies()
-
-		ticker := time.NewTicker(5 * time.Second)
-
-		go func() {
-			<-ctx.Done()
-
-			ticker.Stop()
-			close(proxiesChan)
-		}()
-		for {
-			select {
-			case <-ticker.C:
-				log.Infof("Getting proxies from docker")
-				getProxies()
-			case <-ctx.Done():
-				// Ensure we break out of the loop if the context is cancelled
-				return
-			}
-		}
-	}()
-
-	return proxiesChan
-}
-
 func checkPortAndAddService(containerName string, traefikConfPort string) (*config.ProxyConfig, error) {
 
 	if traefikConfPort == "" {
@@ -90,6 +51,7 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Cl
 		Transport: &http.Transport{
 			DialContext: helper.Dialer,
 		},
+		Timeout: 2 * time.Second,
 	}
 
 	var clientOpts []client.Opt
@@ -121,7 +83,7 @@ func GetProxiesFromDocker(sshUsername string, hostIp string) ([]*config.ProxyCon
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{})
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	proxies := []*config.ProxyConfig{}

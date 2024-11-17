@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/log"
+	"github.com/melbahja/goph"
 )
 
 type Host struct {
@@ -38,22 +39,50 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 	host.Started = true
 	host.LastPacketDate = time.Now()
 
-	host.setupProxies(hostConfig.Proxies)
+	dockerProxies, _ := docker.GetProxiesFromDocker(hostConfig.SSHUsername, hostConfig.Ip)
 
-	host.waitGroup.Add(1)
-	go func() {
-		defer host.waitGroup.Done()
-		for dockerProxies := range docker.SetupDockerContainersListener(host.ctx, hostConfig.SSHUsername, hostConfig.Ip) {
-			log.Infof("%-10s received %d docker proxies", host.Config.Name, len(dockerProxies))
-			host.setupProxies(dockerProxies)
-		}
+	host.setupProxies(slices.Concat(dockerProxies, hostConfig.Proxies))
 
-		log.Infof("%-10s stopped listening for docker containers", host.Config.Name)
-	}()
+	go host.setupContainersListener()
 
 	log.Infof("%-10s created", host.Config.Name)
 
 	return host
+}
+
+func (host *Host) setupContainersListener() {
+	host.waitGroup.Add(1)
+	log.Infof("%-10s listening for docker containers", host.Config.Name)
+
+	defer func() {
+		log.Infof("%-10s stopped listening for docker containers", host.Config.Name)
+		host.waitGroup.Done()
+	}()
+
+	ticker := time.NewTicker(5 * time.Second)
+
+	for {
+		select {
+		case <-ticker.C:
+			log.Infof("%-10s started: %v", host.Config.Name, host.Started)
+			if host.Started {
+				log.Infof("Getting proxies from docker")
+
+				proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip)
+
+				if err != nil {
+					log.Errorf("%-10s failed to get proxies from docker: %v", host.Config.Name, err)
+				} else {
+					host.setupProxies(proxies)
+				}
+			}
+		case <-host.ctx.Done():
+			// Ensure we break out of the loop if the context is cancelled
+			ticker.Stop()
+			return
+		}
+	}
+
 }
 
 func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
@@ -92,11 +121,44 @@ func (host *Host) HostStarted() (bool, error) {
 
 func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
 	log.Infof("%-10s Starting", host.Config.Name)
+
 	return nil
 }
 
 func (host *Host) StopHost() error {
 	log.Infof("%-10s Stopping", host.Config.Name)
+
+	callback, _ := goph.DefaultKnownHosts()
+
+	sshClient, err := goph.NewConn(&goph.Config{
+		User:     host.Config.SSHUsername,
+		Addr:     host.Config.Ip,
+		Port:     22,
+		Auth:     goph.Password(host.Config.SSHPassword),
+		Timeout:  2 * time.Second,
+		Callback: callback,
+	})
+
+	if err != nil {
+		log.Errorf("%-10s failed to connect using client: %v", host.Config.Name, err)
+	}
+
+	go func() {
+		_, err = sshClient.Run("sudo pm-suspend &")
+
+		if err != nil {
+			log.Errorf("%-10s failed to run stop command: %v", host.Config.Name, err)
+		}
+	}()
+
+	// Temporary sleep, until i had a wait until we cant ping it
+	time.Sleep(2 * time.Second)
+
+	log.Infof("%-10s Stopped", host.Config.Name)
+	sshClient.Close()
+
+	host.Started = false
+
 	return nil
 }
 
