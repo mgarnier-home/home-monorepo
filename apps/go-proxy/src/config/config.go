@@ -15,7 +15,7 @@ import (
 
 type ProxyConfig struct {
 	ListenPort int    `yaml:"listenPort"`
-	TargetPort int    `yaml:"targetPort"`
+	ServerPort int    `yaml:"serverPort"`
 	Protocol   string `yaml:"protocol"`
 	Name       string `yaml:"name"`
 }

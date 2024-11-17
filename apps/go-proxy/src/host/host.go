@@ -5,6 +5,7 @@ import (
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/docker"
 	"mgarnier11/go-proxy/proxies"
+	"slices"
 	"sync"
 	"time"
 
@@ -43,26 +44,37 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 	go func() {
 		defer host.waitGroup.Done()
 		for dockerProxies := range docker.SetupDockerContainersListener(host.ctx, hostConfig.SSHUsername, hostConfig.Ip) {
-			log.Infof("Host %s received %d docker proxies", host.Config.Name, len(dockerProxies))
+			log.Infof("%-10s received %d docker proxies", host.Config.Name, len(dockerProxies))
 			host.setupProxies(dockerProxies)
 		}
 
-		log.Infof("Host %s stopped listening for docker containers", host.Config.Name)
+		log.Infof("%-10s stopped listening for docker containers", host.Config.Name)
 	}()
 
-	log.Infof("Host %s created", host.Config.Name)
+	log.Infof("%-10s created", host.Config.Name)
 
 	return host
 }
 
 func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
+	for name := range host.Proxies {
+		exists := slices.ContainsFunc(proxyConfigs, func(proxy *config.ProxyConfig) bool {
+			return proxy.Name == name
+		})
+
+		if !exists {
+			host.DisposeProxy(name)
+		}
+	}
+
 	for _, proxyConfig := range proxyConfigs {
 		if host.Proxies[proxyConfig.Name] != nil {
-			log.Debugf("Proxy %s already exists", proxyConfig.Name)
+			log.Debugf("%-10s %-20s already exists", host.Config.Name, proxyConfig.Name)
 			continue
 		}
 
 		host.Proxies[proxyConfig.Name] = proxies.NewTCPProxy(&proxies.TCPProxyArgs{
+			HostName:       host.Config.Name,
 			HostIp:         host.Config.Ip,
 			ProxyConfig:    proxyConfig,
 			HostStarted:    host.HostStarted,
@@ -70,7 +82,6 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 			PacketReceived: host.PacketReceived,
 		})
 
-		host.waitGroup.Add(1)
 		go host.Proxies[proxyConfig.Name].Start(&host.waitGroup)
 	}
 }
@@ -80,12 +91,12 @@ func (host *Host) HostStarted() (bool, error) {
 }
 
 func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
-	log.Infof("Starting host : %s", host.Config.Name)
+	log.Infof("%-10s Starting", host.Config.Name)
 	return nil
 }
 
 func (host *Host) StopHost() error {
-	log.Infof("Stopping host : %s", host.Config.Name)
+	log.Infof("%-10s Stopping", host.Config.Name)
 	return nil
 }
 
@@ -98,18 +109,18 @@ func (host *Host) DisposeProxy(proxyName string) {
 	proxy := host.Proxies[proxyName]
 
 	if proxy == nil {
-		log.Errorf("Cant dispose, proxy %s does not exist", proxyName)
+		log.Errorf("%-10s %s: proxy does not exist", host.Config.Name, proxyName)
 		return
 	}
 
 	proxy.Stop()
 	delete(host.Proxies, proxyName)
 
-	log.Infof("Proxy %s disposed", proxy.ListenAddr)
+	log.Infof("%-10s %s: disposed", host.Config.Name, proxyName)
 }
 
 func (host *Host) Dispose() {
-	log.Infof("Disposing host %s", host.Config.Name)
+	log.Infof("%-10s disposing", host.Config.Name)
 
 	host.cancel()
 
@@ -117,9 +128,7 @@ func (host *Host) Dispose() {
 		host.DisposeProxy(name)
 	}
 
-	log.Infof("Host %s waiting for proxies to stop", host.Config.Name)
-
 	host.waitGroup.Wait()
 
-	log.Infof("Host %s disposed", host.Config.Name)
+	log.Infof("%-10s disposed", host.Config.Name)
 }

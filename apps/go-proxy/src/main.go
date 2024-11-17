@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	log.SetLevel(log.DebugLevel)
+	log.SetLevel(log.InfoLevel)
 
 	go func() {
 		for {
@@ -22,7 +22,11 @@ func main() {
 			// Analyzing goroutine leaks
 			var stats runtime.MemStats
 			runtime.ReadMemStats(&stats)
-			log.Debugf("Number of Goroutines: %d", runtime.NumGoroutine())
+			log.Infof("Number of Goroutines: %d", runtime.NumGoroutine())
+
+			// buf := make([]byte, 1<<16) // Create a large buffer to capture stack traces
+			// stackLen := runtime.Stack(buf, true)
+			// fmt.Printf("=== Goroutine Stack Dump ===\n%s\n", buf[:stackLen])
 		}
 	}()
 
@@ -31,8 +35,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	log.Printf("AppConfig: %+v\n", appConfig)
 
 	server := server.NewServer(appConfig.ServerPort)
 

@@ -35,17 +35,20 @@ func SetupDockerContainersListener(ctx context.Context, sshUsername string, host
 		ticker := time.NewTicker(5 * time.Second)
 
 		go func() {
-			log.Infof("Waiting for ctx.Done()")
 			<-ctx.Done()
-			log.Infof("ctx.Done() received")
+
 			ticker.Stop()
 			close(proxiesChan)
-			log.Infof("Docker containers listener stopped")
 		}()
-
-		for range ticker.C {
-			log.Infof("Getting proxies from docker")
-			getProxies()
+		for {
+			select {
+			case <-ticker.C:
+				log.Infof("Getting proxies from docker")
+				getProxies()
+			case <-ctx.Done():
+				// Ensure we break out of the loop if the context is cancelled
+				return
+			}
 		}
 	}()
 
@@ -66,7 +69,7 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 
 	proxyConfig := &config.ProxyConfig{
 		ListenPort: port,
-		TargetPort: port,
+		ServerPort: port,
 		Protocol:   "tcp",
 		Name:       containerName,
 	}
@@ -126,16 +129,13 @@ func GetProxiesFromDocker(sshUsername string, hostIp string) ([]*config.ProxyCon
 	for _, container := range containers {
 		containerName := strings.Replace(container.Names[0], "/", "", 1)
 
-		traefikConfPort := container.Labels["traefik-conf.port"]
 		additionalPorts := container.Labels["proxy.ports"]
 
-		proxyConfig, err := checkPortAndAddService(containerName, traefikConfPort)
+		proxyConfig, err := checkPortAndAddService(containerName, container.Labels["traefik-conf.port"])
 
 		if err != nil {
 			log.Debugf("Error while checking port and adding service for container %s: %v", containerName, err)
 			continue
-		} else {
-			log.Debugf("Proxy config: %v", proxyConfig)
 		}
 
 		proxies = append(proxies, proxyConfig)
