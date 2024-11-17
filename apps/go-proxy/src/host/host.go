@@ -75,11 +75,7 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 	}
 }
 
-func (host *Host) Ref(proxy *proxies.TCPProxy) (bool, error) {
-	return host.Started, nil
-}
-
-func (host *Host) HostStarted(proxy *proxies.TCPProxy) (bool, error) {
+func (host *Host) HostStarted() (bool, error) {
 	return host.Started, nil
 }
 
@@ -96,12 +92,6 @@ func (host *Host) StopHost() error {
 func (host *Host) PacketReceived(proxy *proxies.TCPProxy) error {
 	host.LastPacketDate = time.Now()
 	return nil
-}
-
-func (host *Host) StartProxies() {
-	// for _, tcpProxy := range host.TCPProxies {
-	// 	// tcpProxy.Start()
-	// }
 }
 
 func (host *Host) DisposeProxy(proxyName string) {

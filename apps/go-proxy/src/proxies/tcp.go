@@ -18,7 +18,7 @@ type TCPProxy struct {
 	Name           string
 	ListenAddr     *net.TCPAddr
 	TargetAddr     *net.TCPAddr
-	HostStarted    func(proxy *TCPProxy) (bool, error)
+	HostStarted    func() (bool, error)
 	StartHost      func(proxy *TCPProxy) error
 	PacketReceived func(proxy *TCPProxy) error
 
@@ -29,7 +29,7 @@ type TCPProxy struct {
 type TCPProxyArgs struct {
 	HostIp         string
 	ProxyConfig    *config.ProxyConfig
-	HostStarted    func(proxy *TCPProxy) (bool, error)
+	HostStarted    func() (bool, error)
 	StartHost      func(proxy *TCPProxy) error
 	PacketReceived func(proxy *TCPProxy) error
 }
@@ -117,7 +117,7 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 		return false, fmt.Errorf("%s: HostStarted function not set", proxy.Name)
 	}
 
-	started, err := proxy.HostStarted(proxy)
+	started, err := proxy.HostStarted()
 	if err != nil {
 		return false, err
 	}
