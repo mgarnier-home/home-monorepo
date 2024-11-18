@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/charmbracelet/log"
-	"github.com/melbahja/goph"
 )
 
 type Host struct {
@@ -18,6 +17,9 @@ type Host struct {
 	Started        bool
 	LastPacketDate time.Time
 	Config         *config.HostConfig
+
+	stopping bool
+	starting bool
 
 	waitGroup sync.WaitGroup
 	ctx       context.Context
@@ -59,7 +61,7 @@ func (host *Host) setupContainersListener() {
 		host.waitGroup.Done()
 	}()
 
-	ticker := time.NewTicker(5 * time.Second)
+	ticker := time.NewTicker(50 * time.Second)
 
 	for {
 		select {
@@ -125,41 +127,56 @@ func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
 	return nil
 }
 
-func (host *Host) StopHost() error {
-	log.Infof("%-10s Stopping", host.Config.Name)
+func (host *Host) StopHost() {
+	if host.stopping {
+		log.Infof("%-10s Already stopping", host.Config.Name)
 
-	callback, _ := goph.DefaultKnownHosts()
-
-	sshClient, err := goph.NewConn(&goph.Config{
-		User:     host.Config.SSHUsername,
-		Addr:     host.Config.Ip,
-		Port:     22,
-		Auth:     goph.Password(host.Config.SSHPassword),
-		Timeout:  2 * time.Second,
-		Callback: callback,
-	})
-
-	if err != nil {
-		log.Errorf("%-10s failed to connect using client: %v", host.Config.Name, err)
+		return
 	}
 
+	host.stopping = true
+	defer func() {
+		host.stopping = false
+	}()
+
+	log.Infof("%-10s Stopping", host.Config.Name)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
 	go func() {
-		_, err = sshClient.Run("sudo pm-suspend &")
+
+		err := sendSSHCommand(ctx, host.Config, "sudo pm-suspend &")
 
 		if err != nil {
-			log.Errorf("%-10s failed to run stop command: %v", host.Config.Name, err)
+			log.Errorf("%-10s failed to stop host: %v", host.Config.Name, err)
 		}
 	}()
 
-	// Temporary sleep, until i had a wait until we cant ping it
-	time.Sleep(2 * time.Second)
+	for {
+		select {
+		case <-ctx.Done(): // Context timeout or cancellation
+			log.Warnf("%-10s Context canceled or timed out", host.Config.Name)
+			return
+		default:
+			hostPinged, err := getHostStatus(host.Config.Ip)
 
-	log.Infof("%-10s Stopped", host.Config.Name)
-	sshClient.Close()
+			log.Infof("%-10s Host pinged: %v", host.Config.Name, hostPinged)
 
-	host.Started = false
+			if err != nil {
+				log.Errorf("%-10s failed to check host status: %v", host.Config.Name, err)
+			} else if !hostPinged {
+				log.Infof("%-10s Stopped", host.Config.Name)
 
-	return nil
+				host.Started = false
+
+				return
+			}
+
+			time.Sleep(1 * time.Second)
+		}
+	}
+
 }
 
 func (host *Host) PacketReceived(proxy *proxies.TCPProxy) error {

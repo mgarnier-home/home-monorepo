@@ -26,6 +26,14 @@ func NewServer(port int) *Server {
 	}
 }
 
+func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Infof("Request: %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -46,6 +54,8 @@ func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 
 func (s *Server) Start() error {
 	router := mux.NewRouter()
+
+	router.Use(s.logRequestMiddleware)
 
 	controlRouter := router.PathPrefix("/control/{host}").Subrouter()
 	controlRouter.Use(s.getHostMiddleware)
