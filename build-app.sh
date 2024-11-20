@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Default values
 APP_NAME=""
@@ -50,7 +51,7 @@ fi
 
 echo "Building app : $APP_NAME version : $VERSION tag : $TAG"
 
-docker rmi build
+docker rmi build || true
 echo "Deleted build image"
 
 BUILD_IMAGE_ARGS=("-t" "build" "--build-arg" "APP=$APP_NAME" "--build-arg" "VERSION=$VERSION" ".")
