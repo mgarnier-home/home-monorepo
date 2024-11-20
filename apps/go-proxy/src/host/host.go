@@ -2,6 +2,7 @@ package host
 
 import (
 	"context"
+	"errors"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/docker"
 	"mgarnier11/go-proxy/proxies"
@@ -124,7 +125,49 @@ func (host *Host) HostStarted() (bool, error) {
 func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
 	log.Infof("%-10s Starting", host.Config.Name)
 
-	return nil
+	// err := sendWOL(host.Config.MacAddress, "255.255.255.255")
+
+	// if err != nil {
+	// 	log.Errorf("%-10s failed to send WOL: %v", host.Config.Name, err)
+
+	// 	return err
+	// }
+	if packet, err := newMagicPacket(host.Config.MacAddress); err == nil {
+		packet.send("255.255.255.255")
+		log.Infof("%-10s sent magic packet", host.Config.Name)
+	} else {
+		log.Errorf("%-10s failed to send magic packet: %v", host.Config.Name, err)
+
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done(): // Context timeout or cancellation
+			log.Warnf("%-10s Context canceled or timed out", host.Config.Name)
+			return errors.New("host took too long to start")
+		default:
+			hostPinged, err := getHostStatus(host.Config.Ip)
+
+			log.Infof("%-10s Host pinged: %v", host.Config.Name, hostPinged)
+
+			if err != nil {
+				log.Errorf("%-10s failed to check host status: %v", host.Config.Name, err)
+			} else if hostPinged {
+				log.Infof("%-10s Started", host.Config.Name)
+
+				host.Started = true
+
+				return nil
+			}
+
+			time.Sleep(1 * time.Second)
+		}
+	}
+
 }
 
 func (host *Host) StopHost() {
