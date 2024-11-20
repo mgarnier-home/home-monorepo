@@ -100,7 +100,7 @@ RUN \
 ARG INSTALL_GO=true
 RUN \
   if [ "${INSTALL_GO}" = "true" ]; then \
-  curl -o go.tar.gz https://dl.google.com/go/go1.23.0.linux-amd64.tar.gz; \
+  curl -o go.tar.gz https://dl.google.com/go/go1.23.3.linux-amd64.tar.gz; \
   sudo tar -C /usr/local -xzf go.tar.gz; \
   rm go.tar.gz; \
   echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc; \
