@@ -1,6 +1,7 @@
 package main
 
 import (
+	"goUtils"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/hostmanager"
 	"mgarnier11/go-proxy/server"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	log.SetLevel(log.InfoLevel)
+	goUtils.InitLogger()
 
 	go func() {
 		for {
@@ -43,43 +44,4 @@ func main() {
 	for configFile := range config.SetupConfigListener() {
 		hostmanager.ConfigFileChanged(configFile)
 	}
-
-	// context := context.Background()
-
-	// for _, hostConfig := range configFile.ProxyHosts {
-	// 	host := host.NewHost(context, hostConfig)
-	// }
-
-	// context := context.Background()
-
-	// proxies, err := docker.GetProxiesFromDocker(context, hostConfig.Ip, hostConfig.DockerPort)
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// for _, proxy := range proxies {
-	// 	log.Printf("Proxy: %v\n", proxy)
-	// }
-
-	// tcpProxy := proxies.NewTCPProxy(context, &proxies.TCPProxyArgs{
-	// 	ProxyConfig: proxyConfig,
-	// 	HostConfig:  hostConfig,
-	// 	HostStarted: func(proxy *proxies.TCPProxy) (bool, error) {
-	// 		return true, nil
-	// 	},
-	// 	StartHost: func(proxy *proxies.TCPProxy) error {
-	// 		return nil
-	// 	},
-	// 	PacketReceived: func(proxy *proxies.TCPProxy) error {
-	// 		return nil
-	// 	},
-	// })
-
-	// var wg sync.WaitGroup
-	// wg.Add(1)
-
-	// tcpProxy.Start(&wg)
-
-	// wg.Wait()
 }

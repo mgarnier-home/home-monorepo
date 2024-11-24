@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
+	"mgarnier11/go-proxy/utils"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -71,7 +71,7 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Cl
 	return client, nil
 }
 
-func GetProxiesFromDocker(sshUsername string, hostIp string) ([]*config.ProxyConfig, error) {
+func GetProxiesFromDocker(sshUsername string, hostIp string, logger *utils.Logger) ([]*config.ProxyConfig, error) {
 
 	dockerClient, err := GetDockerClient(sshUsername, hostIp, 22)
 
@@ -96,7 +96,9 @@ func GetProxiesFromDocker(sshUsername string, hostIp string) ([]*config.ProxyCon
 		proxyConfig, err := checkPortAndAddService(containerName, container.Labels["traefik-conf.port"])
 
 		if err != nil {
-			log.Debugf("Error while checking port and adding service for container %s: %v", containerName, err)
+			if logger != nil {
+				logger.Verbosef("Error while checking port and adding service for container %s: %v", containerName, err)
+			}
 			continue
 		}
 
@@ -109,7 +111,9 @@ func GetProxiesFromDocker(sshUsername string, hostIp string) ([]*config.ProxyCon
 				proxyConfig, err := checkPortAndAddService(containerName, port)
 
 				if err != nil {
-					log.Debugf("Error adding additionnal ports for container %s: %v", containerName, err)
+					if logger != nil {
+						logger.Verbosef("Error adding additionnal ports for container %s: %v", containerName, err)
+					}
 					continue
 				}
 

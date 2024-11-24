@@ -8,7 +8,6 @@ import (
 	"net"
 	"time"
 
-	"github.com/charmbracelet/log"
 	"github.com/go-ping/ping"
 	"golang.org/x/crypto/ssh"
 )
@@ -41,8 +40,6 @@ func sendSSHCommand(ctx context.Context, config *config.HostConfig, command stri
 }
 
 func getHostStatus(ip string) (bool, error) {
-	log.Infof("Checking host status: %s", ip)
-
 	pinger, err := ping.NewPinger(ip)
 
 	if err != nil {
@@ -50,7 +47,7 @@ func getHostStatus(ip string) (bool, error) {
 	}
 
 	pinger.Count = 1
-	pinger.Timeout = 1 * time.Second
+	pinger.Timeout = 500 * time.Millisecond
 
 	err = pinger.Run()
 	if err != nil {

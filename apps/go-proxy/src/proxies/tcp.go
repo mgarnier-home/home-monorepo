@@ -9,13 +9,11 @@ import (
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/utils"
 	"net"
+	"strings"
 	"sync"
-
-	"github.com/charmbracelet/log"
 )
 
 type TCPProxy struct {
-	hostName       string
 	Name           string
 	ListenAddr     *net.TCPAddr
 	ServerAddr     *net.TCPAddr
@@ -23,13 +21,14 @@ type TCPProxy struct {
 	StartHost      func(proxy *TCPProxy) error
 	PacketReceived func(proxy *TCPProxy) error
 
+	logger *utils.Logger
+
 	wg     sync.WaitGroup
 	ctx    context.Context
 	cancel context.CancelFunc
 }
 
 type TCPProxyArgs struct {
-	HostName       string
 	HostIp         string
 	ProxyConfig    *config.ProxyConfig
 	HostStarted    func() (bool, error)
@@ -37,35 +36,37 @@ type TCPProxyArgs struct {
 	PacketReceived func(proxy *TCPProxy) error
 }
 
-func NewTCPProxy(args *TCPProxyArgs) *TCPProxy {
+func NewTCPProxy(args *TCPProxyArgs, hostLogger *utils.Logger) *TCPProxy {
 	ctx, cancel := context.WithCancel(context.Background())
+
+	logger := utils.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Name)), "%-15s ", hostLogger)
 
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", args.ProxyConfig.ListenPort))
 	if err != nil {
-		log.Errorf("%-10s %-20s Failed to resolve listen TCP address %d: %v", args.HostName, args.ProxyConfig.Name, args.ProxyConfig.ListenPort, err)
+		logger.Errorf("Failed to resolve listen TCP address %d: %v", args.ProxyConfig.ListenPort, err)
 		panic(err)
 	}
 
 	serverAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", args.HostIp, args.ProxyConfig.ServerPort))
 	if err != nil {
-		log.Errorf("%-10s %-20s Failed to resolve server TCP address %d: %v", args.HostName, args.ProxyConfig.Name, args.ProxyConfig.ServerPort, err)
+		logger.Errorf("Failed to resolve server TCP address %d: %v", args.ProxyConfig.ServerPort, err)
 		panic(err)
 	}
 
 	tcpProxy := &TCPProxy{
-		hostName:       args.HostName,
 		Name:           args.ProxyConfig.Name,
 		ListenAddr:     listenAddr,
 		ServerAddr:     serverAddr,
 		HostStarted:    args.HostStarted,
 		StartHost:      args.StartHost,
 		PacketReceived: args.PacketReceived,
+		logger:         logger,
 		wg:             sync.WaitGroup{},
 		ctx:            ctx,
 		cancel:         cancel,
 	}
 
-	log.Infof("%-10s %-20s TCP Proxy created: %s -> %s", tcpProxy.hostName, tcpProxy.Name, tcpProxy.ListenAddr, tcpProxy.ServerAddr)
+	logger.Infof("TCP Proxy created: %s -> %s", tcpProxy.ListenAddr, tcpProxy.ServerAddr)
 
 	return tcpProxy
 }
@@ -74,24 +75,24 @@ func (proxy *TCPProxy) Start(hostWaitGroup *sync.WaitGroup) {
 	hostWaitGroup.Add(1)
 	proxy.wg.Add(1)
 	defer func() {
-		log.Infof("%-10s %-20s TCP proxy stopped", proxy.hostName, proxy.Name)
+		proxy.logger.Infof("TCP proxy stopped")
 		hostWaitGroup.Done()
 		proxy.wg.Done()
 	}()
 
 	listener, err := net.ListenTCP("tcp", proxy.ListenAddr)
 	if err != nil {
-		log.Errorf("%-10s %-20s %s: Failed to start TCP proxy: %v", proxy.hostName, proxy.hostName, proxy.Name, err)
+		proxy.logger.Errorf("Failed to start TCP proxy: %v", err)
 		return
 	}
 	defer listener.Close()
 
-	log.Debugf("%-10s %-20s TCP proxy started on %s", proxy.hostName, proxy.Name, proxy.ListenAddr)
+	proxy.logger.Debugf("TCP proxy started on %s", proxy.ListenAddr)
 
 	stopChan := make(chan struct{})
 	go func() {
 		<-proxy.ctx.Done()
-		log.Infof("%-10s %-20s Stopping TCP proxy on %s", proxy.hostName, proxy.Name, proxy.ListenAddr)
+		proxy.logger.Infof("Stopping TCP proxy on %s", proxy.ListenAddr)
 		close(stopChan)
 		listener.Close() // Débloque listener.AcceptTCP(), qui passe dans le stopChan qui return la fonction, ce qui appelle tous les defer
 	}()
@@ -101,14 +102,14 @@ func (proxy *TCPProxy) Start(hostWaitGroup *sync.WaitGroup) {
 		if err != nil {
 			select {
 			case <-stopChan:
-				log.Infof("%-10s %-20s Stopped accepting connections on %s", proxy.hostName, proxy.Name, proxy.ListenAddr)
+				proxy.logger.Infof("Stopped accepting connections on %s", proxy.ListenAddr)
 				return
 			default:
-				log.Errorf("%-10s %-20s Failed to accept connection: %v", proxy.hostName, proxy.Name, err)
+				proxy.logger.Errorf("Failed to accept connection: %v", err)
 				continue
 			}
 		}
-		log.Debugf("%-10s %-20s Accepted connection from %s", proxy.hostName, proxy.Name, clientConn.RemoteAddr())
+		proxy.logger.Debugf("Accepted connection from %s", clientConn.RemoteAddr())
 
 		proxy.wg.Add(1)
 		go proxy.handleTCPConnection(clientConn)
@@ -116,7 +117,7 @@ func (proxy *TCPProxy) Start(hostWaitGroup *sync.WaitGroup) {
 }
 
 func (proxy *TCPProxy) Stop() {
-	log.Infof("%-10s %-20s Stopping TCP proxy", proxy.hostName, proxy.Name)
+	proxy.logger.Infof("Stopping TCP proxy")
 	proxy.cancel()
 
 	proxy.wg.Wait()
@@ -124,7 +125,7 @@ func (proxy *TCPProxy) Stop() {
 
 func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error) {
 	if proxy.HostStarted == nil {
-		return false, fmt.Errorf("%s: HostStarted function not set", proxy.Name)
+		return false, fmt.Errorf("hostStarted function not set")
 	}
 
 	started, err := proxy.HostStarted()
@@ -137,7 +138,7 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 		peek, err := reader.Peek(goUtils.Min(1024, reader.Buffered()))
 
 		if err != nil && err != io.EOF {
-			return false, fmt.Errorf("%s: Failed to peek data: %v", proxy.Name, err)
+			return false, fmt.Errorf("failed to peek data: %v", err)
 		}
 
 		if utils.IsHTTPRequest(peek) {
@@ -150,13 +151,13 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 		}
 
 		if proxy.StartHost == nil {
-			return false, fmt.Errorf("%s: StartHost function not set", proxy.Name)
+			return false, fmt.Errorf("startHost function not set")
 		}
 
 		err = proxy.StartHost(proxy)
 
 		if err != nil {
-			return false, fmt.Errorf("%s: Failed to start host: %v", proxy.Name, err)
+			return false, fmt.Errorf("failed to start host: %v", err)
 		}
 	}
 
@@ -171,31 +172,31 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 	forwardProxy, err := proxy.shouldForwardProxy(clientConn)
 
 	if err != nil {
-		log.Errorf("%-10s %-20s Failed to determine if proxy should be forwarded: %v", proxy.hostName, proxy.Name, err)
+		proxy.logger.Errorf("Failed to determine if proxy should be forwarded: %v", err)
 		return
 	}
 
 	if !forwardProxy {
-		log.Infof("%-10s %-20s Proxy not forwarded to server", proxy.hostName, proxy.Name)
+		proxy.logger.Verbosef("Proxy not forwarded to server, status request")
 		return
 	}
 
-	log.Infof("%-10s %-20s Proxy forwarded to server %s", proxy.hostName, proxy.Name, proxy.ServerAddr)
+	proxy.logger.Infof("Proxy forwarded to server %s", proxy.ServerAddr)
 
 	// Connexion à la cible
 	serverConn, err := net.DialTCP("tcp", nil, proxy.ServerAddr)
 	if err != nil {
-		log.Errorf("%-10s %-20s Failed to connect to server: %v", proxy.hostName, proxy.Name, err)
+		proxy.logger.Errorf("Failed to connect to server: %v", err)
 		return
 	}
 	defer serverConn.Close()
 
 	// Fonction qui va être appelée à chaque fois que des données sont transférées du client vers le serveur
 	onClientToServer := func(bytesTransferred int) {
-		log.Debugf("%-10s %-20s ClientToServer: %d bytes", proxy.hostName, proxy.Name, bytesTransferred)
+		proxy.logger.Verbosef("ClientToServer: %d bytes", bytesTransferred)
 
 		if proxy.PacketReceived == nil {
-			log.Debugf("%-10s %-20s PacketReceived function not set", proxy.hostName, proxy.Name)
+			proxy.logger.Errorf("PacketReceived function not set")
 			return
 		}
 
@@ -204,7 +205,7 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 
 	// Fonction qui va être appelée à chaque fois que des données sont transférées du serveur vers le client
 	onServerToClient := func(bytesTransferred int) {
-		log.Debugf("%-10s %-20s ServerToClient: %d bytes", proxy.hostName, proxy.Name, bytesTransferred)
+		proxy.logger.Verbosef("ServerToClient: %d bytes", bytesTransferred)
 	}
 
 	clientToServerWriter := &goUtils.CustomWriter{Writer: serverConn, OnWrite: onClientToServer}
@@ -218,7 +219,7 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 		defer close(doneCopyClientToServer)
 		_, err := io.Copy(clientToServerWriter, clientConn)
 		if err != nil {
-			log.Debugf("%-10s %-20s Error copying from client to server: %v", proxy.hostName, proxy.Name, err)
+			proxy.logger.Errorf("Error copying from client to server: %v", err)
 		}
 	}()
 
@@ -230,25 +231,25 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 		defer close(doneCopyServerToClient)
 		_, err = io.Copy(serverToClientWriter, serverConn)
 		if err != nil {
-			log.Debugf("%-10s %-20s Error copying from server to client: %v", proxy.hostName, proxy.Name, err)
+			proxy.logger.Errorf("Error copying from server to client: %v", err)
 		}
 	}()
 
 	select {
 
 	case <-proxy.ctx.Done(): // Si le context global est annulé, on ferme les connexions client et serveur
-		log.Infof("%-10s %-20s Context done", proxy.hostName, proxy.Name)
+		proxy.logger.Debugf("Context done")
 		clientConn.Close()
 		serverConn.Close()
 
 	case <-doneCopyClientToServer: // Si la copie client -> serveur est terminée, on ferme la connexion serveur
 		serverConn.Close()
-		log.Infof("%-10s %-20s Client to server copy done", proxy.hostName, proxy.Name)
+		proxy.logger.Debugf("Client to server copy done")
 
 	case <-doneCopyServerToClient: // Si la copie serveur -> client est terminée, on ferme la connexion client
-		log.Infof("%-10s %-20s Server to client copy done", proxy.hostName, proxy.Name)
+		proxy.logger.Debugf("Server to client copy done")
 		clientConn.Close()
 	}
 
-	log.Infof("%-10s %-20s Connection closed", proxy.hostName, proxy.Name)
+	proxy.logger.Debugf("Connection closed")
 }

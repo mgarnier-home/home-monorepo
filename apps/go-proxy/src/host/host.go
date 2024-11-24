@@ -3,14 +3,15 @@ package host
 import (
 	"context"
 	"errors"
+	"fmt"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/docker"
 	"mgarnier11/go-proxy/proxies"
+	"mgarnier11/go-proxy/utils"
 	"slices"
+	"strings"
 	"sync"
 	"time"
-
-	"github.com/charmbracelet/log"
 )
 
 type Host struct {
@@ -18,6 +19,8 @@ type Host struct {
 	Started        bool
 	LastPacketDate time.Time
 	Config         *config.HostConfig
+
+	logger *utils.Logger
 
 	stopping bool
 	starting bool
@@ -36,29 +39,30 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 		waitGroup: sync.WaitGroup{},
 		ctx:       ctx,
 		cancel:    cancel,
+		logger:    utils.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(hostConfig.Name)), "%-10s ", nil),
 	}
+
+	host.logger.Infof("created")
 
 	host.StartHost(nil)
 	host.Started = true
 	host.LastPacketDate = time.Now()
 
-	dockerProxies, _ := docker.GetProxiesFromDocker(hostConfig.SSHUsername, hostConfig.Ip)
+	dockerProxies, _ := docker.GetProxiesFromDocker(hostConfig.SSHUsername, hostConfig.Ip, host.logger)
 
 	host.setupProxies(slices.Concat(dockerProxies, hostConfig.Proxies))
 
 	go host.setupContainersListener()
-
-	log.Infof("%-10s created", host.Config.Name)
 
 	return host
 }
 
 func (host *Host) setupContainersListener() {
 	host.waitGroup.Add(1)
-	log.Infof("%-10s listening for docker containers", host.Config.Name)
+	host.logger.Infof("listening for docker containers")
 
 	defer func() {
-		log.Infof("%-10s stopped listening for docker containers", host.Config.Name)
+		host.logger.Infof("stopped listening for docker containers")
 		host.waitGroup.Done()
 	}()
 
@@ -67,14 +71,14 @@ func (host *Host) setupContainersListener() {
 	for {
 		select {
 		case <-ticker.C:
-			log.Infof("%-10s started: %v", host.Config.Name, host.Started)
+			host.logger.Infof("started: %v", host.Started)
 			if host.Started {
-				log.Infof("Getting proxies from docker")
+				host.logger.Infof("Getting proxies from docker")
 
-				proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip)
+				proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
 
 				if err != nil {
-					log.Errorf("%-10s failed to get proxies from docker: %v", host.Config.Name, err)
+					host.logger.Errorf("failed to get proxies from docker: %v", err)
 				} else {
 					host.setupProxies(proxies)
 				}
@@ -101,42 +105,55 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 
 	for _, proxyConfig := range proxyConfigs {
 		if host.Proxies[proxyConfig.Name] != nil {
-			log.Debugf("%-10s %-20s already exists", host.Config.Name, proxyConfig.Name)
+			host.logger.Debugf("%s already exists", proxyConfig.Name)
 			continue
 		}
 
 		host.Proxies[proxyConfig.Name] = proxies.NewTCPProxy(&proxies.TCPProxyArgs{
-			HostName:       host.Config.Name,
 			HostIp:         host.Config.Ip,
 			ProxyConfig:    proxyConfig,
 			HostStarted:    host.HostStarted,
 			StartHost:      host.StartHost,
 			PacketReceived: host.PacketReceived,
-		})
+		}, host.logger)
 
 		go host.Proxies[proxyConfig.Name].Start(&host.waitGroup)
 	}
 }
 
 func (host *Host) HostStarted() (bool, error) {
-	return host.Started, nil
+	host.logger.Infof("Checking host status")
+
+	pingSuccess, err := getHostStatus(host.Config.Ip)
+
+	if err != nil {
+		host.logger.Errorf("failed to check host status: %v", err)
+
+		return false, err
+	}
+
+	return pingSuccess, nil
 }
 
 func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
-	log.Infof("%-10s Starting", host.Config.Name)
+	if host.starting {
+		host.logger.Infof("Already starting")
 
-	// err := sendWOL(host.Config.MacAddress, "255.255.255.255")
+		return nil
+	}
 
-	// if err != nil {
-	// 	log.Errorf("%-10s failed to send WOL: %v", host.Config.Name, err)
+	host.starting = true
+	defer func() {
+		host.starting = false
+	}()
 
-	// 	return err
-	// }
+	host.logger.Infof("Starting")
+
 	if packet, err := newMagicPacket(host.Config.MacAddress); err == nil {
 		packet.send("255.255.255.255")
-		log.Infof("%-10s sent magic packet", host.Config.Name)
+		host.logger.Debugf("sent magic packet")
 	} else {
-		log.Errorf("%-10s failed to send magic packet: %v", host.Config.Name, err)
+		host.logger.Errorf("failed to send magic packet: %v", err)
 
 		return err
 	}
@@ -147,17 +164,17 @@ func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
 	for {
 		select {
 		case <-ctx.Done(): // Context timeout or cancellation
-			log.Warnf("%-10s Context canceled or timed out", host.Config.Name)
+			host.logger.Debugf("Context canceled or timed out")
 			return errors.New("host took too long to start")
 		default:
-			hostPinged, err := getHostStatus(host.Config.Ip)
+			hostPinged, err := host.HostStarted()
 
-			log.Infof("%-10s Host pinged: %v", host.Config.Name, hostPinged)
+			host.logger.Debugf("Host pinged: %v", hostPinged)
 
 			if err != nil {
-				log.Errorf("%-10s failed to check host status: %v", host.Config.Name, err)
+				host.logger.Errorf("failed to check host status: %v", err)
 			} else if hostPinged {
-				log.Infof("%-10s Started", host.Config.Name)
+				host.logger.Infof("Started")
 
 				host.Started = true
 
@@ -172,7 +189,7 @@ func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
 
 func (host *Host) StopHost() {
 	if host.stopping {
-		log.Infof("%-10s Already stopping", host.Config.Name)
+		host.logger.Infof("Already stopping")
 
 		return
 	}
@@ -182,7 +199,7 @@ func (host *Host) StopHost() {
 		host.stopping = false
 	}()
 
-	log.Infof("%-10s Stopping", host.Config.Name)
+	host.logger.Infof("Stopping")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -192,24 +209,24 @@ func (host *Host) StopHost() {
 		err := sendSSHCommand(ctx, host.Config, "sudo pm-suspend &")
 
 		if err != nil {
-			log.Errorf("%-10s failed to stop host: %v", host.Config.Name, err)
+			host.logger.Errorf("failed to stop host: %v", err)
 		}
 	}()
 
 	for {
 		select {
 		case <-ctx.Done(): // Context timeout or cancellation
-			log.Warnf("%-10s Context canceled or timed out", host.Config.Name)
+			host.logger.Warnf("Context canceled or timed out")
 			return
 		default:
-			hostPinged, err := getHostStatus(host.Config.Ip)
+			hostPinged, err := host.HostStarted()
 
-			log.Infof("%-10s Host pinged: %v", host.Config.Name, hostPinged)
+			host.logger.Infof("Host pinged: %v", hostPinged)
 
 			if err != nil {
-				log.Errorf("%-10s failed to check host status: %v", host.Config.Name, err)
+				host.logger.Errorf("failed to check host status: %v", err)
 			} else if !hostPinged {
-				log.Infof("%-10s Stopped", host.Config.Name)
+				host.logger.Infof("Stopped")
 
 				host.Started = false
 
@@ -231,18 +248,18 @@ func (host *Host) DisposeProxy(proxyName string) {
 	proxy := host.Proxies[proxyName]
 
 	if proxy == nil {
-		log.Errorf("%-10s %s: proxy does not exist", host.Config.Name, proxyName)
+		host.logger.Errorf("%s: proxy does not exist", proxyName)
 		return
 	}
 
 	proxy.Stop()
 	delete(host.Proxies, proxyName)
 
-	log.Infof("%-10s %s: disposed", host.Config.Name, proxyName)
+	host.logger.Infof("%s: disposed", proxyName)
 }
 
 func (host *Host) Dispose() {
-	log.Infof("%-10s disposing", host.Config.Name)
+	host.logger.Infof("disposing")
 
 	host.cancel()
 
@@ -252,5 +269,5 @@ func (host *Host) Dispose() {
 
 	host.waitGroup.Wait()
 
-	log.Infof("%-10s disposed", host.Config.Name)
+	host.logger.Infof("disposed")
 }

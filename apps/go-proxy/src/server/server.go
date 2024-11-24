@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"mgarnier11/go-proxy/host"
 	"mgarnier11/go-proxy/hostmanager"
+	"mgarnier11/go-proxy/utils"
 	"net/http"
-
-	"github.com/charmbracelet/log"
 
 	"github.com/gorilla/mux"
 )
@@ -20,6 +19,8 @@ type Server struct {
 	port int
 }
 
+var logger = utils.NewLogger("API", "[%s] ", nil)
+
 func NewServer(port int) *Server {
 	return &Server{
 		port: port,
@@ -28,7 +29,7 @@ func NewServer(port int) *Server {
 
 func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Infof("Request: %s %s", r.Method, r.URL.Path)
+		logger.Infof("Request: %s %s", r.Method, r.URL.Path)
 
 		next.ServeHTTP(w, r)
 	})
@@ -41,7 +42,7 @@ func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 		host := hostmanager.GetHost(hostName)
 
 		if host == nil {
-			log.Errorf("Host %s not found", hostName)
+			logger.Errorf("Host %s not found", hostName)
 			http.Error(w, "Host not found", http.StatusNotFound)
 			return
 		}
@@ -79,7 +80,15 @@ func (s *Server) Start() error {
 	controlRouter.HandleFunc("/start-stop", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		if started, _ := host.HostStarted(); started {
+		started, err := host.HostStarted()
+
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(fmt.Sprintf("Failed to check host status: %v", err)))
+			return
+		}
+
+		if started {
 			host.StopHost()
 
 			w.Write([]byte(fmt.Sprintf("Stopping host %s", host.Config.Name)))
@@ -93,7 +102,13 @@ func (s *Server) Start() error {
 	controlRouter.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		started, _ := host.HostStarted()
+		started, err := host.HostStarted()
+
+		if err != nil {
+			w.WriteHeader(400)
+			w.Write([]byte(fmt.Sprintf("Failed to check host status: %v", err)))
+			return
+		}
 
 		if started {
 			w.WriteHeader(200)
@@ -104,7 +119,7 @@ func (s *Server) Start() error {
 		}
 	})
 
-	log.Infof("Starting server on port %d", s.port)
+	logger.Infof("Starting server on port %d", s.port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
 
 }

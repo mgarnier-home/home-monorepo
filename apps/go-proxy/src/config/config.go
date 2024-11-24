@@ -9,8 +9,6 @@ import (
 
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
-
-	"github.com/charmbracelet/log"
 )
 
 type ProxyConfig struct {
@@ -46,7 +44,7 @@ func readFile(filePath string) []byte {
 		panic(err)
 	}
 
-	log.Infof("Read file %s", filePath)
+	// log.Infof("Read file %s", filePath)
 
 	return bytes
 }
