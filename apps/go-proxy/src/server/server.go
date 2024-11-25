@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"mgarnier11/go-proxy/host"
-	"mgarnier11/go-proxy/hostmanager"
+	"mgarnier11/go-proxy/hostManager"
+	"mgarnier11/go-proxy/hostState"
 	"mgarnier11/go-proxy/utils"
 	"net/http"
 
@@ -39,7 +40,7 @@ func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		hostName := vars["host"]
-		host := hostmanager.GetHost(hostName)
+		host := hostManager.GetHost(hostName)
 
 		if host == nil {
 			logger.Errorf("Host %s not found", hostName)
@@ -64,59 +65,51 @@ func (s *Server) Start() error {
 	controlRouter.HandleFunc("/start", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		w.Write([]byte(fmt.Sprintf("Starting host %s", host.Config.Name)))
+		host.StartHost()
 
-		host.StartHost(nil)
+		if host.State == hostState.Started {
+			w.Write([]byte(fmt.Sprintf("Host %s has successfully started", host.Config.Name)))
+		} else {
+			w.Write([]byte(fmt.Sprintf("Host %s failed to start, check logs", host.Config.Name)))
+		}
 	})
 
 	controlRouter.HandleFunc("/stop", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		w.Write([]byte(fmt.Sprintf("Stopping host %s", host.Config.Name)))
-
 		host.StopHost()
+
+		if host.State == hostState.Stopped {
+			w.Write([]byte(fmt.Sprintf("Host %s has successfully stopped", host.Config.Name)))
+		} else {
+			w.Write([]byte(fmt.Sprintf("Host %s failed to stop, check logs", host.Config.Name)))
+		}
 	})
 
 	controlRouter.HandleFunc("/start-stop", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		started, err := host.HostStarted()
-
-		if err != nil {
-			w.WriteHeader(500)
-			w.Write([]byte(fmt.Sprintf("Failed to check host status: %v", err)))
-			return
-		}
-
-		if started {
+		if host.State == hostState.Started {
 			host.StopHost()
-
-			w.Write([]byte(fmt.Sprintf("Stopping host %s", host.Config.Name)))
-		} else {
-			host.StartHost(nil)
-
-			w.Write([]byte(fmt.Sprintf("Starting host %s", host.Config.Name)))
+		} else if host.State == hostState.Stopped {
+			host.StartHost()
 		}
+
+		if host.State == hostState.Started {
+			w.Write([]byte(fmt.Sprintf("Host %s has successfully started", host.Config.Name)))
+		} else if host.State == hostState.Stopped {
+			w.Write([]byte(fmt.Sprintf("Host %s has successfully stopped", host.Config.Name)))
+		} else {
+			w.Write([]byte(fmt.Sprintf("Host %s failed to start/stop, check logs", host.Config.Name)))
+		}
+
 	})
 
 	controlRouter.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		started, err := host.HostStarted()
-
-		if err != nil {
-			w.WriteHeader(400)
-			w.Write([]byte(fmt.Sprintf("Failed to check host status: %v", err)))
-			return
-		}
-
-		if started {
-			w.WriteHeader(200)
-			w.Write([]byte(fmt.Sprintf("Host %s is started", host.Config.Name)))
-		} else {
-			w.WriteHeader(500)
-			w.Write([]byte(fmt.Sprintf("Host %s is stopped", host.Config.Name)))
-		}
+		w.WriteHeader(210 + int(host.State))
+		w.Write([]byte(fmt.Sprintf("Host %s is %s", host.Config.Name, host.State.String())))
 	})
 
 	logger.Infof("Starting server on port %d", s.port)

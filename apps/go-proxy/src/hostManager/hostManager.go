@@ -1,4 +1,4 @@
-package hostmanager
+package hostManager
 
 import (
 	"mgarnier11/go-proxy/config"

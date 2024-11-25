@@ -3,7 +3,7 @@ package main
 import (
 	"goUtils"
 	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/hostmanager"
+	"mgarnier11/go-proxy/hostManager"
 	"mgarnier11/go-proxy/server"
 	"runtime"
 	"time"
@@ -42,6 +42,6 @@ func main() {
 	go server.Start()
 
 	for configFile := range config.SetupConfigListener() {
-		hostmanager.ConfigFileChanged(configFile)
+		hostManager.ConfigFileChanged(configFile)
 	}
 }

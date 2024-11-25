@@ -7,6 +7,7 @@ import (
 	"goUtils"
 	"io"
 	"mgarnier11/go-proxy/config"
+	"mgarnier11/go-proxy/hostState"
 	"mgarnier11/go-proxy/utils"
 	"net"
 	"strings"
@@ -17,22 +18,22 @@ type TCPProxy struct {
 	Name           string
 	ListenAddr     *net.TCPAddr
 	ServerAddr     *net.TCPAddr
-	HostStarted    func() (bool, error)
-	StartHost      func(proxy *TCPProxy) error
+	StartHost      func() error
 	PacketReceived func(proxy *TCPProxy) error
 
 	logger *utils.Logger
 
-	wg     sync.WaitGroup
-	ctx    context.Context
-	cancel context.CancelFunc
+	hostState *hostState.State
+	wg        sync.WaitGroup
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
 
 type TCPProxyArgs struct {
 	HostIp         string
 	ProxyConfig    *config.ProxyConfig
-	HostStarted    func() (bool, error)
-	StartHost      func(proxy *TCPProxy) error
+	HostState      *hostState.State
+	StartHost      func() error
 	PacketReceived func(proxy *TCPProxy) error
 }
 
@@ -57,10 +58,10 @@ func NewTCPProxy(args *TCPProxyArgs, hostLogger *utils.Logger) *TCPProxy {
 		Name:           args.ProxyConfig.Name,
 		ListenAddr:     listenAddr,
 		ServerAddr:     serverAddr,
-		HostStarted:    args.HostStarted,
 		StartHost:      args.StartHost,
 		PacketReceived: args.PacketReceived,
 		logger:         logger,
+		hostState:      args.HostState,
 		wg:             sync.WaitGroup{},
 		ctx:            ctx,
 		cancel:         cancel,
@@ -124,16 +125,7 @@ func (proxy *TCPProxy) Stop() {
 }
 
 func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error) {
-	if proxy.HostStarted == nil {
-		return false, fmt.Errorf("hostStarted function not set")
-	}
-
-	started, err := proxy.HostStarted()
-	if err != nil {
-		return false, err
-	}
-
-	if !started {
+	if *proxy.hostState == hostState.Stopped {
 		reader := bufio.NewReader(clientConn)
 		peek, err := reader.Peek(goUtils.Min(1024, reader.Buffered()))
 
@@ -154,7 +146,7 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 			return false, fmt.Errorf("startHost function not set")
 		}
 
-		err = proxy.StartHost(proxy)
+		err = proxy.StartHost()
 
 		if err != nil {
 			return false, fmt.Errorf("failed to start host: %v", err)

@@ -2,10 +2,10 @@ package host
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/docker"
+	"mgarnier11/go-proxy/hostState"
 	"mgarnier11/go-proxy/proxies"
 	"mgarnier11/go-proxy/utils"
 	"slices"
@@ -16,14 +16,11 @@ import (
 
 type Host struct {
 	Proxies        map[string]*proxies.TCPProxy
-	Started        bool
+	State          hostState.State
 	LastPacketDate time.Time
 	Config         *config.HostConfig
 
 	logger *utils.Logger
-
-	stopping bool
-	starting bool
 
 	waitGroup sync.WaitGroup
 	ctx       context.Context
@@ -36,6 +33,7 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 	host := &Host{
 		Config:    hostConfig,
 		Proxies:   make(map[string]*proxies.TCPProxy),
+		State:     hostState.Stopped,
 		waitGroup: sync.WaitGroup{},
 		ctx:       ctx,
 		cancel:    cancel,
@@ -44,50 +42,69 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	host.logger.Infof("created")
 
-	host.StartHost(nil)
-	host.Started = true
+	go host.setupHostLoop()
+
+	host.StartHost()
 	host.LastPacketDate = time.Now()
 
 	dockerProxies, _ := docker.GetProxiesFromDocker(hostConfig.SSHUsername, hostConfig.Ip, host.logger)
 
 	host.setupProxies(slices.Concat(dockerProxies, hostConfig.Proxies))
 
-	go host.setupContainersListener()
-
 	return host
 }
 
-func (host *Host) setupContainersListener() {
+func (host *Host) setupHostLoop() {
 	host.waitGroup.Add(1)
-	host.logger.Infof("listening for docker containers")
+	host.logger.Infof("starting host loop")
 
 	defer func() {
-		host.logger.Infof("stopped listening for docker containers")
+		host.logger.Infof("stopping host loop")
 		host.waitGroup.Done()
 	}()
 
-	ticker := time.NewTicker(50 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
 
 	for {
 		select {
 		case <-ticker.C:
-			host.logger.Infof("started: %v", host.Started)
-			if host.Started {
-				host.logger.Infof("Getting proxies from docker")
+			host.updateState()
 
-				proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
+			// if host.State == Started {
+			// 	host.logger.Infof("Getting proxies from docker")
 
-				if err != nil {
-					host.logger.Errorf("failed to get proxies from docker: %v", err)
-				} else {
-					host.setupProxies(proxies)
-				}
-			}
+			// 	proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
+
+			// 	if err != nil {
+			// 		host.logger.Errorf("failed to get proxies from docker: %v", err)
+			// 	} else {
+			// 		host.setupProxies(proxies)
+			// 	}
+			// }
 		case <-host.ctx.Done():
 			// Ensure we break out of the loop if the context is cancelled
 			ticker.Stop()
 			return
 		}
+	}
+}
+
+func (host *Host) updateState() {
+	pingSuccess, err := getHostStatus(host.Config.Ip)
+
+	if err != nil {
+		host.logger.Errorf("failed to check host status: %v", err)
+		return
+	}
+
+	if host.State == hostState.Started && !pingSuccess {
+		host.State = hostState.Stopped
+	} else if host.State == hostState.Stopped && pingSuccess {
+		host.State = hostState.Started
+	} else if host.State == hostState.Starting && pingSuccess {
+		host.State = hostState.Started
+	} else if host.State == hostState.Stopping && !pingSuccess {
+		host.State = hostState.Stopped
 	}
 
 }
@@ -112,7 +129,7 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 		host.Proxies[proxyConfig.Name] = proxies.NewTCPProxy(&proxies.TCPProxyArgs{
 			HostIp:         host.Config.Ip,
 			ProxyConfig:    proxyConfig,
-			HostStarted:    host.HostStarted,
+			HostState:      &host.State,
 			StartHost:      host.StartHost,
 			PacketReceived: host.PacketReceived,
 		}, host.logger)
@@ -121,91 +138,47 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 	}
 }
 
-func (host *Host) HostStarted() (bool, error) {
-	host.logger.Infof("Checking host status")
-
-	pingSuccess, err := getHostStatus(host.Config.Ip)
-
-	if err != nil {
-		host.logger.Errorf("failed to check host status: %v", err)
-
-		return false, err
-	}
-
-	return pingSuccess, nil
-}
-
-func (host *Host) StartHost(proxy *proxies.TCPProxy) error {
-	if host.starting {
-		host.logger.Infof("Already starting")
-
+func (host *Host) StartHost() error {
+	if host.State != hostState.Stopped {
+		host.logger.Infof("Cannot start host, state is not stopped : %s", host.State.String())
 		return nil
 	}
 
-	host.starting = true
-	defer func() {
-		host.starting = false
-	}()
-
-	host.logger.Infof("Starting")
+	host.State = hostState.Starting
 
 	if packet, err := newMagicPacket(host.Config.MacAddress); err == nil {
 		packet.send("255.255.255.255")
-		host.logger.Debugf("sent magic packet")
+		host.logger.Debugf("Sent magic packet to start host")
 	} else {
-		host.logger.Errorf("failed to send magic packet: %v", err)
-
-		return err
+		return fmt.Errorf("failed to send magic packet: %v", err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done(): // Context timeout or cancellation
-			host.logger.Debugf("Context canceled or timed out")
-			return errors.New("host took too long to start")
-		default:
-			hostPinged, err := host.HostStarted()
-
-			host.logger.Debugf("Host pinged: %v", hostPinged)
-
-			if err != nil {
-				host.logger.Errorf("failed to check host status: %v", err)
-			} else if hostPinged {
-				host.logger.Infof("Started")
-
-				host.Started = true
-
-				return nil
-			}
-
-			time.Sleep(1 * time.Second)
-		}
+	i := 0
+	for host.State == hostState.Starting && i < 20 {
+		time.Sleep(1 * time.Second)
+		i++
 	}
 
+	if host.State == hostState.Starting && i >= 20 {
+		host.State = hostState.Stopped
+		return fmt.Errorf("Host took too long to start")
+	} else {
+		return nil
+	}
 }
 
 func (host *Host) StopHost() {
-	if host.stopping {
-		host.logger.Infof("Already stopping")
-
+	if host.State != hostState.Started {
+		host.logger.Infof("Cannot stop host, state is not started : %s", host.State.String())
 		return
 	}
 
-	host.stopping = true
-	defer func() {
-		host.stopping = false
-	}()
+	host.State = hostState.Stopping
 
-	host.logger.Infof("Stopping")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go func() {
-
 		err := sendSSHCommand(ctx, host.Config, "sudo pm-suspend &")
 
 		if err != nil {
@@ -213,30 +186,17 @@ func (host *Host) StopHost() {
 		}
 	}()
 
-	for {
-		select {
-		case <-ctx.Done(): // Context timeout or cancellation
-			host.logger.Warnf("Context canceled or timed out")
-			return
-		default:
-			hostPinged, err := host.HostStarted()
+	i := 0
 
-			host.logger.Infof("Host pinged: %v", hostPinged)
-
-			if err != nil {
-				host.logger.Errorf("failed to check host status: %v", err)
-			} else if !hostPinged {
-				host.logger.Infof("Stopped")
-
-				host.Started = false
-
-				return
-			}
-
-			time.Sleep(1 * time.Second)
-		}
+	for host.State == hostState.Stopping && i < 20 {
+		time.Sleep(1 * time.Second)
+		i++
 	}
 
+	if host.State == hostState.Stopping && i >= 20 {
+		host.State = hostState.Started
+		host.logger.Errorf("Host took too long to stop")
+	}
 }
 
 func (host *Host) PacketReceived(proxy *proxies.TCPProxy) error {
