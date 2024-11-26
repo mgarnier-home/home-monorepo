@@ -7,7 +7,7 @@ import (
 	"mgarnier11/go-proxy/docker"
 	"mgarnier11/go-proxy/hostState"
 	"mgarnier11/go-proxy/proxies"
-	"mgarnier11/go-proxy/utils"
+	"mgarnier11/go/logger"
 	"slices"
 	"strings"
 	"sync"
@@ -20,7 +20,7 @@ type Host struct {
 	LastPacketDate time.Time
 	Config         *config.HostConfig
 
-	logger *utils.Logger
+	logger *logger.Logger
 
 	waitGroup sync.WaitGroup
 	ctx       context.Context
@@ -37,7 +37,7 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 		waitGroup: sync.WaitGroup{},
 		ctx:       ctx,
 		cancel:    cancel,
-		logger:    utils.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(hostConfig.Name)), "%-10s ", nil),
+		logger:    logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(hostConfig.Name)), "%-10s ", nil),
 	}
 
 	host.logger.Infof("created")
@@ -159,7 +159,7 @@ func (host *Host) StartHost() error {
 		i++
 	}
 
-	if host.State == hostState.Starting && i >= 20 {
+	if host.State == hostState.Starting || i >= 20 {
 		host.State = hostState.Stopped
 		return fmt.Errorf("Host took too long to start")
 	} else {
@@ -193,7 +193,7 @@ func (host *Host) StopHost() {
 		i++
 	}
 
-	if host.State == hostState.Stopping && i >= 20 {
+	if host.State == hostState.Stopping || i >= 20 {
 		host.State = hostState.Started
 		host.logger.Errorf("Host took too long to stop")
 	}

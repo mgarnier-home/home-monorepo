@@ -1,8 +1,10 @@
-package goUtils
+package utils
 
 import (
+	"bytes"
 	"crypto/rand"
 	"io"
+	"strings"
 )
 
 func Min(a, b int) int {
@@ -32,4 +34,12 @@ func (cw *CustomWriter) Write(p []byte) (int, error) {
 		cw.OnWrite(n)
 	}
 	return n, err
+}
+
+func IsHTTPRequest(data []byte) bool {
+	return bytes.Contains(data, []byte("HTTP"))
+}
+
+func CheckRequestHeader(request string, header string, value string) bool {
+	return strings.Contains(request, header+": "+value)
 }

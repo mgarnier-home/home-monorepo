@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/utils"
+	"mgarnier11/go/logger"
 	"net/http"
 	"strconv"
 	"strings"
@@ -71,7 +71,7 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Cl
 	return client, nil
 }
 
-func GetProxiesFromDocker(sshUsername string, hostIp string, logger *utils.Logger) ([]*config.ProxyConfig, error) {
+func GetProxiesFromDocker(sshUsername string, hostIp string, logger *logger.Logger) ([]*config.ProxyConfig, error) {
 
 	dockerClient, err := GetDockerClient(sshUsername, hostIp, 22)
 

@@ -6,10 +6,11 @@ import (
 	"mgarnier11/go-proxy/host"
 	"mgarnier11/go-proxy/hostManager"
 	"mgarnier11/go-proxy/hostState"
-	"mgarnier11/go-proxy/utils"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"mgarnier11/go/logger"
 )
 
 type contextKey string
@@ -20,7 +21,7 @@ type Server struct {
 	port int
 }
 
-var logger = utils.NewLogger("API", "[%s] ", nil)
+var log *logger.Logger
 
 func NewServer(port int) *Server {
 	return &Server{
@@ -30,7 +31,7 @@ func NewServer(port int) *Server {
 
 func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger.Infof("Request: %s %s", r.Method, r.URL.Path)
+		log.Infof("Request: %s %s", r.Method, r.URL.Path)
 
 		next.ServeHTTP(w, r)
 	})
@@ -43,7 +44,7 @@ func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 		host := hostManager.GetHost(hostName)
 
 		if host == nil {
-			logger.Errorf("Host %s not found", hostName)
+			log.Errorf("Host %s not found", hostName)
 			http.Error(w, "Host not found", http.StatusNotFound)
 			return
 		}
@@ -55,6 +56,8 @@ func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 }
 
 func (s *Server) Start() error {
+	log = logger.NewLogger("[SERVER]", "%-15s ", nil)
+
 	router := mux.NewRouter()
 
 	router.Use(s.logRequestMiddleware)
@@ -112,7 +115,7 @@ func (s *Server) Start() error {
 		w.Write([]byte(fmt.Sprintf("Host %s is %s", host.Config.Name, host.State.String())))
 	})
 
-	logger.Infof("Starting server on port %d", s.port)
+	log.Infof("Starting server on port %d", s.port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
 
 }

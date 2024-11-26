@@ -1,20 +1,18 @@
 package main
 
 import (
-	"goUtils"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/hostManager"
 	"mgarnier11/go-proxy/server"
+	"mgarnier11/go/logger"
 	"runtime"
 	"time"
 
 	_ "net/http/pprof"
-
-	"github.com/charmbracelet/log"
 )
 
 func main() {
-	goUtils.InitLogger()
+	logger.InitAppLogger("go-proxy")
 
 	go func() {
 		for {
@@ -23,7 +21,7 @@ func main() {
 			// Analyzing goroutine leaks
 			var stats runtime.MemStats
 			runtime.ReadMemStats(&stats)
-			log.Infof("Number of Goroutines: %d", runtime.NumGoroutine())
+			logger.Infof("Number of Goroutines: %d", runtime.NumGoroutine())
 
 			// buf := make([]byte, 1<<16) // Create a large buffer to capture stack traces
 			// stackLen := runtime.Stack(buf, true)

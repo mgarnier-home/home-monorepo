@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"goUtils"
 	"io"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/hostState"
-	"mgarnier11/go-proxy/utils"
+	"mgarnier11/go/logger"
+	"mgarnier11/go/utils"
 	"net"
 	"strings"
 	"sync"
@@ -21,7 +21,7 @@ type TCPProxy struct {
 	StartHost      func() error
 	PacketReceived func(proxy *TCPProxy) error
 
-	logger *utils.Logger
+	logger *logger.Logger
 
 	hostState *hostState.State
 	wg        sync.WaitGroup
@@ -37,10 +37,10 @@ type TCPProxyArgs struct {
 	PacketReceived func(proxy *TCPProxy) error
 }
 
-func NewTCPProxy(args *TCPProxyArgs, hostLogger *utils.Logger) *TCPProxy {
+func NewTCPProxy(args *TCPProxyArgs, hostLogger *logger.Logger) *TCPProxy {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	logger := utils.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Name)), "%-15s ", hostLogger)
+	logger := logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Name)), "%-15s ", hostLogger)
 
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", args.ProxyConfig.ListenPort))
 	if err != nil {
@@ -127,7 +127,7 @@ func (proxy *TCPProxy) Stop() {
 func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error) {
 	if *proxy.hostState == hostState.Stopped {
 		reader := bufio.NewReader(clientConn)
-		peek, err := reader.Peek(goUtils.Min(1024, reader.Buffered()))
+		peek, err := reader.Peek(utils.Min(1024, reader.Buffered()))
 
 		if err != nil && err != io.EOF {
 			return false, fmt.Errorf("failed to peek data: %v", err)
@@ -200,8 +200,8 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 		proxy.logger.Verbosef("ServerToClient: %d bytes", bytesTransferred)
 	}
 
-	clientToServerWriter := &goUtils.CustomWriter{Writer: serverConn, OnWrite: onClientToServer}
-	serverToClientWriter := &goUtils.CustomWriter{Writer: clientConn, OnWrite: onServerToClient}
+	clientToServerWriter := &utils.CustomWriter{Writer: serverConn, OnWrite: onClientToServer}
+	serverToClientWriter := &utils.CustomWriter{Writer: clientConn, OnWrite: onServerToClient}
 
 	// Channel pour savoir quand la copie client -> serveur est terminée
 	doneCopyClientToServer := make(chan struct{})

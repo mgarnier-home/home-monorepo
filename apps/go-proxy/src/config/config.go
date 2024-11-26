@@ -1,11 +1,10 @@
 package config
 
 import (
+	"mgarnier11/go/utils"
 	"os"
 	"path"
 	"time"
-
-	"goUtils"
 
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
@@ -59,7 +58,7 @@ func parseConfigFile(rawFile []byte) *ConfigFile {
 	return config
 }
 func GetAppConfig() (appConfig *AppConfig, err error) {
-	envFilePath := goUtils.GetEnv("ENV_FILE_PATH", "./.env")
+	envFilePath := utils.GetEnv("ENV_FILE_PATH", "./.env")
 
 	ex, err := os.Executable()
 	if err != nil {
@@ -75,8 +74,8 @@ func GetAppConfig() (appConfig *AppConfig, err error) {
 	godotenv.Load(envFilePath)
 
 	appConfig = &AppConfig{
-		ServerPort:     goUtils.GetEnv("SERVER_PORT", 8080),
-		ConfigFilePath: goUtils.GetEnv("CONFIG_FILE_PATH", "config.yaml"),
+		ServerPort:     utils.GetEnv("SERVER_PORT", 8080),
+		ConfigFilePath: utils.GetEnv("CONFIG_FILE_PATH", "config.yaml"),
 	}
 
 	return appConfig, nil

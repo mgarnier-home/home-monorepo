@@ -1,24 +1,12 @@
-package utils
+package logger
 
-import (
-	"goUtils"
-
-	"github.com/charmbracelet/log"
-)
+import "github.com/charmbracelet/log"
 
 type Logger struct {
 	name       string
 	nameFormat string
 
 	parent *Logger
-}
-
-func NewLogger(name string, nameFormat string, parent *Logger) *Logger {
-	return &Logger{
-		name:       name,
-		nameFormat: nameFormat,
-		parent:     parent,
-	}
 }
 
 func (logger *Logger) Debugf(format string, args ...interface{}) {
@@ -38,7 +26,7 @@ func (logger *Logger) Errorf(format string, args ...interface{}) {
 }
 
 func (logger *Logger) Verbosef(format string, args ...interface{}) {
-	logger.logf(goUtils.VerboseLevel, format, args...)
+	logger.logf(VerboseLevel, format, args...)
 }
 
 func (logger *Logger) logf(level log.Level, format string, args ...interface{}) {
@@ -55,4 +43,16 @@ func (logger *Logger) logf(level log.Level, format string, args ...interface{}) 
 
 	}
 
+}
+
+func NewLogger(name string, nameFormat string, parent *Logger) *Logger {
+	if parent == nil {
+		parent = appLogger
+	}
+
+	return &Logger{
+		name:       name,
+		nameFormat: nameFormat,
+		parent:     parent,
+	}
 }

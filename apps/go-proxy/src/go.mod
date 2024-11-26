@@ -3,21 +3,23 @@ module mgarnier11/go-proxy
 go 1.23.0
 
 require (
-	github.com/charmbracelet/log v0.4.0
 	github.com/docker/cli v27.3.1+incompatible
 	github.com/docker/docker v27.2.0+incompatible
 	github.com/go-ping/ping v1.1.0
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
-	goUtils v0.0.0-00010101000000-000000000000
 	golang.org/x/crypto v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
+	mgarnier11/go/logger v0.0.0-00010101000000-000000000000
+	mgarnier11/go/utils v0.0.0-00010101000000-000000000000
+
 )
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/lipgloss v1.0.0 // indirect
+	github.com/charmbracelet/log v0.4.0 // indirect
 	github.com/charmbracelet/x/ansi v0.5.2 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
@@ -55,4 +57,6 @@ require (
 	gotest.tools/v3 v3.5.1 // indirect
 )
 
-replace goUtils => ../../../libs/go-utils
+replace mgarnier11/go/utils => ../../../libs/go/utils
+
+replace mgarnier11/go/logger => ../../../libs/go/logger
