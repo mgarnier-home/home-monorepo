@@ -1,10 +1,16 @@
 package logger
 
-import "github.com/charmbracelet/log"
+import (
+	"fmt"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/log"
+)
 
 type Logger struct {
 	name       string
 	nameFormat string
+	style      lipgloss.Style
 
 	parent *Logger
 }
@@ -30,22 +36,23 @@ func (logger *Logger) Verbosef(format string, args ...interface{}) {
 }
 
 func (logger *Logger) logf(level log.Level, format string, args ...interface{}) {
-	if len(args) > 0 {
-		args = append([]interface{}{logger.name}, args...)
-	} else {
-		args = []interface{}{logger.name}
+	var nameString string
+
+	if len(logger.name) > 0 {
+		nameString = logger.style.Render(fmt.Sprintf(logger.nameFormat, logger.name))
 	}
 
-	if logger.parent != nil {
-		logger.parent.logf(level, logger.nameFormat+format, args...)
-	} else {
-		log.Logf(level, logger.nameFormat+format, args...)
+	coloredString := logger.style.Render(fmt.Sprintf(format, args...))
 
+	if logger.parent != nil {
+		logger.parent.logf(level, nameString+coloredString)
+	} else {
+		log.Logf(level, nameString+coloredString)
 	}
 
 }
 
-func NewLogger(name string, nameFormat string, parent *Logger) *Logger {
+func NewLogger(name string, nameFormat string, style lipgloss.Style, parent *Logger) *Logger {
 	if parent == nil {
 		parent = appLogger
 	}
@@ -53,6 +60,7 @@ func NewLogger(name string, nameFormat string, parent *Logger) *Logger {
 	return &Logger{
 		name:       name,
 		nameFormat: nameFormat,
+		style:      style,
 		parent:     parent,
 	}
 }

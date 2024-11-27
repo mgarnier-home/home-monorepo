@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -26,7 +25,7 @@ func InitAppLogger(appName string) *Logger {
 	log.SetLevel(getLogLevel())
 	log.SetStyles(styles)
 
-	appLogger = NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(appName)), "%s ", nil)
+	appLogger = NewLogger("", "", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 	return appLogger
 }

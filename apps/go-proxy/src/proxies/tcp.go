@@ -7,11 +7,14 @@ import (
 	"io"
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go-proxy/hostState"
+	"mgarnier11/go/colors"
 	"mgarnier11/go/logger"
 	"mgarnier11/go/utils"
 	"net"
 	"strings"
 	"sync"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 type TCPProxy struct {
@@ -40,7 +43,7 @@ type TCPProxyArgs struct {
 func NewTCPProxy(args *TCPProxyArgs, hostLogger *logger.Logger) *TCPProxy {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	logger := logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Name)), "%-15s ", hostLogger)
+	logger := logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Name)), "%-15s ", lipgloss.NewStyle().Foreground(lipgloss.Color(colors.GenerateHexColor(args.ProxyConfig.Name))), hostLogger)
 
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", args.ProxyConfig.ListenPort))
 	if err != nil {

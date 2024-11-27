@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	logger.InitAppLogger("go-proxy")
+	logger.InitAppLogger("")
 
 	go func() {
 		for {

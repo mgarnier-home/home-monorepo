@@ -7,11 +7,14 @@ import (
 	"mgarnier11/go-proxy/docker"
 	"mgarnier11/go-proxy/hostState"
 	"mgarnier11/go-proxy/proxies"
+	"mgarnier11/go/colors"
 	"mgarnier11/go/logger"
 	"slices"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Host struct {
@@ -37,7 +40,14 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 		waitGroup: sync.WaitGroup{},
 		ctx:       ctx,
 		cancel:    cancel,
-		logger:    logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(hostConfig.Name)), "%-10s ", nil),
+		logger: logger.
+			NewLogger(
+				fmt.Sprintf("[%s]",
+					strings.ToUpper(hostConfig.Name)),
+				"%-10s ",
+				lipgloss.NewStyle().Foreground(lipgloss.Color(colors.GenerateHexColor(hostConfig.Name))),
+				nil,
+			),
 	}
 
 	host.logger.Infof("created")

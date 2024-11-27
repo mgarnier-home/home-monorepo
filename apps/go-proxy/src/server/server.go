@@ -8,6 +8,7 @@ import (
 	"mgarnier11/go-proxy/hostState"
 	"net/http"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"
 
 	"mgarnier11/go/logger"
@@ -56,7 +57,7 @@ func (s *Server) getHostMiddleware(next http.Handler) http.Handler {
 }
 
 func (s *Server) Start() error {
-	log = logger.NewLogger("[SERVER]", "%-15s ", nil)
+	log = logger.NewLogger("[SERVER]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 	router := mux.NewRouter()
 
