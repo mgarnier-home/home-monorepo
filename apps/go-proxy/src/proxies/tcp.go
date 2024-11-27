@@ -13,6 +13,7 @@ import (
 	"net"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -22,7 +23,7 @@ type TCPProxy struct {
 	ListenAddr     *net.TCPAddr
 	ServerAddr     *net.TCPAddr
 	StartHost      func() error
-	PacketReceived func(proxy *TCPProxy) error
+	PacketReceived func(proxyName string)
 
 	logger *logger.Logger
 
@@ -37,7 +38,7 @@ type TCPProxyArgs struct {
 	ProxyConfig    *config.ProxyConfig
 	HostState      *hostState.State
 	StartHost      func() error
-	PacketReceived func(proxy *TCPProxy) error
+	PacketReceived func(proxyName string)
 }
 
 func NewTCPProxy(args *TCPProxyArgs, hostLogger *logger.Logger) *TCPProxy {
@@ -156,6 +157,12 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 		}
 	}
 
+	hostStarted := hostState.WaitForState(proxy.hostState, hostState.Started, 20*time.Second)
+
+	if !hostStarted {
+		return false, fmt.Errorf("host took too long to start")
+	}
+
 	return true, nil
 }
 
@@ -195,7 +202,7 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 			return
 		}
 
-		proxy.PacketReceived(proxy)
+		proxy.PacketReceived(proxy.Name)
 	}
 
 	// Fonction qui va être appelée à chaque fois que des données sont transférées du serveur vers le client

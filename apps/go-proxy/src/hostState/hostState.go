@@ -1,5 +1,7 @@
 package hostState
 
+import "time"
+
 type State int
 
 const (
@@ -22,4 +24,14 @@ func (state State) String() string {
 	default:
 		return "Unknown"
 	}
+}
+
+func WaitForState(state *State, target State, timeout time.Duration) bool {
+	i := 0
+	for *state != target && i < int(timeout.Seconds()) {
+		time.Sleep(1 * time.Second)
+		i++
+	}
+
+	return *state == target
 }

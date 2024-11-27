@@ -18,10 +18,11 @@ import (
 )
 
 type Host struct {
-	Proxies        map[string]*proxies.TCPProxy
-	State          hostState.State
-	LastPacketDate time.Time
-	Config         *config.HostConfig
+	Proxies             map[string]*proxies.TCPProxy
+	State               hostState.State
+	LastPacketDate      time.Time
+	LastPacketProxyName string
+	Config              *config.HostConfig
 
 	logger *logger.Logger
 
@@ -73,27 +74,48 @@ func (host *Host) setupHostLoop() {
 		host.waitGroup.Done()
 	}()
 
-	ticker := time.NewTicker(1 * time.Second)
+	stateTicker := time.NewTicker(1 * time.Second)
+	defer stateTicker.Stop()
+
+	dockerTicker := time.NewTicker(30 * time.Second)
+	defer dockerTicker.Stop()
+
+	inactivityTicker := time.NewTicker(15 * time.Second)
+	defer inactivityTicker.Stop()
 
 	for {
 		select {
-		case <-ticker.C:
+		case <-stateTicker.C:
 			host.updateState()
+		case <-dockerTicker.C:
 
-			// if host.State == Started {
-			// 	host.logger.Infof("Getting proxies from docker")
+			if host.State == hostState.Started {
+				host.logger.Infof("Getting proxies from docker")
 
-			// 	proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
+				proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
 
-			// 	if err != nil {
-			// 		host.logger.Errorf("failed to get proxies from docker: %v", err)
-			// 	} else {
-			// 		host.setupProxies(proxies)
-			// 	}
-			// }
+				if err != nil {
+					host.logger.Errorf("failed to get proxies from docker: %v", err)
+				} else {
+					host.setupProxies(proxies)
+				}
+			}
+		case <-inactivityTicker.C:
+			// TODO : Make inactivity timeout configurable
+			// TODO : Add a way to disable inactivity timeout
+			timeout := 1 * time.Minute
+			if host.State == hostState.Started && time.Since(host.LastPacketDate) > timeout {
+				host.logger.Infof("Host has been inactive for too long, stopping it")
+				go host.StopHost()
+			} else if host.State == hostState.Started {
+				host.logger.Infof("Time remaining before inactivity timeout: %v", timeout-time.Since(host.LastPacketDate).Round(time.Second))
+			} else if host.State == hostState.Stopped {
+				host.logger.Infof("Server stopped since %v", time.Since(host.LastPacketDate.Add(timeout)).Round(time.Second))
+			}
+
 		case <-host.ctx.Done():
 			// Ensure we break out of the loop if the context is cancelled
-			ticker.Stop()
+
 			return
 		}
 	}
@@ -163,13 +185,9 @@ func (host *Host) StartHost() error {
 		return fmt.Errorf("failed to send magic packet: %v", err)
 	}
 
-	i := 0
-	for host.State == hostState.Starting && i < 20 {
-		time.Sleep(1 * time.Second)
-		i++
-	}
+	hostStarted := hostState.WaitForState(&host.State, hostState.Started, 20*time.Second)
 
-	if host.State == hostState.Starting || i >= 20 {
+	if !hostStarted {
 		host.State = hostState.Stopped
 		return fmt.Errorf("Host took too long to start")
 	} else {
@@ -196,22 +214,17 @@ func (host *Host) StopHost() {
 		}
 	}()
 
-	i := 0
+	hostStopped := hostState.WaitForState(&host.State, hostState.Stopped, 20*time.Second)
 
-	for host.State == hostState.Stopping && i < 20 {
-		time.Sleep(1 * time.Second)
-		i++
-	}
-
-	if host.State == hostState.Stopping || i >= 20 {
+	if !hostStopped {
 		host.State = hostState.Started
 		host.logger.Errorf("Host took too long to stop")
 	}
 }
 
-func (host *Host) PacketReceived(proxy *proxies.TCPProxy) error {
+func (host *Host) PacketReceived(proxyName string) {
 	host.LastPacketDate = time.Now()
-	return nil
+	host.LastPacketProxyName = proxyName
 }
 
 func (host *Host) DisposeProxy(proxyName string) {
