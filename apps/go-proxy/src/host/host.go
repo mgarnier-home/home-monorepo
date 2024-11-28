@@ -58,10 +58,6 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 	host.StartHost()
 	host.LastPacketDate = time.Now()
 
-	dockerProxies, _ := docker.GetProxiesFromDocker(hostConfig.SSHUsername, hostConfig.Ip, host.logger)
-
-	host.setupProxies(slices.Concat(dockerProxies, hostConfig.Proxies))
-
 	return host
 }
 

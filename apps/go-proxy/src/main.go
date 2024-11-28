@@ -29,13 +29,7 @@ func main() {
 		}
 	}()
 
-	appConfig, err := config.GetAppConfig()
-
-	if err != nil {
-		panic(err)
-	}
-
-	server := server.NewServer(appConfig.ServerPort)
+	server := server.NewServer(config.Config.ServerPort)
 
 	go server.Start()
 

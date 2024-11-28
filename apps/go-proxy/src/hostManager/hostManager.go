@@ -26,7 +26,7 @@ func setHost(name string, host *host.Host) {
 	hosts[hostKey] = host
 }
 
-func ConfigFileChanged(configFile *config.ConfigFile) {
+func ConfigFileChanged(configFile *config.AppConfigFile) {
 	logger.Infof("Config file changed")
 
 	for hostKey, hostValue := range hosts {

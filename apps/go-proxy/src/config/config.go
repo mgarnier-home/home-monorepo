@@ -28,13 +28,14 @@ type HostConfig struct {
 	MaxAliveTime int            `yaml:"maxAliveTime"`
 }
 
-type ConfigFile struct {
+type AppConfigFile struct {
 	ProxyHosts []*HostConfig `yaml:"proxyHosts"`
 }
 
-type AppConfig struct {
+type AppEnvConfig struct {
 	ServerPort     int
 	ConfigFilePath string
+	SSHKeyPath     string
 }
 
 func readFile(filePath string) []byte {
@@ -48,8 +49,8 @@ func readFile(filePath string) []byte {
 	return bytes
 }
 
-func parseConfigFile(rawFile []byte) *ConfigFile {
-	config := &ConfigFile{}
+func parseConfigFile(rawFile []byte) *AppConfigFile {
+	config := &AppConfigFile{}
 	err := yaml.Unmarshal(rawFile, config)
 	if err != nil {
 		panic(err)
@@ -57,12 +58,13 @@ func parseConfigFile(rawFile []byte) *ConfigFile {
 
 	return config
 }
-func GetAppConfig() (appConfig *AppConfig, err error) {
+
+func getAppConfig() (appConfig *AppEnvConfig) {
 	envFilePath := utils.GetEnv("ENV_FILE_PATH", "./.env")
 
 	ex, err := os.Executable()
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	exPath := path.Dir(ex)
@@ -73,29 +75,24 @@ func GetAppConfig() (appConfig *AppConfig, err error) {
 
 	godotenv.Load(envFilePath)
 
-	appConfig = &AppConfig{
+	appConfig = &AppEnvConfig{
 		ServerPort:     utils.GetEnv("SERVER_PORT", 8080),
 		ConfigFilePath: utils.GetEnv("CONFIG_FILE_PATH", "config.yaml"),
+		SSHKeyPath:     utils.GetEnv("SSH_KEY_PATH", ""),
 	}
 
-	return appConfig, nil
+	return appConfig
 }
 
-func SetupConfigListener() chan *ConfigFile {
-	newConfigFileChan := make(chan *ConfigFile)
-
-	appConfig, err := GetAppConfig()
-
-	if err != nil {
-		panic(err)
-	}
+func SetupConfigListener() chan *AppConfigFile {
+	newConfigFileChan := make(chan *AppConfigFile)
 
 	go func() {
 		// Read and send the initial config file
-		oldYamlFile := readFile(appConfig.ConfigFilePath)
+		oldYamlFile := readFile(Config.ConfigFilePath)
 		newConfigFileChan <- parseConfigFile(oldYamlFile)
 		for range time.Tick(time.Second * 5) {
-			yamlFile := readFile(appConfig.ConfigFilePath)
+			yamlFile := readFile(Config.ConfigFilePath)
 
 			if string(yamlFile) != string(oldYamlFile) {
 				newConfigFileChan <- parseConfigFile(yamlFile)
@@ -107,3 +104,5 @@ func SetupConfigListener() chan *ConfigFile {
 
 	return newConfigFileChan
 }
+
+var Config *AppEnvConfig = getAppConfig()

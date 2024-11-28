@@ -3,10 +3,24 @@ package utils
 import (
 	"os"
 	"strconv"
+	"strings"
 )
 
 func GetEnv[T bool | string | int](key string, defaultValue T) T {
 	value := os.Getenv(key)
+
+	if value == "" {
+		if _, err := os.Stat("/run/secrets/" + key); err == nil {
+			fileContent, err := os.ReadFile("/run/secrets/" + strings.ToLower(key))
+
+			if err != nil {
+				value = ""
+			} else {
+				value = string(fileContent)
+			}
+		}
+	}
+
 	if value == "" {
 		return defaultValue
 	}

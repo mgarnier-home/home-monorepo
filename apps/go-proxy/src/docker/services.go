@@ -39,7 +39,16 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 }
 
 func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Client, error) {
-	helper, err := connhelper.GetConnectionHelper(fmt.Sprintf("ssh://%s@%s:%d", sshUsername, hostIp, sshPort))
+	sshOptions := []string{"-i", config.Config.SSHKeyPath}
+
+	helper, err := connhelper.GetConnectionHelperWithSSHOpts(
+		fmt.Sprintf("ssh://%s@%s:%d",
+			sshUsername,
+			hostIp,
+			sshPort,
+		),
+		sshOptions,
+	)
 
 	if err != nil {
 		return nil, err
