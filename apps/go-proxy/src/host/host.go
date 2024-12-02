@@ -32,6 +32,7 @@ type Host struct {
 }
 
 func NewHost(hostConfig *config.HostConfig) *Host {
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	host := &Host{
@@ -53,10 +54,20 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	host.logger.Infof("created")
 
-	go host.setupHostLoop()
+	proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
 
-	host.StartHost()
-	host.LastPacketDate = time.Now()
+	if err != nil {
+		host.logger.Errorf("failed to get proxies from docker: %v", err)
+	} else {
+		for _, proxyConfig := range proxies {
+			host.logger.Infof("Adding proxy %s", proxyConfig.Name)
+		}
+	}
+
+	// go host.setupHostLoop()
+
+	// host.StartHost()
+	// host.LastPacketDate = time.Now()
 
 	return host
 }
@@ -73,7 +84,7 @@ func (host *Host) setupHostLoop() {
 	stateTicker := time.NewTicker(1 * time.Second)
 	defer stateTicker.Stop()
 
-	dockerTicker := time.NewTicker(30 * time.Second)
+	dockerTicker := time.NewTicker(10 * time.Second)
 	defer dockerTicker.Stop()
 
 	inactivityTicker := time.NewTicker(15 * time.Second)
@@ -99,7 +110,7 @@ func (host *Host) setupHostLoop() {
 		case <-inactivityTicker.C:
 			// TODO : Make inactivity timeout configurable
 			// TODO : Add a way to disable inactivity timeout
-			timeout := 1 * time.Minute
+			timeout := 10 * time.Minute
 			if host.State == hostState.Started && time.Since(host.LastPacketDate) > timeout {
 				host.logger.Infof("Host has been inactive for too long, stopping it")
 				go host.StopHost()

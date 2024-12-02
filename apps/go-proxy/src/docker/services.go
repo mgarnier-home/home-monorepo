@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
+	myconnhelper "mgarnier11/go/docker"
 	"mgarnier11/go/logger"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
@@ -39,16 +39,44 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 }
 
 func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Client, error) {
-	sshOptions := []string{"-i", config.Config.SSHKeyPath}
+	// // Load the private key file
+	// key, err := os.ReadFile(config.Config.SSHKeyPath)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to read private key: %w", err)
+	// }
 
-	helper, err := connhelper.GetConnectionHelperWithSSHOpts(
+	// // Parse the private key
+	// signer, err := ssh.ParsePrivateKey(key)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to parse private key: %w", err)
+	// }
+
+	// Configure the SSH client
+	// sshConfig := &ssh.ClientConfig{
+	// 	User: sshUsername,
+	// 	// Auth: []ssh.AuthMethod{
+	// 	// 	ssh.PublicKeys(signer),
+	// 	// },
+	// 	Auth:            []ssh.AuthMethod{ssh.Password("P@55w0rd")},
+	// 	HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Replace with a proper callback in production
+	// }
+
+	helper, err := myconnhelper.GetConnectionHelper(
 		fmt.Sprintf("ssh://%s@%s:%d",
 			sshUsername,
 			hostIp,
 			sshPort,
 		),
-		sshOptions,
 	)
+
+	// Custom DialContext using Go's SSH library
+	// helper.Dialer = func(ctx context.Context, network, address string) (net.Conn, error) {
+	// 	conn, err := ssh.Dial("tcp", net.JoinHostPort(hostIp, "22"), sshConfig)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to dial SSH: %w", err)
+	// 	}
+	// 	return conn.Dial(network, address)
+	// }
 
 	if err != nil {
 		return nil, err
@@ -67,7 +95,7 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Cl
 
 	clientOpts = append(clientOpts,
 		client.WithHTTPClient(httpClient),
-		client.WithHost(helper.Host),
+		// client.WithHost(helper.Host),
 		client.WithDialContext(helper.Dialer),
 	)
 

@@ -4,7 +4,6 @@ go 1.23.0
 
 require (
 	github.com/charmbracelet/lipgloss v1.0.0
-	github.com/docker/cli v27.3.1+incompatible
 	github.com/docker/docker v27.2.0+incompatible
 	github.com/go-ping/ping v1.1.0
 	github.com/gorilla/mux v1.8.1
@@ -12,6 +11,7 @@ require (
 	golang.org/x/crypto v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
 	mgarnier11/go/colors v0.0.0-00010101000000-000000000000
+	mgarnier11/go/docker v0.0.0-00010101000000-000000000000
 	mgarnier11/go/logger v0.0.0-00010101000000-000000000000
 	mgarnier11/go/utils v0.0.0-00010101000000-000000000000
 
@@ -43,7 +43,6 @@ require (
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.29.0 // indirect
@@ -63,3 +62,5 @@ replace mgarnier11/go/utils => ../../../libs/go/utils
 replace mgarnier11/go/logger => ../../../libs/go/logger
 
 replace mgarnier11/go/colors => ../../../libs/go/colors
+
+replace mgarnier11/go/docker => ../../../libs/go/docker
