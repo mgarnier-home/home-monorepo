@@ -54,20 +54,10 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	host.logger.Infof("created")
 
-	proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
+	go host.setupHostLoop()
 
-	if err != nil {
-		host.logger.Errorf("failed to get proxies from docker: %v", err)
-	} else {
-		for _, proxyConfig := range proxies {
-			host.logger.Infof("Adding proxy %s", proxyConfig.Name)
-		}
-	}
-
-	// go host.setupHostLoop()
-
-	// host.StartHost()
-	// host.LastPacketDate = time.Now()
+	host.StartHost()
+	host.LastPacketDate = time.Now()
 
 	return host
 }

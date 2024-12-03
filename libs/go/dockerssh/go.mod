@@ -1,4 +1,4 @@
-module mgarnier11/go/docker
+module mgarnier11/go/dockerssh
 
 go 1.23.0
 

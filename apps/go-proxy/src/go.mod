@@ -11,7 +11,7 @@ require (
 	golang.org/x/crypto v0.29.0
 	gopkg.in/yaml.v3 v3.0.1
 	mgarnier11/go/colors v0.0.0-00010101000000-000000000000
-	mgarnier11/go/docker v0.0.0-00010101000000-000000000000
+	mgarnier11/go/dockerssh v0.0.0-00010101000000-000000000000
 	mgarnier11/go/logger v0.0.0-00010101000000-000000000000
 	mgarnier11/go/utils v0.0.0-00010101000000-000000000000
 
@@ -63,4 +63,4 @@ replace mgarnier11/go/logger => ../../../libs/go/logger
 
 replace mgarnier11/go/colors => ../../../libs/go/colors
 
-replace mgarnier11/go/docker => ../../../libs/go/docker
+replace mgarnier11/go/dockerssh => ../../../libs/go/dockerssh
