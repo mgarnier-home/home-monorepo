@@ -49,6 +49,8 @@ func ConfigFileChanged(configFile *config.AppConfigFile) {
 		if hostValue == nil {
 			hostValue = host.NewHost(hostConfig)
 			setHost(hostConfig.Name, hostValue)
+		} else {
+			hostValue.Config = hostConfig
 		}
 	}
 }

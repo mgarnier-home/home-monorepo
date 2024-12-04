@@ -1,6 +1,7 @@
 package config
 
 import (
+	"mgarnier11/go/logger"
 	"mgarnier11/go/utils"
 	"os"
 	"path"
@@ -26,10 +27,37 @@ type HostConfig struct {
 	SSHPassword  string         `yaml:"sshPassword"`
 	Autostop     bool           `yaml:"autostop"`
 	MaxAliveTime int            `yaml:"maxAliveTime"`
+
+	appConfig *AppConfigFile
+}
+
+func (hostConfig *HostConfig) Save() {
+	hostConfig.appConfig.Save()
 }
 
 type AppConfigFile struct {
 	ProxyHosts []*HostConfig `yaml:"proxyHosts"`
+}
+
+func (config *AppConfigFile) unmarshalYaml(yamlString string) error {
+	err := yaml.Unmarshal([]byte(yamlString), config)
+	if err != nil {
+		return err
+	}
+
+	for _, hostConfig := range config.ProxyHosts {
+		hostConfig.appConfig = config
+	}
+
+	return nil
+
+}
+
+func (config *AppConfigFile) Save() {
+	err := saveConfigFile(config, Config.ConfigFilePath)
+	if err != nil {
+		logger.Errorf("Failed to save config file: %s", err)
+	}
 }
 
 type AppEnvConfig struct {
@@ -44,19 +72,28 @@ func readFile(filePath string) []byte {
 		panic(err)
 	}
 
-	// log.Infof("Read file %s", filePath)
-
 	return bytes
 }
 
 func parseConfigFile(rawFile []byte) *AppConfigFile {
 	config := &AppConfigFile{}
-	err := yaml.Unmarshal(rawFile, config)
+
+	err := config.unmarshalYaml(string(rawFile))
+
 	if err != nil {
 		panic(err)
 	}
 
 	return config
+}
+
+func saveConfigFile(config *AppConfigFile, filePath string) error {
+	data, err := yaml.Marshal(config)
+	if err != nil {
+		panic(err)
+	}
+
+	return os.WriteFile(filePath, data, 0644)
 }
 
 func getAppConfig() (appConfig *AppEnvConfig) {

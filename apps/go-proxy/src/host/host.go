@@ -86,28 +86,35 @@ func (host *Host) setupHostLoop() {
 			host.updateState()
 		case <-dockerTicker.C:
 
+			proxies := host.Config.Proxies
+
 			if host.State == hostState.Started {
 				host.logger.Infof("Getting proxies from docker")
 
-				proxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
+				dockerProxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
 
 				if err != nil {
 					host.logger.Errorf("failed to get proxies from docker: %v", err)
-				} else {
-					host.setupProxies(proxies)
 				}
+
+				proxies = append(proxies, dockerProxies...)
 			}
+
+			host.setupProxies(proxies)
+
 		case <-inactivityTicker.C:
-			// TODO : Make inactivity timeout configurable
-			// TODO : Add a way to disable inactivity timeout
-			timeout := 10 * time.Minute
-			if host.State == hostState.Started && time.Since(host.LastPacketDate) > timeout {
-				host.logger.Infof("Host has been inactive for too long, stopping it")
-				go host.StopHost()
-			} else if host.State == hostState.Started {
-				host.logger.Infof("Time remaining before inactivity timeout: %v", timeout-time.Since(host.LastPacketDate).Round(time.Second))
-			} else if host.State == hostState.Stopped {
-				host.logger.Infof("Server stopped since %v", time.Since(host.LastPacketDate.Add(timeout)).Round(time.Second))
+			timeout := time.Duration(host.Config.MaxAliveTime) * time.Minute
+			if host.Config.Autostop {
+				if host.State == hostState.Started && time.Since(host.LastPacketDate) > timeout {
+					host.logger.Infof("Host has been inactive for too long, stopping it")
+					go host.StopHost()
+				} else if host.State == hostState.Started {
+					host.logger.Infof("Time remaining before inactivity timeout: %v", timeout-time.Since(host.LastPacketDate).Round(time.Second))
+				} else if host.State == hostState.Stopped {
+					host.logger.Infof("Server stopped since %v", time.Since(host.LastPacketDate.Add(timeout)).Round(time.Second))
+				}
+			} else {
+				host.logger.Infof("Autostop is disabled")
 			}
 
 		case <-host.ctx.Done():

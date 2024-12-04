@@ -116,6 +116,19 @@ func (s *Server) Start() error {
 		w.Write([]byte(fmt.Sprintf("Host %s is %s", host.Config.Name, host.State.String())))
 	})
 
+	controlRouter.HandleFunc("/autostop-toggle", func(w http.ResponseWriter, r *http.Request) {
+		host := r.Context().Value(hostContextKey).(*host.Host)
+
+		host.Config.Autostop = !host.Config.Autostop
+		host.Config.Save()
+
+		if host.Config.Autostop {
+			w.Write([]byte(fmt.Sprintf("Host %s autostop enabled", host.Config.Name)))
+		} else {
+			w.Write([]byte(fmt.Sprintf("Host %s autostop disabled", host.Config.Name)))
+		}
+	})
+
 	log.Infof("Starting server on port %d", s.port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
 
