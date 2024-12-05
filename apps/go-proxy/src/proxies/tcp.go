@@ -129,7 +129,7 @@ func (proxy *TCPProxy) Stop() {
 }
 
 func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error) {
-	if *proxy.hostState == hostState.Stopped {
+	if *proxy.hostState == hostState.Stopped || *proxy.hostState == hostState.Stopping {
 		reader := bufio.NewReader(clientConn)
 		peek, err := reader.Peek(utils.Min(1024, reader.Buffered()))
 
@@ -140,14 +140,15 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 		if utils.IsHTTPRequest(peek) {
 			request := string(peek)
 
+			proxy.logger.Debugf("Request: %s", request)
+
 			if utils.CheckRequestHeader(request, "Status", "true") {
+				proxy.logger.Debugf("Status request")
 				clientConn.Close()
 				return false, nil
+			} else {
+				proxy.logger.Debugf("Not a status request")
 			}
-		}
-
-		if proxy.StartHost == nil {
-			return false, fmt.Errorf("startHost function not set")
 		}
 
 		err = proxy.StartHost()
