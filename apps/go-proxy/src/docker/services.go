@@ -7,9 +7,10 @@ import (
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go/dockerssh"
 	"mgarnier11/go/logger"
+	sshUtils "mgarnier11/go/utils/ssh"
+
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -42,24 +43,15 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 }
 
 func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Client, error) {
-	// Load the private key file
-	key, err := os.ReadFile(config.Config.SSHKeyPath)
+	authMethod, err := sshUtils.GetSSHKeyAuth(config.Config.SSHKeyPath)
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to read private key: %w", err)
+		return nil, fmt.Errorf("failed to get ssh key auth: %v", err)
 	}
 
-	// Parse the private key
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse private key: %w", err)
-	}
-
-	// Configure the SSH client
 	sshConfig := &ssh.ClientConfig{
-		User: sshUsername,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(signer),
-		},
+		User:            sshUsername,
+		Auth:            []ssh.AuthMethod{authMethod},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Replace with a proper callback in production
 	}
 

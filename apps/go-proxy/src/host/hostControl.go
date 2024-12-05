@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
+	sshUtils "mgarnier11/go/utils/ssh"
 	"net"
 	"time"
 
@@ -12,10 +13,16 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func sendSSHCommand(ctx context.Context, config *config.HostConfig, command string) error {
-	sshClient, err := ssh.Dial("tcp", net.JoinHostPort(config.Ip, "22"), &ssh.ClientConfig{
-		User:            config.SSHUsername,
-		Auth:            []ssh.AuthMethod{ssh.Password(config.SSHPassword)},
+func sendSSHCommand(ctx context.Context, hostConfig *config.HostConfig, command string) error {
+	authMethod, err := sshUtils.GetSSHKeyAuth(config.Config.SSHKeyPath)
+
+	if err != nil {
+		return fmt.Errorf("failed to get ssh key auth: %v", err)
+	}
+
+	sshClient, err := ssh.Dial("tcp", net.JoinHostPort(hostConfig.Ip, hostConfig.SSHPort), &ssh.ClientConfig{
+		User:            hostConfig.SSHUsername,
+		Auth:            []ssh.AuthMethod{authMethod},
 		Timeout:         2 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	})

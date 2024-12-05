@@ -24,7 +24,7 @@ type HostConfig struct {
 	Ip           string         `yaml:"ip"`
 	MacAddress   string         `yaml:"macAddress"`
 	SSHUsername  string         `yaml:"sshUsername"`
-	SSHPassword  string         `yaml:"sshPassword"`
+	SSHPort      string         `yaml:"sshPort"`
 	Autostop     bool           `yaml:"autostop"`
 	MaxAliveTime int            `yaml:"maxAliveTime"`
 
