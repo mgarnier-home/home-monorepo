@@ -63,6 +63,10 @@ func (s *Server) Start() error {
 
 	router.Use(s.logRequestMiddleware)
 
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Go Proxy Server"))
+	})
+
 	controlRouter := router.PathPrefix("/control/{host}").Subrouter()
 	controlRouter.Use(s.getHostMiddleware)
 
@@ -125,6 +129,18 @@ func (s *Server) Start() error {
 		if host.Config.Autostop {
 			w.Write([]byte(fmt.Sprintf("Host %s autostop enabled", host.Config.Name)))
 		} else {
+			w.Write([]byte(fmt.Sprintf("Host %s autostop disabled", host.Config.Name)))
+		}
+	})
+
+	controlRouter.HandleFunc("/autostop-status", func(w http.ResponseWriter, r *http.Request) {
+		host := r.Context().Value(hostContextKey).(*host.Host)
+
+		if host.Config.Autostop {
+			w.WriteHeader(215)
+			w.Write([]byte(fmt.Sprintf("Host %s autostop enabled", host.Config.Name)))
+		} else {
+			w.WriteHeader(216)
 			w.Write([]byte(fmt.Sprintf("Host %s autostop disabled", host.Config.Name)))
 		}
 	})
