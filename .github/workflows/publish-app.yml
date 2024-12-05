@@ -4,15 +4,6 @@ run-name: '${{ inputs.app }} : ${{ inputs.version-upgrade }}'
 on:
   workflow_dispatch:
     inputs:
-      version-upgrade:
-        description: 'How to upgrade the version'
-        required: true
-        type: choice
-        options:
-          - 'false'
-          - 'patch'
-          - 'minor'
-          - 'major'
       app:
         description: 'Application to publish'
         required: true
@@ -30,6 +21,15 @@ on:
           - 'stats-api'
           - 'syslog-app'
           - 'traefik-conf'
+      version-upgrade:
+        description: 'How to upgrade the version'
+        required: true
+        type: choice
+        options:
+          - 'false'
+          - 'patch'
+          - 'minor'
+          - 'major'
 
 jobs:
   get-version:
