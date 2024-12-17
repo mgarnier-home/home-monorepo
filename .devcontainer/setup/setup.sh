@@ -92,21 +92,6 @@ setupGhActions() {
   git checkout dev
 }
 
-setupVideoTrack() {
-  video_track_dir=/mnt/dev/video-track
-
-  if [ ! -d $video_track_dir ]; then
-    echo "Cloning video-track"
-    git clone git@github.com:mgarnier11/video-track.git $video_track_dir
-  fi
-
-  git config --global --add safe.directory $video_track_dir
-
-  cd $video_track_dir
-
-  git checkout dev
-}
-
 setupBlindtestGen() {
   blindtest_gen_dir=/mnt/dev/blindtest-gen
 
@@ -140,7 +125,6 @@ setupBlindtestGen() {
 
 setupHomeMonorepo
 setupGhActions
-setupVideoTrack
 setupBlindtestGen
 
 bash /setup/get-workspace-file.sh "$(tr '\n' ' ' </setup/workspace.json)"
