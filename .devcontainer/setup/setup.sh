@@ -91,6 +91,32 @@ setupGhActions() {
   git checkout dev
 }
 
+setupVideoTrack() {
+  video_track_dir=/mnt/dev/video-track
+
+  if [ ! -d $video_track_dir ]; then
+    git clone git@github.com:mgarnier11/video-track.git
+  fi
+
+  git config --global --add safe.directory $video_track_dir
+
+  cd $video_track_dir
+
+  git checkout dev
+}
+
+setupBlindtestGen() {
+  blindtest_gen_dir=/mnt/dev/blindtest-gen
+
+  if [ ! -d $blindtest_gen_dir ]; then
+    git clone git@github.com:mgarnier11/blindtest-gen.git
+  fi
+
+  git config --global --add safe.directory $blindtest_gen_dir
+}
+
+
+
 # setupTerraformModules() {
 #   TERRAFORM_MODULES_DIR=/mnt/dev/terraform-modules
 
@@ -113,6 +139,8 @@ setupGhActions() {
 
 setupHomeMonorepo
 setupGhActions
+setupVideoTrack
+setupBlindtestGen
 
 bash /setup/get-workspace-file.sh "$(tr '\n' ' ' </setup/workspace.json)"
 
