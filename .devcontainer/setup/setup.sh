@@ -81,6 +81,7 @@ setupGhActions() {
   gh_actions_dir=/mnt/dev/gh-actions
 
   if [ ! -d $gh_actions_dir ]; then
+    echo "Cloning gh-actions"
     git clone git@github.com:mgarnier11/gh-actions.git $gh_actions_dir
   fi
 
@@ -95,7 +96,8 @@ setupVideoTrack() {
   video_track_dir=/mnt/dev/video-track
 
   if [ ! -d $video_track_dir ]; then
-    git clone git@github.com:mgarnier11/video-track.git
+    echo "Cloning video-track"
+    git clone git@github.com:mgarnier11/video-track.git $video_track_dir
   fi
 
   git config --global --add safe.directory $video_track_dir
@@ -109,13 +111,12 @@ setupBlindtestGen() {
   blindtest_gen_dir=/mnt/dev/blindtest-gen
 
   if [ ! -d $blindtest_gen_dir ]; then
-    git clone git@github.com:mgarnier11/blindtest-gen.git
+    echo "Cloning blindtest-gen"
+    git clone git@github.com:mgarnier11/blindtest-gen.git $blindtest_gen_dir
   fi
 
   git config --global --add safe.directory $blindtest_gen_dir
 }
-
-
 
 # setupTerraformModules() {
 #   TERRAFORM_MODULES_DIR=/mnt/dev/terraform-modules
