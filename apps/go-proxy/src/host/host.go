@@ -220,6 +220,8 @@ func (host *Host) StopHost() {
 		}
 	}()
 
+	ntfy.SendNotification("Proxy", fmt.Sprintf("Stopping host %s", host.Config.Name), "")
+
 	hostStopped := hostState.WaitForState(&host.State, hostState.Stopped, 20*time.Second)
 
 	if !hostStopped {
