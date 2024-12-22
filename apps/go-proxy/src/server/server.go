@@ -73,7 +73,7 @@ func (s *Server) Start() error {
 	controlRouter.HandleFunc("/start", func(w http.ResponseWriter, r *http.Request) {
 		host := r.Context().Value(hostContextKey).(*host.Host)
 
-		host.StartHost()
+		host.StartHost("Api")
 
 		if host.State == hostState.Started {
 			w.Write([]byte(fmt.Sprintf("Host %s has successfully started", host.Config.Name)))
@@ -100,7 +100,7 @@ func (s *Server) Start() error {
 		if host.State == hostState.Started {
 			host.StopHost()
 		} else if host.State == hostState.Stopped {
-			host.StartHost()
+			host.StartHost("Api")
 		}
 
 		if host.State == hostState.Started {

@@ -9,6 +9,7 @@ import (
 	"mgarnier11/go-proxy/proxies"
 	"mgarnier11/go/colors"
 	"mgarnier11/go/logger"
+	"mgarnier11/go/ntfy"
 	"slices"
 	"strings"
 	"sync"
@@ -56,7 +57,7 @@ func NewHost(hostConfig *config.HostConfig) *Host {
 
 	go host.setupHostLoop()
 
-	host.StartHost()
+	host.StartHost("Starting proxy")
 	host.LastPacketDate = time.Now()
 
 	return host
@@ -173,7 +174,7 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 	}
 }
 
-func (host *Host) StartHost() error {
+func (host *Host) StartHost(proxyName string) error {
 	if host.State != hostState.Stopped {
 		host.logger.Infof("Cannot start host, state is not stopped : %s", host.State.String())
 		return nil
@@ -187,6 +188,8 @@ func (host *Host) StartHost() error {
 	} else {
 		return fmt.Errorf("failed to send magic packet: %v", err)
 	}
+
+	ntfy.SendNotification("Proxy", fmt.Sprintf("Starting host %s\nRequest coming from %s", host.Config.Name, proxyName), "")
 
 	hostStarted := hostState.WaitForState(&host.State, hostState.Started, 20*time.Second)
 

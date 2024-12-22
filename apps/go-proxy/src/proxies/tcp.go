@@ -21,7 +21,7 @@ type TCPProxy struct {
 	Name           string
 	ListenAddr     *net.TCPAddr
 	ServerAddr     *net.TCPAddr
-	StartHost      func() error
+	StartHost      func(proxyName string) error
 	PacketReceived func(proxyName string)
 
 	logger *logger.Logger
@@ -36,7 +36,7 @@ type TCPProxyArgs struct {
 	HostIp         string
 	ProxyConfig    *config.ProxyConfig
 	HostState      *hostState.State
-	StartHost      func() error
+	StartHost      func(proxyName string) error
 	PacketReceived func(proxyName string)
 }
 
@@ -146,7 +146,7 @@ func (proxy *TCPProxy) shouldForwardProxy(peekBuffer []byte) (bool, error) {
 			proxy.logger.Debugf("Not an HTTP request")
 		}
 
-		err := proxy.StartHost()
+		err := proxy.StartHost(proxy.Name)
 
 		if err != nil {
 			return false, fmt.Errorf("failed to start host: %v", err)
