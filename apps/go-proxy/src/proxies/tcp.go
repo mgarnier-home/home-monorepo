@@ -1,7 +1,6 @@
 package proxies
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -128,26 +127,17 @@ func (proxy *TCPProxy) Stop() {
 	proxy.wg.Wait()
 }
 
-func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error) {
+func (proxy *TCPProxy) shouldForwardProxy(peekBuffer []byte) (bool, error) {
 	proxy.logger.Debugf("Checking if proxy should be forwarded, state: %s", proxy.hostState.String())
 
 	if *proxy.hostState == hostState.Stopped || *proxy.hostState == hostState.Stopping {
 		proxy.logger.Debugf("Host is stopped or stopping")
-		reader := bufio.NewReader(clientConn)
-		peek, err := reader.Peek(utils.Min(1024, reader.Buffered()))
 
-		if err != nil && err != io.EOF {
-			return false, fmt.Errorf("failed to peek data: %v", err)
-		}
-
-		if utils.IsHTTPRequest(peek) {
-			request := string(peek)
-
-			proxy.logger.Debugf("Request: %s", request)
+		if utils.IsHTTPRequest(peekBuffer) {
+			request := string(peekBuffer)
 
 			if utils.CheckRequestHeader(request, "Status", "true") {
 				proxy.logger.Debugf("Status request")
-				clientConn.Close()
 				return false, nil
 			} else {
 				proxy.logger.Debugf("Not a status request")
@@ -156,7 +146,7 @@ func (proxy *TCPProxy) shouldForwardProxy(clientConn *net.TCPConn) (bool, error)
 			proxy.logger.Debugf("Not an HTTP request")
 		}
 
-		err = proxy.StartHost()
+		err := proxy.StartHost()
 
 		if err != nil {
 			return false, fmt.Errorf("failed to start host: %v", err)
@@ -176,8 +166,18 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 	defer proxy.wg.Done()
 	defer clientConn.Close()
 
-	// Détermine si le proxy doit être redirigé vers la cible (host démarré + requete pas une requete de status)
-	forwardProxy, err := proxy.shouldForwardProxy(clientConn)
+	peekBuffer := make([]byte, 512)
+	bytesRead, err := clientConn.Read(peekBuffer)
+
+	if err != nil {
+		proxy.logger.Errorf("Failed to read data from client: %v", err)
+		return
+	}
+
+	proxy.logger.Verbosef("Read %d bytes from client", bytesRead)
+
+	peekBuffer = peekBuffer[:bytesRead]
+	forwardProxy, err := proxy.shouldForwardProxy(peekBuffer)
 
 	if err != nil {
 		proxy.logger.Errorf("Failed to determine if proxy should be forwarded: %v", err)
@@ -197,7 +197,15 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 		proxy.logger.Errorf("Failed to connect to server: %v", err)
 		return
 	}
+	proxy.logger.Debugf("Connected to server %s", proxy.ServerAddr)
 	defer serverConn.Close()
+
+	_, err = serverConn.Write(peekBuffer)
+	if err != nil {
+		proxy.logger.Errorf("Error writing peek buffer to server: %v", err)
+	}
+
+	proxy.logger.Debugf("Wrote peek buffer to server")
 
 	// Fonction qui va être appelée à chaque fois que des données sont transférées du client vers le serveur
 	onClientToServer := func(bytesTransferred int) {

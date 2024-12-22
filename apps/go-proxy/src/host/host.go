@@ -86,9 +86,9 @@ func (host *Host) setupHostLoop() {
 			host.updateState()
 		case <-dockerTicker.C:
 
-			proxies := host.Config.Proxies
-
 			if host.State == hostState.Started {
+				proxies := host.Config.Proxies
+
 				host.logger.Infof("Getting proxies from docker")
 
 				dockerProxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
@@ -98,10 +98,9 @@ func (host *Host) setupHostLoop() {
 				}
 
 				proxies = append(proxies, dockerProxies...)
+
+				host.setupProxies(proxies)
 			}
-
-			host.setupProxies(proxies)
-
 		case <-inactivityTicker.C:
 			timeout := time.Duration(host.Config.MaxAliveTime) * time.Minute
 			if host.Config.Autostop {

@@ -37,6 +37,7 @@ func (cw *CustomWriter) Write(p []byte) (int, error) {
 }
 
 func IsHTTPRequest(data []byte) bool {
+
 	return bytes.Contains(data, []byte("HTTP"))
 }
 
