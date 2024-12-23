@@ -188,6 +188,7 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 		proxy.logger.Verbosef("Proxy not forwarded to server, status request")
 		return
 	}
+	proxy.PacketReceived(proxy.Name)
 
 	proxy.logger.Infof("Proxy forwarded to server %s", proxy.ServerAddr)
 
