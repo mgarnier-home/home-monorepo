@@ -2,6 +2,7 @@ package ntfy
 
 import (
 	"bytes"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"mgarnier11/go/utils"
@@ -34,7 +35,13 @@ func SendNotification(title, message, tags string) error {
 	req.Header.Set("Title", titleWithTime)
 	req.Header.Set("Tags", tags)
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error while sending a NTFY notification, url: %s, error: %w, ", ntfyUrl, err)
