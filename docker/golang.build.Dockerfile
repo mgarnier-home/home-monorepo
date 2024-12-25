@@ -13,5 +13,8 @@ COPY apps/$APP ./apps/$APP
 COPY libs/go ./libs/go
 COPY taskfile.yml .
 
-RUN task ${APP}:build && cp -r apps/$APP/dist /dist
+RUN \ 
+  task ${APP}:build && \
+  cp -r apps/$APP/dist /dist && \
+  echo $VERSION > /dist/version.txt
 
