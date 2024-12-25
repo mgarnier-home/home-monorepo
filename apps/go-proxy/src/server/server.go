@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"mgarnier11/go/logger"
+	"mgarnier11/go/version"
 )
 
 type contextKey string
@@ -62,6 +63,8 @@ func (s *Server) Start() error {
 	router := mux.NewRouter()
 
 	router.Use(s.logRequestMiddleware)
+
+	version.SetupVersionRoute(router)
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Go Proxy Server"))

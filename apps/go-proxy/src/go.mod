@@ -15,6 +15,7 @@ require (
 	mgarnier11/go/logger v0.0.0-00010101000000-000000000000
 	mgarnier11/go/utils v0.0.0-00010101000000-000000000000
 	mgarnier11/go/ntfy v0.0.0-00010101000000-000000000000
+	mgarnier11/go/version v0.0.0-00010101000000-000000000000
 
 )
 
@@ -63,3 +64,4 @@ replace mgarnier11/go/logger => ../../../libs/go/logger
 replace mgarnier11/go/colors => ../../../libs/go/colors
 replace mgarnier11/go/dockerssh => ../../../libs/go/dockerssh
 replace mgarnier11/go/ntfy => ../../../libs/go/ntfy
+replace mgarnier11/go/version => ../../../libs/go/version

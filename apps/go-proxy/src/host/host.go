@@ -192,7 +192,7 @@ func (host *Host) StartHost(proxyName string) error {
 	err := ntfy.SendNotification("Proxy", fmt.Sprintf("Starting host %s\nRequest coming from %s", host.Config.Name, proxyName), "")
 
 	if err != nil {
-		host.logger.Errorf("failed to send notification: %v", err)
+		host.logger.Warnf("failed to send notification: %v", err)
 	}
 
 	hostStarted := hostState.WaitForState(&host.State, hostState.Started, 20*time.Second)
@@ -227,7 +227,7 @@ func (host *Host) StopHost() {
 	err := ntfy.SendNotification("Proxy", fmt.Sprintf("Stopping host %s", host.Config.Name), "")
 
 	if err != nil {
-		host.logger.Errorf("failed to send notification: %v", err)
+		host.logger.Warnf("failed to send notification: %v", err)
 	}
 
 	hostStopped := hostState.WaitForState(&host.State, hostState.Stopped, 20*time.Second)
