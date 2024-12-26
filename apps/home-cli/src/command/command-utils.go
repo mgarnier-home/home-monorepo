@@ -6,6 +6,7 @@ import (
 	"io"
 	"mgarnier11/home-cli/compose"
 	"mgarnier11/home-cli/utils"
+	"os"
 	"os/exec"
 	"slices"
 	"strings"
@@ -88,15 +89,26 @@ func ExecCommand(stacks []string, hosts []string, action string, args []string) 
 func getComposeCommandArgs(command *CliCommand) []string {
 	args := []string{
 		"compose",
-		"--env-file",
+	}
+
+	envFiles := []string{
 		"env.env",
-		"--env-file",
 		"ports.env",
-		"--env-file",
 		"ssh.env",
+		fmt.Sprintf("%s/%s.env", command.stack, command.stack),
+		fmt.Sprintf("%s/.env", command.stack),
+	}
+
+	for _, envFile := range envFiles {
+		if _, err := os.Stat(fmt.Sprintf("%s/%s", utils.GetEnvVariable(utils.ComposeDir), envFile)); err == nil {
+			args = append(args, "--env-file", envFile)
+		}
+	}
+
+	args = append(args,
 		"-f",
 		fmt.Sprintf("%s/%s.%s.yml", command.stack, command.host, command.stack),
-	}
+	)
 
 	if command.action == "up" {
 		args = append(args, "up", "-d", "--pull", "always")
