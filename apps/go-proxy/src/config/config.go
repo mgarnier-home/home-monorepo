@@ -88,7 +88,7 @@ func parseConfigFile(rawFile []byte) *AppConfigFile {
 
 	for _, hostConfig := range config.ProxyHosts {
 		for _, proxyConfig := range hostConfig.Proxies {
-			proxyConfig.Key = fmt.Sprintf("%s:%d", hostConfig.Name, proxyConfig.ListenPort)
+			proxyConfig.Key = fmt.Sprintf("%s:%d", proxyConfig.Name, proxyConfig.ListenPort)
 		}
 	}
 
