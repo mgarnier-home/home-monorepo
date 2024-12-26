@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"mgarnier11/go/logger"
 	"mgarnier11/go/utils"
 	"os"
@@ -16,6 +17,7 @@ type ProxyConfig struct {
 	ServerPort int    `yaml:"serverPort"`
 	Protocol   string `yaml:"protocol"`
 	Name       string `yaml:"name"`
+	Key        string
 }
 
 type HostConfig struct {
@@ -82,6 +84,12 @@ func parseConfigFile(rawFile []byte) *AppConfigFile {
 
 	if err != nil {
 		panic(err)
+	}
+
+	for _, hostConfig := range config.ProxyHosts {
+		for _, proxyConfig := range hostConfig.Proxies {
+			proxyConfig.Key = fmt.Sprintf("%s:%d", hostConfig.Name, proxyConfig.ListenPort)
+		}
 	}
 
 	return config

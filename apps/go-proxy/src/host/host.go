@@ -146,23 +146,23 @@ func (host *Host) updateState() {
 }
 
 func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
-	for name := range host.Proxies {
+	for key := range host.Proxies {
 		exists := slices.ContainsFunc(proxyConfigs, func(proxy *config.ProxyConfig) bool {
-			return proxy.Name == name
+			return proxy.Key == key
 		})
 
 		if !exists {
-			host.DisposeProxy(name)
+			host.DisposeProxy(key)
 		}
 	}
 
 	for _, proxyConfig := range proxyConfigs {
-		if host.Proxies[proxyConfig.Name] != nil {
-			host.logger.Debugf("%s already exists", proxyConfig.Name)
+		if host.Proxies[proxyConfig.Key] != nil {
+			host.logger.Debugf("%s already exists", proxyConfig.Key)
 			continue
 		}
 
-		host.Proxies[proxyConfig.Name] = proxies.NewTCPProxy(&proxies.TCPProxyArgs{
+		host.Proxies[proxyConfig.Key] = proxies.NewTCPProxy(&proxies.TCPProxyArgs{
 			HostIp:         host.Config.Ip,
 			ProxyConfig:    proxyConfig,
 			HostState:      &host.State,
@@ -170,7 +170,7 @@ func (host *Host) setupProxies(proxyConfigs []*config.ProxyConfig) {
 			PacketReceived: host.PacketReceived,
 		}, host.logger)
 
-		go host.Proxies[proxyConfig.Name].Start(&host.waitGroup)
+		go host.Proxies[proxyConfig.Key].Start(&host.waitGroup)
 	}
 }
 

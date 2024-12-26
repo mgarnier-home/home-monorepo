@@ -37,6 +37,7 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 		ServerPort: port,
 		Protocol:   "tcp",
 		Name:       containerName,
+		Key:        fmt.Sprintf("%s:%d", containerName, port),
 	}
 
 	return proxyConfig, nil

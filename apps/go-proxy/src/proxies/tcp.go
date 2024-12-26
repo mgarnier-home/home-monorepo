@@ -43,7 +43,7 @@ type TCPProxyArgs struct {
 func NewTCPProxy(args *TCPProxyArgs, hostLogger *logger.Logger) *TCPProxy {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	logger := logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Name)), "%-15s ", lipgloss.NewStyle().Foreground(lipgloss.Color(colors.GenerateHexColor(args.ProxyConfig.Name))), hostLogger)
+	logger := logger.NewLogger(fmt.Sprintf("[%s]", strings.ToUpper(args.ProxyConfig.Key)), "%-15s ", lipgloss.NewStyle().Foreground(lipgloss.Color(colors.GenerateHexColor(args.ProxyConfig.Name))), hostLogger)
 
 	listenAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", "0.0.0.0", args.ProxyConfig.ListenPort))
 	if err != nil {
