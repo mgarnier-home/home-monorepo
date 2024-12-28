@@ -10,6 +10,15 @@ interface DockerContainer {
   infos: Dockerode.ContainerInfo;
 }
 const getDockerApi = (host: DockerHost): Dockerode => {
+  console.log('options: ', {
+    protocol: 'ssh',
+    host: host.ip,
+    port: host.sshPort,
+    username: config.sshUser,
+    sshOptions: {
+      privateKey: config.sshPrivateKey,
+    },
+  });
   return new Dockerode({
     protocol: 'ssh',
     host: host.ip,
