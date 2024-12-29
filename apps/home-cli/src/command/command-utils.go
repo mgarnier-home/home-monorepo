@@ -86,24 +86,45 @@ func ExecCommand(stacks []string, hosts []string, action string, args []string) 
 	}
 }
 
+func getEnvFiles(command *CliCommand) []string {
+	stacksDir := utils.GetEnvVariable(utils.ComposeDir)
+	files, err := os.ReadDir(stacksDir)
+
+	if err != nil {
+		panic(err)
+	}
+
+	envFiles := []string{}
+
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".env") {
+			envFiles = append(envFiles, file.Name())
+		}
+	}
+
+	stackEnvFiles := []string{
+		fmt.Sprintf("%s/%s.env", stacksDir, command.stack),
+		fmt.Sprintf("%s/.env", stacksDir),
+	}
+
+	for _, envFile := range stackEnvFiles {
+		if _, err := os.Stat(fmt.Sprintf("%s/%s", stacksDir, envFile)); err == nil {
+			envFiles = append(envFiles, envFile)
+		}
+	}
+
+	return envFiles
+}
+
 func getComposeCommandArgs(command *CliCommand) []string {
 	args := []string{
 		"compose",
 	}
 
-	envFiles := []string{
-		"env.env",
-		"ports.env",
-		"ssh.env",
-		"versions.env",
-		fmt.Sprintf("%s/%s.env", command.stack, command.stack),
-		fmt.Sprintf("%s/.env", command.stack),
-	}
+	envFiles := getEnvFiles(command)
 
 	for _, envFile := range envFiles {
-		if _, err := os.Stat(fmt.Sprintf("%s/%s", utils.GetEnvVariable(utils.ComposeDir), envFile)); err == nil {
-			args = append(args, "--env-file", envFile)
-		}
+		args = append(args, "--env-file", envFile)
 	}
 
 	args = append(args,
