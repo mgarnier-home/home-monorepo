@@ -12,7 +12,6 @@
     "ecmel.vscode-html-css",
     "christian-kohler.npm-intellisense",
     "christian-kohler.path-intellisense",
-    "mike-co.import-sorter",
     "medo64.render-crlf",
     "usernamehw.errorlens",
     "formulahendry.auto-rename-tag",
@@ -23,8 +22,6 @@
     "mhutchie.git-graph",
     "donjayamanne.githistory",
     "ms-azuretools.vscode-docker",
-    "formulahendry.docker-explorer",
-    "formulahendry.code-runner",
     "GitHub.vscode-pull-request-github",
     "aaron-bond.better-comments",
     "pranaygp.vscode-css-peek",
@@ -36,7 +33,6 @@
     "bradlc.vscode-tailwindcss",
     "angular.ng-template",
     "golang.go",
-    "hashicorp.terraform",
     "task.vscode-task"
   ]
 }
