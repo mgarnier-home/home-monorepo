@@ -103,8 +103,8 @@ func getEnvFiles(command *CliCommand) []string {
 	}
 
 	stackEnvFiles := []string{
-		fmt.Sprintf("%s/%s.env", stacksDir, command.stack),
-		fmt.Sprintf("%s/.env", stacksDir),
+		fmt.Sprintf("%s/%s.env", command.stack, command.stack),
+		fmt.Sprintf("%s/.env", command.stack),
 	}
 
 	for _, envFile := range stackEnvFiles {
