@@ -146,6 +146,7 @@ func (proxy *TCPProxy) shouldForwardProxy(peekBuffer []byte) (bool, error) {
 			proxy.logger.Debugf("Not an HTTP request")
 		}
 
+		proxy.PacketReceived(proxy.Name)
 		err := proxy.StartHost(proxy.Name)
 
 		if err != nil {
@@ -188,7 +189,6 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 		proxy.logger.Verbosef("Proxy not forwarded to server, status request")
 		return
 	}
-	proxy.PacketReceived(proxy.Name)
 
 	proxy.logger.Infof("Proxy forwarded to server %s", proxy.ServerAddr)
 
@@ -211,11 +211,6 @@ func (proxy *TCPProxy) handleTCPConnection(clientConn *net.TCPConn) {
 	// Fonction qui va être appelée à chaque fois que des données sont transférées du client vers le serveur
 	onClientToServer := func(bytesTransferred int) {
 		proxy.logger.Verbosef("ClientToServer: %d bytes", bytesTransferred)
-
-		if proxy.PacketReceived == nil {
-			proxy.logger.Errorf("PacketReceived function not set")
-			return
-		}
 
 		proxy.PacketReceived(proxy.Name)
 	}
