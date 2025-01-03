@@ -87,29 +87,24 @@ func ExecCommand(stacks []string, hosts []string, action string, args []string) 
 }
 
 func getEnvFiles(command *CliCommand) []string {
-	stacksDir := utils.GetEnvVariable(utils.ComposeDir)
-	files, err := os.ReadDir(stacksDir)
-
+	composeDir := utils.GetEnvVariable(utils.ComposeDir)
+	globalEnvFiles, err := os.ReadDir(composeDir)
 	if err != nil {
 		panic(err)
 	}
+
+	stackEnvFiles, err := os.ReadDir(fmt.Sprintf("%s/%s", composeDir, command.stack))
+	if err != nil {
+		panic(err)
+	}
+
+	files := append(globalEnvFiles, stackEnvFiles...)
 
 	envFiles := []string{}
 
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".env") {
 			envFiles = append(envFiles, file.Name())
-		}
-	}
-
-	stackEnvFiles := []string{
-		fmt.Sprintf("%s/%s.env", command.stack, command.stack),
-		fmt.Sprintf("%s/.env", command.stack),
-	}
-
-	for _, envFile := range stackEnvFiles {
-		if _, err := os.Stat(fmt.Sprintf("%s/%s", stacksDir, envFile)); err == nil {
-			envFiles = append(envFiles, envFile)
 		}
 	}
 
