@@ -3,7 +3,7 @@ version: "3"
 
 tasks:
   build:
-    dir: ./src
+    dir: ./back
     cmds:
       - go build -o ../dist/mineager-back
 

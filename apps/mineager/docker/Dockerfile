@@ -6,6 +6,9 @@ FROM alpine AS runtime
 WORKDIR /dist
 
 COPY --from=build-backend /dist .
-COPY --from=build-frontend /dist/app .
+COPY --from=build-frontend /dist/front .
 
-CMD ["/dist/go-proxy"]
+ENV FRONTEND_PATH=/dist/browser
+ENV SERVER_PORT=8080
+
+CMD ["/dist/mineager-back"]

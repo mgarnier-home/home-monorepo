@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/hex"
 	"io"
 	"strings"
 )
@@ -21,6 +22,16 @@ func GenerateRandomData(size int) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func GenerateRandomString(size int) (string, error) {
+	data, err := GenerateRandomData(size / 2)
+
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(data), nil
 }
 
 type CustomWriter struct {

@@ -75,11 +75,10 @@ if [[ -f "apps/$APP_NAME/package.json" ]]; then
 fi
 if [[ -f "apps/$APP_NAME/taskfile.yml" ]]; then
   echo "Golang app detected"
-  docker build -t build-go-app -f docker/go.build.Dockerfile "${BUILD_IMAGE_ARGS[@]}"
+  docker build -t build-go-app -f docker/golang.build.Dockerfile "${BUILD_IMAGE_ARGS[@]}"
 fi
 
-docker build "${BUILD_IMAGE_ARGS[@]}"
-echo "Built new build image for $APP_NAME"
+echo "Built new build images for $APP_NAME"
 
 docker build "${RUNTIME_IMAGE_ARGS[@]}"
 echo "Built new runtime image for $APP_NAME"
