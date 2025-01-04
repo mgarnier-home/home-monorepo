@@ -86,29 +86,40 @@ func ExecCommand(stacks []string, hosts []string, action string, args []string) 
 	}
 }
 
-func getEnvFiles(command *CliCommand) []string {
-	composeDir := utils.GetEnvVariable(utils.ComposeDir)
-	globalEnvFiles, err := os.ReadDir(composeDir)
+func getEnvFilesPaths(composeDir string, stack string) []string {
+	dir := ""
+	if stack != "" {
+		dir = fmt.Sprintf("%s/%s", composeDir, stack)
+	} else {
+		dir = composeDir
+	}
+
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		panic(err)
 	}
-
-	stackEnvFiles, err := os.ReadDir(fmt.Sprintf("%s/%s", composeDir, command.stack))
-	if err != nil {
-		panic(err)
-	}
-
-	files := append(globalEnvFiles, stackEnvFiles...)
 
 	envFiles := []string{}
 
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".env") {
-			envFiles = append(envFiles, file.Name())
+			if stack != "" {
+				envFiles = append(envFiles, fmt.Sprintf("%s/%s", stack, file.Name()))
+			} else {
+				envFiles = append(envFiles, file.Name())
+			}
 		}
 	}
 
 	return envFiles
+}
+
+func getEnvFiles(command *CliCommand) []string {
+	composeDir := utils.GetEnvVariable(utils.ComposeDir)
+	globalEnvFiles := getEnvFilesPaths(composeDir, "")
+	stackEnvFiles := getEnvFilesPaths(composeDir, command.stack)
+
+	return append(globalEnvFiles, stackEnvFiles...)
 }
 
 func getComposeCommandArgs(command *CliCommand) []string {
