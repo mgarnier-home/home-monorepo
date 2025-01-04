@@ -1,4 +1,4 @@
-FROM build AS build
+FROM build-node-app AS build
 
 FROM nvidia/cuda:12.2.0-base-ubuntu20.04 AS deps-amd64-nvidia
 

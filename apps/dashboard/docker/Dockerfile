@@ -1,4 +1,4 @@
-FROM build AS build
+FROM build-node-app AS build
 
 FROM node:20-alpine AS runtime
 

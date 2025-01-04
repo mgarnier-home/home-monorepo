@@ -1,4 +1,4 @@
-FROM build AS build
+FROM build-go-app AS build
 
 
 FROM scratch AS runtime

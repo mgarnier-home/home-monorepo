@@ -13,6 +13,10 @@ includes:
     taskfile: ./apps/home-cli/taskfile.yml
     dir: ./apps/home-cli
     optional: true
+  mineager:
+    taskfile: ./apps/mineager/taskfile.yml
+    dir: ./apps/mineager
+    optional: true
 # tasks:
 #   build-test-proxy:
 #     dir: tests/test-proxy

@@ -51,19 +51,13 @@ fi
 
 echo "Building app : $APP_NAME version : $VERSION tag : $TAG"
 
-docker rmi build || true
-echo "Deleted build image"
+docker rmi build-node-app || true
+docker rmi build-go-app || true
+echo "Deleted build images"
 
-BUILD_IMAGE_ARGS=("-t" "build" "--build-arg" "APP=$APP_NAME" "--build-arg" "VERSION=$VERSION" ".")
+BUILD_IMAGE_ARGS=("--build-arg" "APP=$APP_NAME" "--build-arg" "VERSION=$VERSION" ".")
 RUNTIME_IMAGE_ARGS=("-t" "mgarnier11/$APP_NAME:$TAG" "-f" "apps/$APP_NAME/docker/Dockerfile" ".")
 
-if [[ -f "apps/$APP_NAME/package.json" ]]; then
-  echo "Node app detected"
-  BUILD_IMAGE_ARGS=("-f" "docker/node.build.Dockerfile" "${BUILD_IMAGE_ARGS[@]}")
-elif [[ -f "apps/$APP_NAME/src/go.mod" ]]; then
-  echo "Golang app detected"
-  BUILD_IMAGE_ARGS=("-f" "docker/golang.build.Dockerfile" "${BUILD_IMAGE_ARGS[@]}")
-fi
 
 if [[ "$USE_CACHE" == "false" ]]; then
   BUILD_IMAGE_ARGS=("--no-cache" "${BUILD_IMAGE_ARGS[@]}")
@@ -75,11 +69,21 @@ if [[ "$PROGRESS" == "true" ]]; then
   RUNTIME_IMAGE_ARGS=("--progress" "plain" "${RUNTIME_IMAGE_ARGS[@]}")
 fi
 
+if [[ -f "apps/$APP_NAME/package.json" ]]; then
+  echo "Node app detected"
+  docker build -t build-node-app -f docker/node.build.Dockerfile "${BUILD_IMAGE_ARGS[@]}"
+fi
+if [[ -f "apps/$APP_NAME/taskfile.yml" ]]; then
+  echo "Golang app detected"
+  docker build -t build-go-app -f docker/go.build.Dockerfile "${BUILD_IMAGE_ARGS[@]}"
+fi
+
 docker build "${BUILD_IMAGE_ARGS[@]}"
 echo "Built new build image for $APP_NAME"
 
 docker build "${RUNTIME_IMAGE_ARGS[@]}"
 echo "Built new runtime image for $APP_NAME"
 
-docker rmi build
-echo "Cleaned up build image"
+docker rmi build-node-app || true
+docker rmi build-go-app || true
+echo "Cleaned up build images"

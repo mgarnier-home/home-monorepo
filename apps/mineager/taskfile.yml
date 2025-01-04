@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    dir: ./src
+    cmds:
+      - go build -o ../dist/mineager-back
+
+  start:
+    cmds:
+      - task build
+      - ENV_FILE_PATH=../../.env ./dist/mineager-back

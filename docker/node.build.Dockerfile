@@ -23,3 +23,5 @@ RUN pnpm run --filter=$APP build
 RUN cp -r apps/$APP/dist /dist
 
 RUN echo $VERSION > /dist/version.txt
+
+RUN ls -la /dist
