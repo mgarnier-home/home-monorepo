@@ -1,18 +1,18 @@
 import ping from 'ping';
 
 import { logger } from '@libs/logger';
-import { Utils } from '@libs/utils';
+import { SimpleCache, Utils } from '@libs/utils';
 
-import type { App } from '@shared/interfaces/app';
-import type { MakeRequestResponse } from '@shared/interfaces/utils';
-export const pingHost = async (host: App.Setup.Host): Promise<App.Ping> => {
+const requestsCache = new SimpleCache<{ code: number; data: any }>(30);
+
+export const pingHost = async (hostIp: string) => {
   const startTime = Date.now();
 
-  const pingResult = await ping.promise.probe(host.ip, { timeout: 3 });
+  const pingResult = await ping.promise.probe(hostIp, { timeout: 3 });
 
   const duration = Date.now() - startTime;
 
-  logger.info(`Pinged host ${host.ip} in ${duration}ms, got ${pingResult.alive}: ${pingResult.time}ms`);
+  logger.info(`Pinged host ${hostIp} in ${duration}ms, got ${pingResult.alive}: ${pingResult.time}ms`);
 
   const ms = Math.floor(Number(pingResult.time));
 
@@ -22,48 +22,49 @@ export const pingHost = async (host: App.Setup.Host): Promise<App.Ping> => {
 export const makeRequest = async <Data>(
   url: string,
   method: string,
-  body?: string
-): Promise<MakeRequestResponse<Data>> => {
-  // const cached = requestsCache.get(url);
+  body?: string,
+  useCache = true
+): Promise<{ code: number; duration: number; data: Data }> => {
+  const cached = useCache ? requestsCache.get(url) : null;
 
   const startTime = Date.now();
 
   let code = 0;
   let data = undefined;
 
-  // if (!cached) {
-  try {
-    const response = await Utils.fetchWithTimeout(url, 10000, {
-      method: method,
-      headers: {
-        Status: 'true',
-      },
-      body: body,
-    });
-
-    data = await response.text();
-
+  if (!cached) {
     try {
-      data = JSON.parse(data);
-    } catch (error) {}
+      const response = await Utils.fetchWithTimeout(url, 10000, {
+        method: method,
+        headers: {
+          Status: 'true',
+        },
+        body: body,
+      });
 
-    code = response.status;
-  } catch (error) {
-    logger.error(error);
+      data = await response.text();
 
-    code = 500;
+      try {
+        data = JSON.parse(data);
+      } catch (error) {}
+
+      code = response.status;
+    } catch (error) {
+      logger.error(error);
+
+      code = 500;
+    }
+  } else {
+    code = cached.code;
+    data = cached.data;
+    logger.info(`[MakeRequest] using cached response for ${url}`);
   }
-  // } else {
-  //   code = cached.code;
-  //   data = cached.data;
-  //   log(`[MakeRequest] using cached response for ${url}`);
-  // }
 
   const duration = Date.now() - startTime;
 
   logger.info(`Request to ${method} ${url} in ${duration}ms, got ${code}`);
 
-  // requestsCache.set(url, { code, data });
+  requestsCache.set(url, { code, data });
 
   return { code, duration, data };
 };

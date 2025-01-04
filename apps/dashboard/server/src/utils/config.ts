@@ -1,18 +1,9 @@
 import dotenv from 'dotenv';
-import fs from 'node:fs';
 import path from 'node:path';
 
 import type { ServerConfig } from '../interfaces/serverConfig';
 
 dotenv.config();
-
-const configFilePath = process.env.CONFIG_FILE || path.resolve(__dirname, '../../config.json');
-
-const loadConfigFromFile = (): ServerConfig => {
-  const config = fs.readFileSync(configFilePath, 'utf-8');
-
-  return JSON.parse(config) as ServerConfig;
-};
 
 const resolvePath = (pathToResolve: string): string => {
   return pathToResolve.startsWith('/') ? pathToResolve : path.resolve(__dirname, '../', pathToResolve);
@@ -21,7 +12,7 @@ const resolvePath = (pathToResolve: string): string => {
 const loadConfigFromEnv = (): ServerConfig => {
   const config: ServerConfig = {
     appDistPath: resolvePath(process.env.APP_DIST_PATH || './app/browser'),
-    appSetupPath: resolvePath(process.env.APP_SETUP_PATH || 'setup.yml'),
+    configFilePath: resolvePath(process.env.CONFIG_FILE_PATH || 'setup.yml'),
     iconsPath: resolvePath(process.env.ICONS_PATH || './icons'),
     serverPort: Number(process.env.SERVER_PORT) || 3000,
   };
@@ -29,4 +20,4 @@ const loadConfigFromEnv = (): ServerConfig => {
   return config;
 };
 
-export const config = (process.env.CONFIG_FILE ? loadConfigFromFile() : loadConfigFromEnv()) as ServerConfig;
+export const config = loadConfigFromEnv();

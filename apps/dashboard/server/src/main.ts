@@ -1,13 +1,17 @@
 import express from 'express';
-import fs from 'fs';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 
 import { setVersionEndpoint } from '@libs/api-version';
 import { logger } from '@libs/logger';
-import { DEFAULT_ROOM } from '@shared/interfaces/socket';
+// import { DEFAULT_ROOM } from '@shared/interfaces/socket';
 
 // import { state } from './state.class';
+import { configSchema } from '@shared/schemas/config.schema';
+import { socketEvents } from '@shared/socketEvents.enum';
+import { readFileSync } from 'fs';
+import YAML from 'yaml';
+import { z } from 'zod';
 import { config } from './utils/config';
 
 logger.setAppName('dashboard-server');
@@ -51,17 +55,19 @@ httpServer.listen(config.serverPort, () => {
 const socketIOServer = new SocketIOServer(httpServer, { cors: { origin: '*' } });
 
 const getNumberOfClients = () => {
-  return socketIOServer.sockets.adapter.rooms.get(DEFAULT_ROOM)?.size ?? 0;
+  return socketIOServer.sockets.sockets.size;
+};
+
+const loadConfig = (): z.infer<typeof configSchema> => {
+  const yamlConf = YAML.parse(readFileSync(config.configFilePath, 'utf8'));
+
+  const result = configSchema.parse(yamlConf);
+
+  return result;
 };
 
 socketIOServer.on('connection', async (socket) => {
   logger.info(`Socket connected: ${socket.id}`);
-  socket.join(DEFAULT_ROOM);
-
-  // await state.reloadSetup();
-  // state.startTracking();
-
-  // socket.on(SOCKET_EVENTS.reloadAppSetup, state.reloadSetup);
 
   socket.on('disconnect', () => {
     logger.info(`Socket disconnected: ${socket.id}`);
@@ -71,4 +77,15 @@ socketIOServer.on('connection', async (socket) => {
       // state.stopTracking();
     }
   });
+
+  try {
+    const config = loadConfig();
+
+    socket.emit(socketEvents.Enum.config, config);
+  } catch (error) {
+    socket.emit('error', 'Error loading config file');
+    logger.error('Error loading config file', error);
+
+    socket.disconnect();
+  }
 });
