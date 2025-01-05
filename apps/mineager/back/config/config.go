@@ -2,10 +2,41 @@ package config
 
 import (
 	"fmt"
-	"mgarnier11/go/logger"
+	"log"
 	"mgarnier11/go/utils"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
+
+type AppConfigFile struct {
+	DockerHosts []*DockerHostConfig `yaml:"dockerHosts"`
+}
+
+func readAppConfig(filePath string) (*AppConfigFile, error) {
+	configFile, err := os.ReadFile(filePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	appConfig := &AppConfigFile{}
+
+	err = yaml.Unmarshal(configFile, appConfig)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return appConfig, nil
+}
+
+type DockerHostConfig struct {
+	Name        string `yaml:"name"`
+	Ip          string `yaml:"ip"`
+	SSHUsername string `yaml:"sshUsername"`
+	SSHPort     string `yaml:"sshPort"`
+}
 
 type AppEnvConfig struct {
 	ServerPort     int
@@ -15,12 +46,14 @@ type AppEnvConfig struct {
 	DataFolderPath string
 	MapsFolderPath string
 	ApiToken       string
+
+	AppConfig *AppConfigFile
 }
 
-func getAppConfig() (appConfig *AppEnvConfig) {
+func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 	utils.InitEnvFromFile()
 
-	appConfig = &AppEnvConfig{
+	appEnvConfig = &AppEnvConfig{
 		ServerPort:     utils.GetEnv("SERVER_PORT", 8080),
 		ConfigFilePath: utils.GetEnv("CONFIG_FILE_PATH", "./data/config.yaml"),
 		SSHKeyPath:     utils.GetEnv("SSH_KEY_PATH", ""),
@@ -29,15 +62,22 @@ func getAppConfig() (appConfig *AppEnvConfig) {
 		ApiToken:       utils.GetEnv("API_TOKEN", ""),
 	}
 
-	appConfig.MapsFolderPath = fmt.Sprintf("%s/maps", appConfig.DataFolderPath)
+	appEnvConfig.MapsFolderPath = fmt.Sprintf("%s/maps", appEnvConfig.DataFolderPath)
 
-	err := os.MkdirAll(appConfig.MapsFolderPath, 0755)
+	err := os.MkdirAll(appEnvConfig.MapsFolderPath, 0755)
 	if err != nil {
-		logger.Errorf("Error creating data and maps folder: %v", err)
+		log.Fatalf("Error creating maps folder: %v", err)
 		panic(err)
 	}
 
-	return appConfig
+	appEnvConfig.AppConfig, err = readAppConfig(appEnvConfig.ConfigFilePath)
+
+	if err != nil {
+		log.Fatalf("Error reading config file: %v", err)
+		panic(err)
+	}
+
+	return appEnvConfig
 }
 
-var Config *AppEnvConfig = getAppConfig()
+var Config *AppEnvConfig = getAppEnvConfig()

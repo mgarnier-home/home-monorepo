@@ -1,13 +1,18 @@
 package dockerssh
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"sync"
 	"time"
 
+	"github.com/docker/docker/client"
 	"golang.org/x/crypto/ssh"
+
+	sshUtils "mgarnier11/go/utils/ssh"
 )
 
 // New returns net.Conn, establishing an SSH connection using the provided configuration.
@@ -117,4 +122,49 @@ func (d dummyAddr) Network() string {
 
 func (d dummyAddr) String() string {
 	return d.s
+}
+
+func GetDockerClient(sshUsername string, hostIp string, sshPort string, sshKeyPath string) (*client.Client, error) {
+	authMethod, err := sshUtils.GetSSHKeyAuth(sshKeyPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ssh key auth: %v", err)
+	}
+
+	sshConfig := &ssh.ClientConfig{
+		User:            sshUsername,
+		Auth:            []ssh.AuthMethod{authMethod},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Replace with a proper callback in production
+	}
+
+	sshDialer := func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return NewSSHDialer(
+			net.JoinHostPort(hostIp, sshPort),
+			sshConfig,
+		)
+	}
+
+	httpClient := &http.Client{
+		// No tls
+		// No proxy
+		Transport: &http.Transport{
+			DialContext: sshDialer,
+		},
+		Timeout: 2 * time.Second,
+	}
+
+	var clientOpts []client.Opt
+
+	clientOpts = append(clientOpts,
+		client.WithHTTPClient(httpClient),
+		client.WithDialContext(sshDialer),
+	)
+
+	client, err := client.NewClientWithOpts(clientOpts...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

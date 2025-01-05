@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"mgarnier11/mineager/server/models"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,6 +17,8 @@ func ServerRoutes(router *mux.Router) {
 }
 
 func getServers(w http.ResponseWriter, r *http.Request) {
+
+	models.GetServers()
 	w.Write([]byte("Get all servers"))
 }
 

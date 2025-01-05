@@ -88,9 +88,9 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Cl
 	return client, nil
 }
 
-func GetProxiesFromDocker(sshUsername string, hostIp string, logger *logger.Logger) ([]*config.ProxyConfig, error) {
+func GetProxiesFromDocker(sshUsername string, hostIp string, sshPort string, logger *logger.Logger) ([]*config.ProxyConfig, error) {
 
-	dockerClient, err := GetDockerClient(sshUsername, hostIp, 22)
+	dockerClient, err := dockerssh.GetDockerClient(sshUsername, hostIp, sshPort, config.Config.SSHKeyPath)
 
 	if err != nil {
 		return nil, err

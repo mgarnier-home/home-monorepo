@@ -92,7 +92,7 @@ func (host *Host) setupHostLoop() {
 
 				host.logger.Infof("Getting proxies from docker")
 
-				dockerProxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.logger)
+				dockerProxies, err := docker.GetProxiesFromDocker(host.Config.SSHUsername, host.Config.Ip, host.Config.SSHPort, host.logger)
 
 				if err != nil {
 					host.logger.Errorf("failed to get proxies from docker: %v", err)
