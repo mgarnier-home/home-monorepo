@@ -3,9 +3,13 @@ module mgarnier11/mineager
 go 1.23.0
 
 require (
+	github.com/bramvdbogaerde/go-scp v1.5.0
 	github.com/charmbracelet/lipgloss v1.0.0
+	github.com/docker/docker v27.4.1+incompatible
+	github.com/docker/go-connections v0.5.0
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.24
+	golang.org/x/crypto v0.30.0
 	gopkg.in/yaml.v3 v3.0.1
 	mgarnier11/go/dockerssh v0.0.0-00010101000000-000000000000
 	mgarnier11/go/logger v0.0.0-00010101000000-000000000000
@@ -22,8 +26,6 @@ require (
 	github.com/charmbracelet/log v0.4.0 // indirect
 	github.com/charmbracelet/x/ansi v0.5.2 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v27.4.1+incompatible // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
@@ -48,7 +50,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
-	golang.org/x/crypto v0.30.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	google.golang.org/grpc v1.69.2 // indirect

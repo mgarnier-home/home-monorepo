@@ -55,3 +55,13 @@ func IsHTTPRequest(data []byte) bool {
 func CheckRequestHeader(request string, header string, value string) bool {
 	return strings.Contains(request, header+": "+value)
 }
+
+func FilterFunc[S ~[]E, E any](s S, f func(E) bool) []E {
+	var r []E
+	for _, v := range s {
+		if f(v) {
+			r = append(r, v)
+		}
+	}
+	return r
+}

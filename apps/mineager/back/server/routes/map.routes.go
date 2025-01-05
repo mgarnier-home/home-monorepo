@@ -1,11 +1,10 @@
 package routes
 
 import (
-	"encoding/json"
 	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
+	"mgarnier11/mineager/server/routes/validation"
 	"net/http"
-	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -18,19 +17,6 @@ func MapRoutes(router *mux.Router) {
 	mapRouter.HandleFunc("/{name}", getMap).Methods("GET")
 	mapRouter.HandleFunc("/", postMap).Methods("POST")
 	mapRouter.HandleFunc("/{name}", deleteMap).Methods("DELETE")
-}
-
-func serializeAndSendResponse(w http.ResponseWriter, response interface{}) {
-	jsonResponse, err := json.Marshal(response)
-	if err != nil {
-		logger.Errorf("Error serializing response: %v", err)
-		http.Error(w, "Error serializing response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResponse)
 }
 
 func getMaps(w http.ResponseWriter, r *http.Request) {
@@ -59,40 +45,20 @@ func getMap(w http.ResponseWriter, r *http.Request) {
 	serializeAndSendResponse(w, mapBo)
 }
 
-type MapRequest struct {
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	Description string `json:"description"`
-}
-
 func postMap(w http.ResponseWriter, r *http.Request) {
-	const maxUploadSize = 1 << 30 // 1 GB
+	requestValidated, err := validation.ValidateMapPostRequest(r)
 
-	err := r.ParseMultipartForm(maxUploadSize)
 	if err != nil {
-		http.Error(w, "Failed to parse form data. File may be too large.", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	mapRequest := MapRequest{
-		Name:        strings.ToLower(r.FormValue("name")),
-		Version:     r.FormValue("version"),
-		Description: r.FormValue("description"),
-	}
-
-	file, fileHeader, err := r.FormFile("file")
-	if err != nil {
-		http.Error(w, "Failed to get file from request", http.StatusBadRequest)
-		return
-	}
-	defer file.Close()
-
-	if filepath.Ext(fileHeader.Filename) != ".zip" {
-		http.Error(w, "Only .zip files are allowed", http.StatusBadRequest)
-		return
-	}
-
-	newMap, err := controllers.PostMap(mapRequest.Name, mapRequest.Version, mapRequest.Description, file)
+	newMap, err := controllers.PostMap(
+		requestValidated.Name,
+		requestValidated.Version,
+		requestValidated.Description,
+		requestValidated.File,
+	)
 
 	if err != nil {
 		logger.Errorf("Error creating map: %v", err)

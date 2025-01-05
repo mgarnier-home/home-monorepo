@@ -1,10 +1,12 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"mgarnier11/go/utils"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -32,10 +34,13 @@ func readAppConfig(filePath string) (*AppConfigFile, error) {
 }
 
 type DockerHostConfig struct {
-	Name        string `yaml:"name"`
-	Ip          string `yaml:"ip"`
-	SSHUsername string `yaml:"sshUsername"`
-	SSHPort     string `yaml:"sshPort"`
+	Name         string `yaml:"name"`
+	Ip           string `yaml:"ip"`
+	ProxyIp      string `yaml:"proxyIp"`
+	SSHUsername  string `yaml:"sshUsername"`
+	SSHPort      string `yaml:"sshPort"`
+	StartPort    int    `yaml:"startPort"`
+	MineagerPath string `yaml:"mineagerPath"`
 }
 
 type AppEnvConfig struct {
@@ -78,6 +83,16 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 	}
 
 	return appEnvConfig
+}
+
+func GetHost(hostName string) (*DockerHostConfig, error) {
+	for _, dockerHost := range Config.AppConfig.DockerHosts {
+		if strings.EqualFold(dockerHost.Name, hostName) {
+			return dockerHost, nil
+		}
+	}
+
+	return nil, errors.New("host not found")
 }
 
 var Config *AppEnvConfig = getAppEnvConfig()

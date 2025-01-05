@@ -3,106 +3,93 @@ package models
 import (
 	"context"
 	"fmt"
-	"mgarnier11/go/dockerssh"
 	"mgarnier11/go/logger"
-	"mgarnier11/mineager/config"
+
+	"github.com/docker/docker/api/types"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 )
 
 type ServerBo struct {
+	Id      string
 	Name    string
 	Version string
 	Map     string
 	Url     string
 	Memory  string
+	Port    uint16
 }
 
-func getServersOnHost(dockerHost *config.DockerHostConfig) (servers []*ServerBo, error error) {
-
-	logger.Infof("Getting servers on host %s", dockerHost.Name)
-	logger.Infof("connecting to %s:%s", dockerHost.Ip, dockerHost.SSHPort)
-	dockerClient, err := dockerssh.GetDockerClient(dockerHost.SSHUsername, dockerHost.Ip, dockerHost.SSHPort, config.Config.SSHKeyPath)
-
-	if err != nil {
-		return nil, err
+func mapContainerToServer(container *types.Container) *ServerBo {
+	return &ServerBo{
+		Id:      container.ID,
+		Name:    container.Labels["mineager.serverName"],
+		Version: container.Labels["mineager.serverVersion"],
+		Map:     container.Labels["mineager.serverMap"],
+		Url:     container.Labels["mineager.serverUrl"],
+		Memory:  container.Labels["mineager.serverMemory"],
+		// Port:    container.Ports[0].PublicPort,
 	}
-	defer dockerClient.Close()
+}
 
+func getFilterArgs(name string) filters.Args {
 	filterArgs := filters.NewArgs()
 	// filterArgs.Add("label", "com.docker.compose.project=mineager")
 	filterArgs.Add("ancestor", "itzg/minecraft-server")
+	if name != "" {
+		filterArgs.Add("label", "mineager.serverName="+name)
+	}
 
+	return filterArgs
+}
+
+func GetNextPort(dockerClient *client.Client, minPort uint16) (uint16, error) {
+	servers, err := GetServers(dockerClient, "")
+
+	if err != nil {
+		return 0, err
+	}
+
+	var maxPort uint16 = minPort
+
+	for _, server := range servers {
+		if server.Port > maxPort {
+			maxPort = server.Port
+		}
+	}
+
+	return maxPort + 1, nil
+}
+
+func GetServers(dockerClient *client.Client, name string) (servers []*ServerBo, error error) {
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
-		Filters: filterArgs,
+		Filters: getFilterArgs(name),
+		All:     true,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	logger.Infof("Containers : %v", containers)
-
 	for _, container := range containers {
-		server := &ServerBo{
-			Name:    container.Labels["mineager.serverName"],
-			Version: container.Labels["mineager.serverVersion"],
-			Map:     container.Labels["mineager.serverMap"],
-			Url:     container.Labels["mineager.serverUrl"],
-			Memory:  container.Labels["mineager.serverMemory"],
-		}
+		// logger.Infof("Container %v", container)
+
+		server := mapContainerToServer(&container)
 
 		servers = append(servers, server)
 	}
 
-	return servers, nil
-}
-
-func GetServers() (servers []*ServerBo, error error) {
-
-	for _, dockerHost := range config.Config.AppConfig.DockerHosts {
-		serversOnHost, err := getServersOnHost(dockerHost)
-
-		if err != nil {
-			logger.Errorf("error getting servers on host %s: %v", dockerHost.Name, err)
-		} else {
-			servers = append(servers, serversOnHost...)
-		}
+	for _, server := range servers {
+		logger.Infof("Server name: %s, version: %s, map: %s, url: %s, memory: %s, port: %d", server.Name, server.Version, server.Map, server.Url, server.Memory, server.Port)
 	}
 
 	return servers, nil
 }
 
-func GetServerByName(name string) (*ServerBo, error) {
-	for _, dockerHost := range config.Config.AppConfig.DockerHosts {
-		serversOnHost, err := getServersOnHost(dockerHost)
-
-		if err != nil {
-			logger.Errorf("error getting servers on host %s: %v", dockerHost.Name, err)
-		} else {
-			for _, server := range serversOnHost {
-				if server.Name == name {
-					return server, nil
-				}
-			}
-		}
-	}
-
-	return nil, fmt.Errorf("server not found")
-}
-
-func createServerOnHost(dockerHost *config.DockerHostConfig, name string, version string, mapName string, url string, memory string) (*ServerBo, error) {
-
-	logger.Infof("Creating server %s on host %s", name, dockerHost.Name)
-
-	dockerClient, err := dockerssh.GetDockerClient(dockerHost.SSHUsername, dockerHost.Ip, dockerHost.SSHPort, config.Config.SSHKeyPath)
-
-	if err != nil {
-		return nil, err
-	}
-	defer dockerClient.Close()
-
+func CreateServer(dockerClient *client.Client, name string, version string, mapName string, memory string, url string, port uint16) (*ServerBo, error) {
 	containerConfig := &container.Config{
 		Image: "itzg/minecraft-server", // Set la version du container
 		Labels: map[string]string{
@@ -119,9 +106,39 @@ func createServerOnHost(dockerHost *config.DockerHostConfig, name string, versio
 			"VERSION=" + version,
 			"MEMORY=" + memory,
 		},
-		// PORTS
-
+		ExposedPorts: map[nat.Port]struct{}{
+			"25565/tcp": {},
+		},
 	}
+
+	hostConfig := &container.HostConfig{
+		PortBindings: nat.PortMap{
+			"25565/tcp": []nat.PortBinding{
+				{
+					HostIP:   "0.0.0.0",
+					HostPort: fmt.Sprintf("%d", port),
+				},
+			},
+		},
+	}
+
+	ctx := context.Background()
+	createResponse, err := dockerClient.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, fmt.Sprintf("mineager-%s", name))
+	if err != nil {
+		return nil, err
+	}
+
+	err = dockerClient.ContainerStart(ctx, createResponse.ID, container.StartOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	newContainer, err := GetServers(dockerClient, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return newContainer[0], nil
 
 	// Connection en scp pour envoyer la map
 	// Appel de l'api de infrared pour créer le reverse proxy
@@ -129,15 +146,24 @@ func createServerOnHost(dockerHost *config.DockerHostConfig, name string, versio
 
 }
 
-func CreateServer(host string, name string, version string, mapName string, url string, memory string) (*ServerBo, error) {
+func DeleteServer(dockerClient *client.Client, name string) error {
+	servers, err := GetServers(dockerClient, name)
 
-	logger.Infof("Creating server %s on host %s", name, host)
-
-	for _, dockerHost := range config.Config.AppConfig.DockerHosts {
-		if dockerHost.Name == host {
-			return createServerOnHost(dockerHost, name, version, mapName, url, memory)
-		}
+	if err != nil {
+		return err
 	}
 
-	return nil, fmt.Errorf("host not found")
+	if len(servers) == 0 {
+		return fmt.Errorf("server not found")
+	}
+
+	err = dockerClient.ContainerRemove(context.Background(), servers[0].Id, container.RemoveOptions{
+		Force: true,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
