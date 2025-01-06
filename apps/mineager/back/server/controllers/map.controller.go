@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"mgarnier11/go/logger"
+	"mgarnier11/go/sshutils"
+	"mgarnier11/go/sshutils/sftp"
 	"mgarnier11/go/utils"
-	sshutils "mgarnier11/go/utils/ssh"
 	"mgarnier11/mineager/config"
 	"mgarnier11/mineager/server/models"
 	"net"
@@ -201,7 +202,7 @@ func sendMapToHost(serverName string, mapName string, host *config.DockerHostCon
 
 	session.Close()
 
-	serverDestPath := fmt.Sprintf("%s/%s/world", host.MineagerPath, serverName)
+	serverDestPath := models.GetServerDestPath(host, serverName)
 
-	return sshutils.SCPCopyFolder(sshClient, getMapPath(mapName), serverDestPath)
+	return sftp.LocalToRemote(sshClient, getMapPath(mapName), serverDestPath)
 }

@@ -44,13 +44,14 @@ type DockerHostConfig struct {
 }
 
 type AppEnvConfig struct {
-	ServerPort     int
-	ConfigFilePath string
-	SSHKeyPath     string
-	FrontendPath   string
-	DataFolderPath string
-	MapsFolderPath string
-	ApiToken       string
+	ServerPort        int
+	ConfigFilePath    string
+	SSHKeyPath        string
+	FrontendPath      string
+	DataFolderPath    string
+	MapsFolderPath    string
+	ServersFolderPath string
+	ApiToken          string
 
 	AppConfig *AppConfigFile
 }
@@ -68,6 +69,7 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 	}
 
 	appEnvConfig.MapsFolderPath = fmt.Sprintf("%s/maps", appEnvConfig.DataFolderPath)
+	appEnvConfig.ServersFolderPath = fmt.Sprintf("%s/servers", appEnvConfig.DataFolderPath)
 
 	err := os.MkdirAll(appEnvConfig.MapsFolderPath, 0755)
 	if err != nil {
@@ -75,8 +77,13 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 		panic(err)
 	}
 
-	appEnvConfig.AppConfig, err = readAppConfig(appEnvConfig.ConfigFilePath)
+	err = os.MkdirAll(appEnvConfig.ServersFolderPath, 0755)
+	if err != nil {
+		log.Fatalf("Error creating servers folder: %v", err)
+		panic(err)
+	}
 
+	appEnvConfig.AppConfig, err = readAppConfig(appEnvConfig.ConfigFilePath)
 	if err != nil {
 		log.Fatalf("Error reading config file: %v", err)
 		panic(err)

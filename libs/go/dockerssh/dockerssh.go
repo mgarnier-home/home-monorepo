@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mgarnier11/go/sshutils"
 	"net"
 	"net/http"
 	"sync"
@@ -11,8 +12,6 @@ import (
 
 	"github.com/docker/docker/client"
 	"golang.org/x/crypto/ssh"
-
-	sshUtils "mgarnier11/go/utils/ssh"
 )
 
 // New returns net.Conn, establishing an SSH connection using the provided configuration.
@@ -125,7 +124,7 @@ func (d dummyAddr) String() string {
 }
 
 func GetDockerClient(sshUsername string, hostIp string, sshPort string, sshKeyPath string) (*client.Client, error) {
-	authMethod, err := sshUtils.GetSSHKeyAuth(sshKeyPath)
+	authMethod, err := sshutils.GetSSHKeyAuth(sshKeyPath)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ssh key auth: %v", err)

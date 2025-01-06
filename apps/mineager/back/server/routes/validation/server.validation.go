@@ -13,7 +13,7 @@ import (
 type postServerRequest struct {
 	HostName string `json:"hostName"`
 	Name     string `json:"name"`
-	Version  string `json:"version",omitempty`
+	Version  string `json:"version"`
 	MapName  string `json:"mapName"`
 	Memory   string `json:"memory"`
 	Url      string `json:"url"`
@@ -89,7 +89,7 @@ func ValidateServerPostRequest(r *http.Request) (*postServerRequest, error) {
 		return nil, err
 	}
 
-	if err := validateVersion(requestData.Version, "version", false); err != nil {
+	if err := validateVersion(requestData.Version, "version", true); err != nil {
 		return nil, err
 	}
 

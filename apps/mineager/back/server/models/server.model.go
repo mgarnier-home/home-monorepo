@@ -3,12 +3,13 @@ package models
 import (
 	"context"
 	"fmt"
-	"mgarnier11/go/logger"
+	"mgarnier11/mineager/config"
 
 	"github.com/docker/docker/api/types"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
@@ -23,7 +24,22 @@ type ServerBo struct {
 	Port    uint16
 }
 
+type ServerConfig struct {
+	Name    string
+	Version string
+	Map     string
+	Memory  string
+	Url     string
+	Host    *config.DockerHostConfig
+	Client  *client.Client
+}
+
 func mapContainerToServer(container *types.Container) *ServerBo {
+	port := uint16(0)
+	if len(container.Ports) > 0 {
+		port = container.Ports[0].PublicPort
+	}
+
 	return &ServerBo{
 		Id:      container.ID,
 		Name:    container.Labels["mineager.serverName"],
@@ -31,13 +47,13 @@ func mapContainerToServer(container *types.Container) *ServerBo {
 		Map:     container.Labels["mineager.serverMap"],
 		Url:     container.Labels["mineager.serverUrl"],
 		Memory:  container.Labels["mineager.serverMemory"],
-		// Port:    container.Ports[0].PublicPort,
+		Port:    port,
 	}
 }
 
 func getFilterArgs(name string) filters.Args {
 	filterArgs := filters.NewArgs()
-	// filterArgs.Add("label", "com.docker.compose.project=mineager")
+	filterArgs.Add("label", "com.docker.compose.project=mineager")
 	filterArgs.Add("ancestor", "itzg/minecraft-server")
 	if name != "" {
 		filterArgs.Add("label", "mineager.serverName="+name)
@@ -46,7 +62,11 @@ func getFilterArgs(name string) filters.Args {
 	return filterArgs
 }
 
-func GetNextPort(dockerClient *client.Client, minPort uint16) (uint16, error) {
+func GetServerDestPath(host *config.DockerHostConfig, serverName string) string {
+	return fmt.Sprintf("%s/%s/world", host.MineagerPath, serverName)
+}
+
+func getNextPort(dockerClient *client.Client, minPort uint16) (uint16, error) {
 	servers, err := GetServers(dockerClient, "")
 
 	if err != nil {
@@ -64,6 +84,16 @@ func GetNextPort(dockerClient *client.Client, minPort uint16) (uint16, error) {
 	return maxPort + 1, nil
 }
 
+func ServerExists(dockerClient *client.Client, name string) (bool, error) {
+	servers, err := GetServers(dockerClient, name)
+
+	if err != nil {
+		return false, err
+	}
+
+	return len(servers) > 0, nil
+}
+
 func GetServers(dockerClient *client.Client, name string) (servers []*ServerBo, error error) {
 	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{
 		Filters: getFilterArgs(name),
@@ -75,36 +105,37 @@ func GetServers(dockerClient *client.Client, name string) (servers []*ServerBo, 
 	}
 
 	for _, container := range containers {
-		// logger.Infof("Container %v", container)
-
 		server := mapContainerToServer(&container)
 
 		servers = append(servers, server)
 	}
 
-	for _, server := range servers {
-		logger.Infof("Server name: %s, version: %s, map: %s, url: %s, memory: %s, port: %d", server.Name, server.Version, server.Map, server.Url, server.Memory, server.Port)
-	}
-
 	return servers, nil
 }
 
-func CreateServer(dockerClient *client.Client, name string, version string, mapName string, memory string, url string, port uint16) (*ServerBo, error) {
+func CreateServer(serverConfig *ServerConfig) (*ServerBo, error) {
+	port, err := getNextPort(serverConfig.Client, uint16(serverConfig.Host.StartPort))
+
+	if err != nil {
+		return nil, fmt.Errorf("error getting port: %v", err)
+	}
+
 	containerConfig := &container.Config{
 		Image: "itzg/minecraft-server", // Set la version du container
 		Labels: map[string]string{
-			"mineager.serverName":    name,
-			"mineager.serverVersion": version,
-			"mineager.serverMap":     mapName,
-			"mineager.serverUrl":     url,
-			"mineager.serverMemory":  memory,
+			"com.docker.compose.project": "mineager",
+			"mineager.serverName":        serverConfig.Name,
+			"mineager.serverVersion":     serverConfig.Version,
+			"mineager.serverMap":         serverConfig.Map,
+			"mineager.serverUrl":         serverConfig.Url,
+			"mineager.serverMemory":      serverConfig.Memory,
 			// Label traefik conf
 		},
 		Env: []string{
 			"EULA=TRUE",
 			"TYPE=VANILLA",
-			"VERSION=" + version,
-			"MEMORY=" + memory,
+			"VERSION=" + serverConfig.Version,
+			"MEMORY=" + serverConfig.Memory,
 		},
 		ExposedPorts: map[nat.Port]struct{}{
 			"25565/tcp": {},
@@ -120,30 +151,36 @@ func CreateServer(dockerClient *client.Client, name string, version string, mapN
 				},
 			},
 		},
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: GetServerDestPath(serverConfig.Host, serverConfig.Name),
+				Target: "/data/world",
+			},
+		},
 	}
 
-	ctx := context.Background()
-	createResponse, err := dockerClient.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, fmt.Sprintf("mineager-%s", name))
+	createResponse, err := serverConfig.Client.ContainerCreate(
+		context.Background(),
+		containerConfig,
+		hostConfig,
+		nil,
+		nil,
+		fmt.Sprintf("mineager-%s", serverConfig.Name),
+	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating container: %v", err)
 	}
 
-	err = dockerClient.ContainerStart(ctx, createResponse.ID, container.StartOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	newContainer, err := GetServers(dockerClient, name)
-	if err != nil {
-		return nil, err
-	}
-
-	return newContainer[0], nil
-
-	// Connection en scp pour envoyer la map
-	// Appel de l'api de infrared pour créer le reverse proxy
-	// Création du container
-
+	return &ServerBo{
+		Id:      createResponse.ID,
+		Name:    serverConfig.Name,
+		Port:    port,
+		Version: serverConfig.Version,
+		Map:     serverConfig.Map,
+		Url:     serverConfig.Url,
+		Memory:  serverConfig.Memory,
+	}, nil
 }
 
 func DeleteServer(dockerClient *client.Client, name string) error {

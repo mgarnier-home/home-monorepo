@@ -107,32 +107,59 @@ func CreateServer(
 		return nil, err
 	}
 
-	err = sendMapToHost(serverName, mapName, host)
-
-	if err != nil {
-		return nil, fmt.Errorf("error sending map to host: %v", err)
-	}
-
-	logger.Infof("Map %s sent to host %s on server %s", mapName, hostName, serverName)
-
 	dockerClient, err := getDockerClient(host)
-
 	if err != nil {
 		return nil, err
 	}
 	defer dockerClient.Close()
 
-	port, err := models.GetNextPort(dockerClient, uint16(host.StartPort))
-
+	serverExist, err := models.ServerExists(dockerClient, serverName)
 	if err != nil {
-		return nil, fmt.Errorf("error getting next port: %v", err)
+		return nil, fmt.Errorf("error getting server: %v", err)
+	}
+	if serverExist {
+		return nil, fmt.Errorf("server %s already exists", serverName)
 	}
 
-	serverBo, err := models.CreateServer(dockerClient, serverName, version, mapName, memory, url, port)
+	// Copy map to servers folder
+	mapPath := getMapPath(mapName)
 
+	// err = sendMapToHost(serverName, mapName, host)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error sending map to host: %v", err)
+	// }
+	// logger.Infof("Map %s sent to host %s on server %s", mapName, hostName, serverName)
+
+	serverConfig := &models.ServerConfig{
+		Client:  dockerClient,
+		Host:    host,
+		Name:    serverName,
+		Version: version,
+		Map:     mapName,
+		Memory:  memory,
+		Url:     url,
+	}
+	serverBo, err := models.CreateServer(serverConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating server: %v", err)
 	}
 
 	return serverBoToServerDto(serverBo), nil
+}
+
+func DeleteServer(hostName string, serverName string) error {
+	host, err := config.GetHost(hostName)
+
+	if err != nil {
+		return err
+	}
+
+	dockerClient, err := getDockerClient(host)
+
+	if err != nil {
+		return err
+	}
+	defer dockerClient.Close()
+
+	return models.DeleteServer(dockerClient, serverName)
 }

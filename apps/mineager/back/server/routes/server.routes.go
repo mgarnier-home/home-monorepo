@@ -14,6 +14,8 @@ func ServerRoutes(router *mux.Router) {
 
 	serverRouter.HandleFunc("/", getServers).Methods("GET")
 	serverRouter.HandleFunc("/{name}", getServer).Methods("GET")
+	serverRouter.HandleFunc("/{name}/start", startServer).Methods("POST")
+	serverRouter.HandleFunc("/{name}/stop", stopServer).Methods("POST")
 	serverRouter.HandleFunc("/", postServer).Methods("POST")
 	serverRouter.HandleFunc("/{name}", deleteServer).Methods("DELETE")
 }
@@ -84,4 +86,12 @@ func postServer(w http.ResponseWriter, r *http.Request) {
 
 func deleteServer(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Delete server"))
+}
+
+func startServer(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Start server"))
+}
+
+func stopServer(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Stop server"))
 }

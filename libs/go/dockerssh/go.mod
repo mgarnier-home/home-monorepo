@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/docker/docker v27.4.1+incompatible
 	golang.org/x/crypto v0.30.0
-	mgarnier11/go/utils v0.0.0-00010101000000-000000000000
+	mgarnier11/go/sshutils v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -36,4 +36,4 @@ require (
 	gotest.tools/v3 v3.5.1 // indirect
 )
 
-replace mgarnier11/go/utils => ../utils
+replace mgarnier11/go/sshutils => ../sshutils

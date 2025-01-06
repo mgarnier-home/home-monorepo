@@ -1,4 +1,4 @@
-package ssh
+package scp
 
 import (
 	"bufio"
@@ -11,23 +11,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func GetSSHKeyAuth(sshKeyPath string) (ssh.AuthMethod, error) {
-	// Load the private key file
-	key, err := os.ReadFile(sshKeyPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read private key: %w", err)
-	}
-
-	// Parse the private key
-	signer, err := ssh.ParsePrivateKey(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse private key: %w", err)
-	}
-
-	return ssh.PublicKeys(signer), nil
-}
-
-func SCPCopyFolder(client *ssh.Client, localPath, remotePath string) error {
+func LocalToRemote(client *ssh.Client, localPath, remotePath string) error {
 	// Start an SCP session using `scp -r` for recursive copy
 	session, err := client.NewSession()
 	if err != nil {
