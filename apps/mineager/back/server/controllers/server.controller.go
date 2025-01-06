@@ -11,6 +11,7 @@ import (
 	"mgarnier11/mineager/server/objects/bo"
 	"mgarnier11/mineager/server/objects/dto"
 	"os"
+	"strconv"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -35,15 +36,21 @@ func getFilterArgs(name string) filters.Args {
 	return filterArgs
 }
 
-func mapContainerToServer(container *types.Container) *bo.ServerBo {
+func mapContainerToServer(container *types.Container, inspect *types.ContainerJSON) *bo.ServerBo {
 	port := uint16(0)
-	if len(container.Ports) > 0 {
-		port = container.Ports[0].PublicPort
+	containerPorts := inspect.HostConfig.PortBindings["25565/tcp"]
+	if len(containerPorts) > 0 {
+		intPort, err := strconv.Atoi(containerPorts[0].HostPort)
+		if err == nil {
+			port = uint16(intPort)
+		}
 	}
-	logger.Infof("Container ports: %v", container)
+
+	logger.Infof("Container %s port: %d", container.ID, port)
 
 	return &bo.ServerBo{
 		Id:      container.ID,
+		Status:  inspect.State.Status,
 		Name:    container.Labels["mineager.serverName"],
 		Version: container.Labels["mineager.serverVersion"],
 		Map:     container.Labels["mineager.serverMap"],
@@ -95,9 +102,12 @@ func (controller *ServerController) GetServers() ([]*bo.ServerBo, error) {
 	servers := make([]*bo.ServerBo, 0)
 
 	for _, container := range containers {
-		server := mapContainerToServer(&container)
+		containerInspect, err := controller.dockerClient.ContainerInspect(context.Background(), container.ID)
+		if err != nil {
+			return nil, err
+		}
 
-		servers = append(servers, server)
+		servers = append(servers, mapContainerToServer(&container, &containerInspect))
 	}
 
 	return servers, nil
@@ -217,7 +227,7 @@ func (controller *ServerController) CreateServer(createServerDto *dto.CreateServ
 			"mineager.serverUrl":         createServerDto.Url,
 			"mineager.serverMemory":      createServerDto.Memory,
 			"mineager.newMap":            fmt.Sprintf("%t", createServerDto.NewMap),
-			// Label traefik conf
+			"traefik-conf.port":          fmt.Sprintf("%d", port),
 		},
 		Env: []string{
 			"EULA=TRUE",

@@ -2,6 +2,7 @@ package bo
 
 type ServerBo struct {
 	Id      string
+	Status  string
 	Name    string
 	Version string
 	Map     string

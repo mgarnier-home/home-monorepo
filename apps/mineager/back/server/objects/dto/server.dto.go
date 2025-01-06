@@ -7,6 +7,7 @@ type ServerDto struct {
 	Url     string `json:"url"`
 	Version string `json:"version"`
 	Map     string `json:"map"`
+	Status  string `json:"status"`
 }
 
 func ServerBoToServerDto(serverBo *bo.ServerBo) *ServerDto {
@@ -15,6 +16,7 @@ func ServerBoToServerDto(serverBo *bo.ServerBo) *ServerDto {
 		Url:     serverBo.Url,
 		Version: serverBo.Version,
 		Map:     serverBo.Map,
+		Status:  serverBo.Status,
 	}
 }
 
