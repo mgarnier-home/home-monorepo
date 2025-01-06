@@ -4,20 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"mgarnier11/mineager/config"
+	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 )
-
-type postServerRequest struct {
-	HostName string `json:"hostName"`
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	MapName  string `json:"mapName"`
-	Memory   string `json:"memory"`
-	Url      string `json:"url"`
-}
 
 const minMemory = 1
 const maxMemory = 16
@@ -73,8 +65,8 @@ func validateHostName(hostName string) error {
 	return nil
 }
 
-func ValidateServerPostRequest(r *http.Request) (*postServerRequest, error) {
-	var requestData postServerRequest
+func ValidateServerPostRequest(r *http.Request) (*dto.CreateServerRequestDto, error) {
+	var requestData dto.CreateServerRequestDto
 
 	err := json.NewDecoder(r.Body).Decode(&requestData)
 	if err != nil {
@@ -107,6 +99,17 @@ func ValidateServerPostRequest(r *http.Request) (*postServerRequest, error) {
 
 	if err := validateHostName(requestData.HostName); err != nil {
 		return nil, err
+	}
+
+	return &requestData, nil
+}
+
+func ValidateServerDeleteRequest(r *http.Request) (*dto.DeleteServerRequestDto, error) {
+	var requestData dto.DeleteServerRequestDto
+
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		return nil, errors.New("failed to parse request body")
 	}
 
 	return &requestData, nil

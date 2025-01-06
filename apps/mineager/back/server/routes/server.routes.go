@@ -1,27 +1,75 @@
 package routes
 
 import (
+	"context"
 	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
+	"mgarnier11/mineager/server/objects/bo"
+	"mgarnier11/mineager/server/objects/dto"
 	"mgarnier11/mineager/server/routes/validation"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
-func ServerRoutes(router *mux.Router) {
-	serverRouter := router.PathPrefix("/server").Subrouter()
+const serversContextKey contextKey = "servers"
+const serverContextKey contextKey = "server"
 
-	serverRouter.HandleFunc("/", getServers).Methods("GET")
-	serverRouter.HandleFunc("/{name}", getServer).Methods("GET")
-	serverRouter.HandleFunc("/{name}/start", startServer).Methods("POST")
-	serverRouter.HandleFunc("/{name}/stop", stopServer).Methods("POST")
-	serverRouter.HandleFunc("/", postServer).Methods("POST")
-	serverRouter.HandleFunc("/{name}", deleteServer).Methods("DELETE")
+func getServerControllerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		controller, err := controllers.NewServerController(mux.Vars(r)["hostName"])
+
+		if err != nil {
+			logger.Errorf("Error getting server controller: %v", err)
+			http.Error(w, "Error getting server controller", http.StatusInternalServerError)
+			return
+		}
+
+		defer controller.Dispose()
+
+		ctx := context.WithValue(r.Context(), serversContextKey, controller)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getServerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+		server, err := controller.GetServer(mux.Vars(r)["name"])
+
+		if err != nil {
+			logger.Errorf("Error getting server: %v", err)
+			http.Error(w, "Error getting server", http.StatusInternalServerError)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), serverContextKey, server)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func ServerRoutes(router *mux.Router) {
+	serverRouter := router.PathPrefix("/{hostName}/server").Subrouter()
+	serverRouter.Use(getServerControllerMiddleware)
+
+	serverRouter.HandleFunc("", getServers).Methods("GET")
+	serverRouter.HandleFunc("", postServer).Methods("POST")
+
+	serverRouter = serverRouter.PathPrefix("/{name}").Subrouter()
+	serverRouter.Use(getServerMiddleware)
+
+	serverRouter.HandleFunc("", getServer).Methods("GET")
+	serverRouter.HandleFunc("/start", startServer).Methods("POST")
+	serverRouter.HandleFunc("/stop", stopServer).Methods("POST")
+	serverRouter.HandleFunc("", deleteServer).Methods("DELETE")
 }
 
 func getServers(w http.ResponseWriter, r *http.Request) {
-	servers, err := controllers.GetServers("", "")
+	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+
+	servers, err := controller.GetServers()
 
 	if err != nil {
 		logger.Errorf("Error getting servers: %v", err)
@@ -29,51 +77,26 @@ func getServers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serializeAndSendResponse(w, servers)
+	serializeAndSendResponse(w, dto.ServersBoToServersDto(servers))
 }
 
 func getServer(w http.ResponseWriter, r *http.Request) {
-	serverName := mux.Vars(r)["name"]
+	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
 
-	servers, err := controllers.GetServers("", serverName)
-
-	if err != nil {
-		logger.Errorf("Error getting server: %v", err)
-		http.Error(w, "Error getting server", http.StatusInternalServerError)
-		return
-	}
-
-	serializeAndSendResponse(w, servers[0])
+	serializeAndSendResponse(w, dto.ServerBoToServerDto(server))
 }
 
 func postServer(w http.ResponseWriter, r *http.Request) {
-	requestValidated, err := validation.ValidateServerPostRequest(r)
+	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+
+	createServerDto, err := validation.ValidateServerPostRequest(r)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	requestedMap, err := controllers.GetMap(requestValidated.MapName)
-
-	if err != nil {
-		logger.Errorf("Map %s not found: %v", requestValidated.MapName, err)
-		http.Error(w, "mapName not found", http.StatusBadRequest)
-		return
-	}
-
-	if requestValidated.Version == "" {
-		requestValidated.Version = requestedMap.Version
-	}
-
-	newServer, err := controllers.CreateServer(
-		requestValidated.HostName,
-		requestValidated.Name,
-		requestValidated.Version,
-		requestedMap.Name,
-		requestValidated.Memory,
-		requestValidated.Url,
-	)
+	newServer, err := controller.CreateServer(createServerDto)
 
 	if err != nil {
 		logger.Errorf("Error creating server: %v", err)
@@ -81,17 +104,57 @@ func postServer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serializeAndSendResponse(w, newServer)
+	serializeAndSendResponse(w, dto.ServerBoToServerDto(newServer))
 }
 
 func deleteServer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Delete server"))
+	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+
+	deleteServerDto, err := validation.ValidateServerDeleteRequest(r)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = controller.DeleteServer(server, deleteServerDto.Full)
+
+	if err != nil {
+		logger.Errorf("Error deleting server: %v", err)
+		http.Error(w, "Error deleting server", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("Server deleted"))
 }
 
 func startServer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Start server"))
+	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+
+	err := controller.StartServer(server)
+
+	if err != nil {
+		logger.Errorf("Error starting server: %v", err)
+		http.Error(w, "Error starting server", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("Server started"))
 }
 
 func stopServer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Stop server"))
+	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+
+	err := controller.StopServer(server)
+
+	if err != nil {
+		logger.Errorf("Error stopping server: %v", err)
+		http.Error(w, "Error stopping server", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte("Server stopped"))
 }

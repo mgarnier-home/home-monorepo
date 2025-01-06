@@ -1,165 +1,318 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"mgarnier11/go/dockerssh"
 	"mgarnier11/go/logger"
+	"mgarnier11/go/utils"
 	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server/models"
+	"mgarnier11/mineager/server/database"
+	"mgarnier11/mineager/server/objects/bo"
+	"mgarnier11/mineager/server/objects/dto"
+	"os"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 )
-
-type ServerDto struct {
-	Name    string `json:"name"`
-	Url     string `json:"url"`
-	Version string `json:"version"`
-	Map     string `json:"map"`
-}
-
-func serverBoToServerDto(serverBo *models.ServerBo) *ServerDto {
-	return &ServerDto{
-		Name:    serverBo.Name,
-		Url:     serverBo.Url,
-		Version: serverBo.Version,
-		Map:     serverBo.Map,
-	}
-}
-
-func serversBoToServersDto(serversBo []*models.ServerBo) []*ServerDto {
-	serversDto := make([]*ServerDto, 0)
-
-	for _, serverBo := range serversBo {
-		serversDto = append(serversDto, serverBoToServerDto(serverBo))
-	}
-
-	return serversDto
-}
 
 func getDockerClient(host *config.DockerHostConfig) (*client.Client, error) {
 	return dockerssh.GetDockerClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
 }
 
-func getDockerClients(hostName string) ([]*client.Client, error) {
-	clients := make([]*client.Client, 0)
-
-	host, err := config.GetHost(hostName)
-
-	if err != nil {
-		for _, dockerHost := range config.Config.AppConfig.DockerHosts {
-			dockerClient, err := getDockerClient(dockerHost)
-
-			if err != nil {
-				return nil, err
-			}
-
-			clients = append(clients, dockerClient)
-		}
-	} else {
-		dockerClient, err := getDockerClient(host)
-
-		if err != nil {
-			return nil, err
-		}
-
-		clients = append(clients, dockerClient)
+func getFilterArgs(name string) filters.Args {
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("label", "com.docker.compose.project=mineager")
+	filterArgs.Add("ancestor", "itzg/minecraft-server")
+	if name != "" {
+		filterArgs.Add("label", "mineager.serverName="+name)
 	}
 
-	return clients, nil
+	return filterArgs
 }
 
-func GetServers(hostName string, name string) ([]*ServerDto, error) {
-	servers := make([]*ServerDto, 0)
+func mapContainerToServer(container *types.Container) *bo.ServerBo {
+	port := uint16(0)
+	if len(container.Ports) > 0 {
+		port = container.Ports[0].PublicPort
+	}
+	logger.Infof("Container ports: %v", container)
 
-	dockerClients, err := getDockerClients(hostName)
+	return &bo.ServerBo{
+		Id:      container.ID,
+		Name:    container.Labels["mineager.serverName"],
+		Version: container.Labels["mineager.serverVersion"],
+		Map:     container.Labels["mineager.serverMap"],
+		Url:     container.Labels["mineager.serverUrl"],
+		Memory:  container.Labels["mineager.serverMemory"],
+		NewMap:  container.Labels["mineager.newMap"] == "true",
+		Port:    port,
+	}
+}
+
+type ServerController struct {
+	host         *config.DockerHostConfig
+	dockerClient *client.Client
+	mapRepo      *database.MapRepository
+}
+
+func NewServerController(hostName string) (*ServerController, error) {
+	host, err := config.GetHost(hostName)
+	if err != nil {
+		return nil, err
+	}
+
+	dockerClient, err := getDockerClient(host)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ServerController{
+		host:         host,
+		dockerClient: dockerClient,
+		mapRepo:      database.CreateMapRepository(),
+	}, nil
+}
+
+func (controller *ServerController) Dispose() {
+	controller.dockerClient.Close()
+}
+
+func (controller *ServerController) GetServers() ([]*bo.ServerBo, error) {
+	containers, err := controller.dockerClient.ContainerList(context.Background(), container.ListOptions{
+		Filters: getFilterArgs(""),
+		All:     true,
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, dockerClient := range dockerClients {
-		defer dockerClient.Close()
+	servers := make([]*bo.ServerBo, 0)
 
-		serversBo, err := models.GetServers(dockerClient, name)
+	for _, container := range containers {
+		server := mapContainerToServer(&container)
 
-		if err != nil {
-			logger.Errorf("error getting servers %v", err)
-			continue
-		}
-
-		servers = append(servers, serversBoToServersDto(serversBo)...)
+		servers = append(servers, server)
 	}
 
 	return servers, nil
 }
 
-func CreateServer(
-	hostName string,
-	serverName string,
-	version string,
-	mapName string,
-	memory string,
-	url string,
-) (*ServerDto, error) {
-	host, err := config.GetHost(hostName)
+func (controller *ServerController) GetServer(name string) (*bo.ServerBo, error) {
+	servers, err := controller.GetServers()
 
 	if err != nil {
 		return nil, err
 	}
 
-	dockerClient, err := getDockerClient(host)
-	if err != nil {
-		return nil, err
-	}
-	defer dockerClient.Close()
-
-	serverExist, err := models.ServerExists(dockerClient, serverName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting server: %v", err)
-	}
-	if serverExist {
-		return nil, fmt.Errorf("server %s already exists", serverName)
+	for _, server := range servers {
+		if server.Name == name {
+			return server, nil
+		}
 	}
 
-	// Copy map to servers folder
-	mapPath := getMapPath(mapName)
-
-	// err = sendMapToHost(serverName, mapName, host)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error sending map to host: %v", err)
-	// }
-	// logger.Infof("Map %s sent to host %s on server %s", mapName, hostName, serverName)
-
-	serverConfig := &models.ServerConfig{
-		Client:  dockerClient,
-		Host:    host,
-		Name:    serverName,
-		Version: version,
-		Map:     mapName,
-		Memory:  memory,
-		Url:     url,
-	}
-	serverBo, err := models.CreateServer(serverConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating server: %v", err)
-	}
-
-	return serverBoToServerDto(serverBo), nil
+	return nil, fmt.Errorf("server %s not found", name)
 }
 
-func DeleteServer(hostName string, serverName string) error {
-	host, err := config.GetHost(hostName)
+func (controller *ServerController) getNextPort() (uint16, error) {
+	servers, err := controller.GetServers()
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	dockerClient, err := getDockerClient(host)
+	var maxPort uint16 = uint16(controller.host.StartPort)
 
+	logger.Infof("Max port: %d", maxPort)
+
+	for _, server := range servers {
+		logger.Infof("Server port: %d", server.Port)
+		if server.Port > maxPort {
+			maxPort = server.Port
+		}
+	}
+
+	logger.Infof("Max port: %d", maxPort)
+
+	return maxPort + 1, nil
+}
+
+func (controller *ServerController) ServerExists(name string) (bool, error) {
+	server, err := controller.GetServer(name)
+
+	if server != nil {
+		return true, nil
+	} else if err != nil && err.Error() == fmt.Sprintf("server %s not found", name) {
+		return false, nil
+	} else {
+		return false, err
+	}
+}
+
+func (controller *ServerController) CreateServer(createServerDto *dto.CreateServerRequestDto) (*bo.ServerBo, error) {
+	// Check if server already exists
+	if serverExist, err := controller.ServerExists(createServerDto.Name); err != nil || serverExist {
+		if err != nil {
+			return nil, fmt.Errorf("error getting server: %v", err)
+		}
+		return nil, fmt.Errorf("server %s already exists", createServerDto.Name)
+	}
+
+	// Create server directory
+	if err := createServerDirectory(createServerDto.Name); err != nil {
+		return nil, fmt.Errorf("error creating server directory: %v", err)
+	}
+
+	// If the map is not new, copy it to the server directory and send it to the host
+	if !createServerDto.NewMap {
+		m, err := controller.mapRepo.GetMapByName(createServerDto.MapName)
+
+		if err != nil {
+			return nil, fmt.Errorf("error getting map: %v", err)
+		}
+
+		if m == nil {
+			return nil, fmt.Errorf("map %s not found", createServerDto.MapName)
+		}
+
+		// Copy map to server directory
+		if err := utils.CopyFolder(getMapPath(createServerDto.MapName), getServerLocalMapPath(createServerDto.Name)); err != nil {
+			return nil, fmt.Errorf("error copying map to server directory: %v", err)
+		}
+	} else {
+		_, err := controller.mapRepo.CreateMap(createServerDto.MapName, createServerDto.Version, "")
+		if err != nil {
+			return nil, fmt.Errorf("error creating a new  map: %v", err)
+		}
+
+		if err := os.MkdirAll(getServerLocalMapPath(createServerDto.Name), 0755); err != nil {
+			return nil, fmt.Errorf("error creating new map directory: %v", err)
+		}
+	}
+
+	// Send map to host
+	// It will either send the copied or a just create the dir on the host to allow the container to mount it and create a new map at start
+	if err := sendServerMapToHost(createServerDto.Name, controller.host); err != nil {
+		return nil, fmt.Errorf("error sending map to host: %v", err)
+	}
+
+	logger.Infof("Map %s sent to host %s on server %s", createServerDto.MapName, controller.host.Name, createServerDto.Name)
+	port, err := controller.getNextPort()
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("error getting port: %v", err)
 	}
-	defer dockerClient.Close()
 
-	return models.DeleteServer(dockerClient, serverName)
+	containerConfig := &container.Config{
+		Image: "itzg/minecraft-server", // Set la version du container
+		Labels: map[string]string{
+			"com.docker.compose.project": "mineager",
+			"mineager.serverName":        createServerDto.Name,
+			"mineager.serverVersion":     createServerDto.Version,
+			"mineager.serverMap":         createServerDto.MapName,
+			"mineager.serverUrl":         createServerDto.Url,
+			"mineager.serverMemory":      createServerDto.Memory,
+			"mineager.newMap":            fmt.Sprintf("%t", createServerDto.NewMap),
+			// Label traefik conf
+		},
+		Env: []string{
+			"EULA=TRUE",
+			"TYPE=VANILLA",
+			"VERSION=" + createServerDto.Version,
+			"MEMORY=" + createServerDto.Memory,
+		},
+		ExposedPorts: map[nat.Port]struct{}{
+			"25565/tcp": {},
+		},
+	}
+
+	hostConfig := &container.HostConfig{
+		PortBindings: nat.PortMap{
+			"25565/tcp": []nat.PortBinding{
+				{
+					HostIP:   "0.0.0.0",
+					HostPort: fmt.Sprintf("%d", port),
+				},
+			},
+		},
+		Mounts: []mount.Mount{
+			{
+				Type:   mount.TypeBind,
+				Source: getServerHostMapPath(controller.host, createServerDto.Name),
+				Target: "/data/world",
+			},
+		},
+	}
+
+	// Create the container
+	createResponse, err := controller.dockerClient.ContainerCreate(context.Background(), containerConfig, hostConfig, nil, nil, fmt.Sprintf("mineager-%s", createServerDto.Name))
+	if err != nil {
+		return nil, fmt.Errorf("error creating container: %v", err)
+	}
+
+	return &bo.ServerBo{
+		Id:      createResponse.ID,
+		Name:    createServerDto.Name,
+		Port:    port,
+		Version: createServerDto.Version,
+		Map:     createServerDto.MapName,
+		Url:     createServerDto.Url,
+		Memory:  createServerDto.Memory,
+	}, nil
+}
+
+func (controller *ServerController) StartServer(serverBo *bo.ServerBo) error {
+	if err := sendServerMapToHost(serverBo.Name, controller.host); err != nil {
+		return fmt.Errorf("error sending map to host: %v", err)
+	}
+
+	if err := controller.dockerClient.ContainerStart(context.Background(), serverBo.Id, container.StartOptions{}); err != nil {
+		return fmt.Errorf("error starting container: %v", err)
+	}
+
+	return nil
+}
+
+func (controller *ServerController) StopServer(serverBo *bo.ServerBo) error {
+
+	if err := controller.dockerClient.ContainerStop(context.Background(), serverBo.Id, container.StopOptions{}); err != nil {
+		return fmt.Errorf("error stopping container: %v", err)
+	}
+
+	if err := getServerMapFromHost(serverBo.Name, controller.host); err != nil {
+		return fmt.Errorf("error getting map from host: %v", err)
+	}
+
+	if serverBo.NewMap {
+		if err := utils.CopyFolder(getServerLocalMapPath(serverBo.Name), getMapPath(serverBo.Map)); err != nil {
+			return fmt.Errorf("error copying server map to maps directory: %v", err)
+		}
+	}
+
+	return nil
+}
+
+func (controller *ServerController) DeleteServer(serverBo *bo.ServerBo, full bool) error {
+
+	if err := controller.dockerClient.ContainerRemove(context.Background(), serverBo.Id, container.RemoveOptions{
+		Force: true,
+	}); err != nil {
+		return fmt.Errorf("error deleting container: %v", err)
+	}
+
+	if err := deleteHostDirectory(serverBo.Name, controller.host); err != nil {
+		return fmt.Errorf("error deleting host server directory: %v", err)
+	}
+
+	if full {
+		if err := deleteServerDirectory(serverBo.Name); err != nil {
+			return fmt.Errorf("error deleting server directory: %v", err)
+		}
+	}
+
+	return nil
 }

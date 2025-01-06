@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+type contextKey string
+
 func serializeAndSendResponse(w http.ResponseWriter, response interface{}) {
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {

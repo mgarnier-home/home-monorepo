@@ -6,78 +6,55 @@ import (
 	"fmt"
 	"io"
 	"mgarnier11/go/logger"
-	"mgarnier11/go/sshutils"
-	"mgarnier11/go/sshutils/sftp"
 	"mgarnier11/go/utils"
-	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server/models"
-	"net"
+	"mgarnier11/mineager/server/database"
+	"mgarnier11/mineager/server/objects/bo"
+
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
-
-	"golang.org/x/crypto/ssh"
 )
 
-type MapDto struct {
-	Name        string `json:"name"`
-	Version     string `json:"version"`
-	Description string `json:"description"`
+type MapController struct {
+	mapRepository *database.MapRepository
 }
 
-func mapBoToMapDto(mapBo *models.MapBo) *MapDto {
-	return &MapDto{
-		Name:        mapBo.Name,
-		Version:     mapBo.Version,
-		Description: mapBo.Description,
+func NewMapController() *MapController {
+	return &MapController{
+		mapRepository: database.CreateMapRepository(),
 	}
 }
 
-func mapsBoToMapsDto(mapsBo []*models.MapBo) []*MapDto {
-	mapsDto := make([]*MapDto, 0)
-
-	for _, mapBo := range mapsBo {
-		mapsDto = append(mapsDto, mapBoToMapDto(mapBo))
-	}
-
-	return mapsDto
-}
-
-func getMapPath(mapName string) string {
-	return fmt.Sprintf("%s/%s", config.Config.MapsFolderPath, mapName)
-}
-
-func GetMaps() ([]*MapDto, error) {
-	maps, err := models.GetMaps()
+func (controller *MapController) GetMaps() ([]*bo.MapBo, error) {
+	maps, err := controller.mapRepository.GetMaps()
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting maps: %v", err)
 	}
 
-	return mapsBoToMapsDto(maps), nil
+	return maps, nil
 }
 
-func GetMap(name string) (*MapDto, error) {
-	mapRow, err := models.GetMapByName(name)
+func (controller *MapController) GetMap(name string) (*bo.MapBo, error) {
+	mapRow, err := controller.mapRepository.GetMapByName(name)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting map: %v", err)
 	}
 
-	return mapBoToMapDto(mapRow), nil
+	return mapRow, nil
 }
 
-func PostMap(name string, version string, description string, file *[]byte) (*MapDto, error) {
-	newMap, err := models.CreateMap(name, version, description)
+func (controller *MapController) PostMap(name string, version string, description string, file *[]byte) (*bo.MapBo, error) {
+	newMap, err := controller.mapRepository.CreateMap(name, version, description)
 
 	if err != nil {
 		return nil, fmt.Errorf("error creating map: %v", err)
 	}
 
-	sendError := func(err error) (*MapDto, error) {
-		models.DeleteMapByName(newMap.Name)
+	sendError := func(err error) (*bo.MapBo, error) {
+		controller.mapRepository.DeleteMapByName(newMap.Name)
 		return nil, err
 	}
 
@@ -150,11 +127,11 @@ func PostMap(name string, version string, description string, file *[]byte) (*Ma
 
 	logger.Infof("Map %s created", newMap.Name)
 
-	return mapBoToMapDto(newMap), nil
+	return newMap, nil
 }
 
-func DeleteMap(name string) error {
-	err := models.DeleteMapByName(name)
+func (controller *MapController) DeleteMap(name string) error {
+	err := controller.mapRepository.DeleteMapByName(name)
 
 	if err != nil {
 		return fmt.Errorf("error deleting map: %v", err)
@@ -165,44 +142,4 @@ func DeleteMap(name string) error {
 	os.RemoveAll(mapPath)
 
 	return nil
-}
-
-func sendMapToHost(serverName string, mapName string, host *config.DockerHostConfig) error {
-	sshAuth, err := sshutils.GetSSHKeyAuth(config.Config.SSHKeyPath)
-
-	if err != nil {
-		return fmt.Errorf("error getting ssh key auth: %v", err)
-	}
-
-	sshClient, err := ssh.Dial("tcp", net.JoinHostPort(host.Ip, host.SSHPort), &ssh.ClientConfig{
-		User:            host.SSHUsername,
-		Auth:            []ssh.AuthMethod{sshAuth},
-		Timeout:         5 * time.Second,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	})
-
-	if err != nil {
-		return fmt.Errorf("error connecting to ssh: %v", err)
-	}
-	defer sshClient.Close()
-
-	session, err := sshClient.NewSession()
-	if err != nil {
-		return fmt.Errorf("error creating session: %v", err)
-	}
-
-	command := fmt.Sprintf("mkdir -p %s/%s/world", host.MineagerPath, serverName)
-
-	logger.Infof("Command: %s", command)
-
-	err = session.Run(command)
-	if err != nil {
-		return fmt.Errorf("error creating server folder: %v", err)
-	}
-
-	session.Close()
-
-	serverDestPath := models.GetServerDestPath(host, serverName)
-
-	return sftp.LocalToRemote(sshClient, getMapPath(mapName), serverDestPath)
 }

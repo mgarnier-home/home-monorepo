@@ -5,6 +5,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -64,4 +66,60 @@ func FilterFunc[S ~[]E, E any](s S, f func(E) bool) []E {
 		}
 	}
 	return r
+}
+
+// CopyFolder copies a folder from src to dst
+func CopyFolder(src string, dst string) error {
+	// Walk through the source folder
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Build the destination path
+		relativePath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		dstPath := filepath.Join(dst, relativePath)
+
+		// Check if it's a directory
+		if info.IsDir() {
+			// Create the directory
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+
+		// Copy the file
+		return CopyFile(path, dstPath)
+	})
+}
+
+// CopyFile copies a single file from src to dst
+func CopyFile(src string, dst string) error {
+	// Open the source file
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	// Create the destination file
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	// Copy the contents
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return err
+	}
+
+	// Copy file permissions
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	return os.Chmod(dst, srcInfo.Mode())
 }

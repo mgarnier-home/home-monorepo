@@ -149,7 +149,7 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort string, sshKeyPa
 		Transport: &http.Transport{
 			DialContext: sshDialer,
 		},
-		Timeout: 2 * time.Second,
+		Timeout: 30 * time.Second,
 	}
 
 	var clientOpts []client.Opt

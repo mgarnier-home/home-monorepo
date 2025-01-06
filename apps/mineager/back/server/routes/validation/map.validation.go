@@ -6,18 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go/logger"
+	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
 	"path/filepath"
 	"slices"
 	"strings"
 )
-
-type postMapRequest struct {
-	Name        string
-	Version     string
-	Description string
-	File        *[]byte
-}
 
 func validateMinecraftMap(fileBuffer *[]byte) error {
 	zipReader, err := zip.NewReader(bytes.NewReader(*fileBuffer), int64(len(*fileBuffer)))
@@ -46,7 +40,7 @@ func validateMinecraftMap(fileBuffer *[]byte) error {
 	return nil
 }
 
-func ValidateMapPostRequest(r *http.Request) (*postMapRequest, error) {
+func ValidateMapPostRequest(r *http.Request) (*dto.CreateMapRequestDto, error) {
 	const maxUploadSize = 1 << 30 // 1 GB
 
 	err := r.ParseMultipartForm(maxUploadSize)
@@ -96,7 +90,7 @@ func ValidateMapPostRequest(r *http.Request) (*postMapRequest, error) {
 		return nil, errors.New("description must be less than 500 characters")
 	}
 
-	return &postMapRequest{
+	return &dto.CreateMapRequestDto{
 		Name:        name,
 		Version:     version,
 		Description: description,

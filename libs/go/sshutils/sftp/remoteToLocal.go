@@ -2,6 +2,7 @@ package sftp
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,20 @@ import (
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
+
+func RemoveDir(sshClient *ssh.Client, dirPath string) error {
+	// Create SFTP client
+	sftpClient, err := sftp.NewClient(sshClient)
+	if err != nil {
+		return fmt.Errorf("failed to create SFTP client: %v", err)
+	}
+	defer sftpClient.Close()
+
+	log.Println("Removing directory", dirPath)
+
+	// Remove the directory
+	return sftpClient.RemoveAll(dirPath)
+}
 
 func RemoteToLocal(sshClient *ssh.Client, localDirPath, remoteDirPath string) error {
 	// Create SFTP client

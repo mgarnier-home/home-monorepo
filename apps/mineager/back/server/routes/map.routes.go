@@ -1,8 +1,10 @@
 package routes
 
 import (
+	"context"
 	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
+	"mgarnier11/mineager/server/objects/dto"
 	"mgarnier11/mineager/server/routes/validation"
 	"net/http"
 	"strings"
@@ -10,17 +12,32 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const mapsContextKey contextKey = "maps"
+
+func getMapControllerMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		controller := controllers.NewMapController()
+
+		ctx := context.WithValue(r.Context(), mapsContextKey, controller)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func MapRoutes(router *mux.Router) {
 	mapRouter := router.PathPrefix("/map").Subrouter()
+	mapRouter.Use(getMapControllerMiddleware)
 
-	mapRouter.HandleFunc("/", getMaps).Methods("GET")
+	mapRouter.HandleFunc("", getMaps).Methods("GET")
 	mapRouter.HandleFunc("/{name}", getMap).Methods("GET")
-	mapRouter.HandleFunc("/", postMap).Methods("POST")
+	mapRouter.HandleFunc("", postMap).Methods("POST")
 	mapRouter.HandleFunc("/{name}", deleteMap).Methods("DELETE")
 }
 
 func getMaps(w http.ResponseWriter, r *http.Request) {
-	maps, err := controllers.GetMaps()
+	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+
+	maps, err := controller.GetMaps()
 
 	if err != nil {
 		logger.Errorf("Error getting maps: %v", err)
@@ -28,13 +45,15 @@ func getMaps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serializeAndSendResponse(w, maps)
+	serializeAndSendResponse(w, dto.MapsBoToMapsDto(maps))
 }
 
 func getMap(w http.ResponseWriter, r *http.Request) {
+	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+
 	mapName := strings.ToLower(mux.Vars(r)["name"])
 
-	mapBo, err := controllers.GetMap(mapName)
+	mapBo, err := controller.GetMap(mapName)
 
 	if err != nil {
 		logger.Errorf("Error getting map: %v", err)
@@ -42,10 +61,12 @@ func getMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serializeAndSendResponse(w, mapBo)
+	serializeAndSendResponse(w, dto.MapBoToMapDto(mapBo))
 }
 
 func postMap(w http.ResponseWriter, r *http.Request) {
+	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+
 	requestValidated, err := validation.ValidateMapPostRequest(r)
 
 	if err != nil {
@@ -53,7 +74,7 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newMap, err := controllers.PostMap(
+	newMap, err := controller.PostMap(
 		requestValidated.Name,
 		requestValidated.Version,
 		requestValidated.Description,
@@ -66,13 +87,15 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serializeAndSendResponse(w, newMap)
+	serializeAndSendResponse(w, dto.MapBoToMapDto(newMap))
 }
 
 func deleteMap(w http.ResponseWriter, r *http.Request) {
+	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+
 	mapName := strings.ToLower(mux.Vars(r)["name"])
 
-	err := controllers.DeleteMap(mapName)
+	err := controller.DeleteMap(mapName)
 
 	if err != nil {
 		logger.Errorf("Error deleting map: %v", err)
