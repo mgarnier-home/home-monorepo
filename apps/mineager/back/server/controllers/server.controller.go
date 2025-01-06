@@ -7,6 +7,7 @@ import (
 	"mgarnier11/go/logger"
 	"mgarnier11/go/utils"
 	"mgarnier11/mineager/config"
+	"mgarnier11/mineager/external"
 	"mgarnier11/mineager/server/database"
 	"mgarnier11/mineager/server/objects/bo"
 	"mgarnier11/mineager/server/objects/dto"
@@ -206,7 +207,7 @@ func (controller *ServerController) CreateServer(createServerDto *dto.CreateServ
 	}
 
 	// Send map to host
-	// It will either send the copied or a just create the dir on the host to allow the container to mount it and create a new map at start
+	// It will either send the copied map or a just create the dir on the host to allow the container to mount it and create a new map at start
 	if err := sendServerMapToHost(createServerDto.Name, controller.host); err != nil {
 		return nil, fmt.Errorf("error sending map to host: %v", err)
 	}
@@ -217,6 +218,8 @@ func (controller *ServerController) CreateServer(createServerDto *dto.CreateServ
 		return nil, fmt.Errorf("error getting port: %v", err)
 	}
 
+	serverUrl := fmt.Sprintf("%s.%s", createServerDto.Name, config.Config.DomainName)
+
 	containerConfig := &container.Config{
 		Image: "itzg/minecraft-server", // Set la version du container
 		Labels: map[string]string{
@@ -224,7 +227,7 @@ func (controller *ServerController) CreateServer(createServerDto *dto.CreateServ
 			"mineager.serverName":        createServerDto.Name,
 			"mineager.serverVersion":     createServerDto.Version,
 			"mineager.serverMap":         createServerDto.MapName,
-			"mineager.serverUrl":         createServerDto.Url,
+			"mineager.serverUrl":         serverUrl,
 			"mineager.serverMemory":      createServerDto.Memory,
 			"mineager.newMap":            fmt.Sprintf("%t", createServerDto.NewMap),
 			"traefik-conf.port":          fmt.Sprintf("%d", port),
@@ -264,15 +267,21 @@ func (controller *ServerController) CreateServer(createServerDto *dto.CreateServ
 		return nil, fmt.Errorf("error creating container: %v", err)
 	}
 
-	return &bo.ServerBo{
+	serverBo := &bo.ServerBo{
 		Id:      createResponse.ID,
 		Name:    createServerDto.Name,
 		Port:    port,
 		Version: createServerDto.Version,
 		Map:     createServerDto.MapName,
-		Url:     createServerDto.Url,
+		Url:     serverUrl,
 		Memory:  createServerDto.Memory,
-	}, nil
+	}
+
+	if err := external.CreateProxy(controller.host, serverBo); err != nil {
+		logger.Errorf("Error creating proxy: %v", err)
+	}
+
+	return serverBo, nil
 }
 
 func (controller *ServerController) StartServer(serverBo *bo.ServerBo) error {
@@ -307,6 +316,9 @@ func (controller *ServerController) StopServer(serverBo *bo.ServerBo) error {
 }
 
 func (controller *ServerController) DeleteServer(serverBo *bo.ServerBo, full bool) error {
+	if err := external.DeleteProxy(controller.host, serverBo); err != nil {
+		logger.Errorf("Error deleting proxy: %v", err)
+	}
 
 	if err := controller.dockerClient.ContainerRemove(context.Background(), serverBo.Id, container.RemoveOptions{
 		Force: true,

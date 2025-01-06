@@ -3,7 +3,6 @@ package validation
 import (
 	"encoding/json"
 	"errors"
-	"mgarnier11/mineager/config"
 	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
 	"regexp"
@@ -37,34 +36,6 @@ func validateMemory(memoryStr string) error {
 	return nil
 }
 
-func validateUrl(url string) error {
-	if url == "" {
-		return errors.New("url is required")
-	}
-
-	// Regex to validate the URL format
-	urlRegex := regexp.MustCompile(`^[a-zA-Z0-9-]+\.mgarnier11\.fr$`)
-	if !urlRegex.MatchString(url) {
-		return errors.New("url must be in the format WHATEVER.mgarnier11.fr and WHATEVER cannot be empty")
-	}
-
-	return nil
-}
-
-func validateHostName(hostName string) error {
-	if hostName == "" {
-		return errors.New("hostName is required")
-	}
-
-	_, err := config.GetHost(hostName)
-
-	if err != nil {
-		return errors.New("hostName does not exist")
-	}
-
-	return nil
-}
-
 func ValidateServerPostRequest(r *http.Request) (*dto.CreateServerRequestDto, error) {
 	var requestData dto.CreateServerRequestDto
 
@@ -73,7 +44,6 @@ func ValidateServerPostRequest(r *http.Request) (*dto.CreateServerRequestDto, er
 		return nil, errors.New("failed to parse request body")
 	}
 
-	requestData.HostName = strings.ToLower(requestData.HostName)
 	requestData.Name = strings.ToLower(requestData.Name)
 	requestData.MapName = strings.ToLower(requestData.MapName)
 
@@ -90,14 +60,6 @@ func ValidateServerPostRequest(r *http.Request) (*dto.CreateServerRequestDto, er
 	}
 
 	if err := validateName(requestData.MapName, "mapName"); err != nil {
-		return nil, err
-	}
-
-	if err := validateUrl(requestData.Url); err != nil {
-		return nil, err
-	}
-
-	if err := validateHostName(requestData.HostName); err != nil {
 		return nil, err
 	}
 

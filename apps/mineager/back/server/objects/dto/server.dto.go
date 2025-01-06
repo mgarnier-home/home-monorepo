@@ -31,13 +31,11 @@ func ServersBoToServersDto(serversBo []*bo.ServerBo) []*ServerDto {
 }
 
 type CreateServerRequestDto struct {
-	HostName string `json:"hostName"`
-	Name     string `json:"name"`
-	Version  string `json:"version"`
-	NewMap   bool   `json:"newMap"`
-	MapName  string `json:"mapName,omitempty"`
-	Memory   string `json:"memory"`
-	Url      string `json:"url"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	NewMap  bool   `json:"newMap"`
+	MapName string `json:"mapName,omitempty"`
+	Memory  string `json:"memory"`
 }
 
 type DeleteServerRequestDto struct {

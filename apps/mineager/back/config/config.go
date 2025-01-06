@@ -12,6 +12,7 @@ import (
 )
 
 type AppConfigFile struct {
+	InfraredUrl string              `yaml:"infraredUrl"`
 	DockerHosts []*DockerHostConfig `yaml:"dockerHosts"`
 }
 
@@ -52,6 +53,7 @@ type AppEnvConfig struct {
 	MapsFolderPath    string
 	ServersFolderPath string
 	ApiToken          string
+	DomainName        string
 
 	AppConfig *AppConfigFile
 }
@@ -66,6 +68,7 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 		FrontendPath:   utils.GetEnv("FRONTEND_PATH", "./front"),
 		DataFolderPath: utils.GetEnv("DATA_FOLDER_PATH", "./data"),
 		ApiToken:       utils.GetEnv("API_TOKEN", ""),
+		DomainName:     utils.GetEnv("DOMAIN_NAME", ""),
 	}
 
 	appEnvConfig.MapsFolderPath = fmt.Sprintf("%s/maps", appEnvConfig.DataFolderPath)
