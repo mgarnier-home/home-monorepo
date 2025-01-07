@@ -54,7 +54,7 @@ func getServerMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func ServerRoutes(router *mux.Router) {
+func ServersRoutes(router *mux.Router) {
 	serverRouter := router.PathPrefix("/{hostName}/servers").Subrouter()
 	serverRouter.Use(getServersControllerMiddleware)
 
@@ -79,14 +79,14 @@ func getServers(w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("Error getting servers: %v", err)
 		http.Error(w, "Error getting servers", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.ServersBoToServersDto(servers), http.StatusOK)
+		serializeAndSendResponse(w, dto.MapServersBoToServersDto(servers), http.StatusOK)
 	}
 }
 
 func getServer(w http.ResponseWriter, r *http.Request) {
 	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
 
-	serializeAndSendResponse(w, dto.ServerBoToServerDto(server), http.StatusOK)
+	serializeAndSendResponse(w, dto.MapServerBoToServerDto(server), http.StatusOK)
 }
 
 func postServer(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +105,7 @@ func postServer(w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("Error creating server: %v", err)
 		sendErrorResponse(w, "Error creating server", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.ServerBoToServerDto(newServer), http.StatusOK)
+		serializeAndSendResponse(w, dto.MapServerBoToServerDto(newServer), http.StatusOK)
 	}
 }
 

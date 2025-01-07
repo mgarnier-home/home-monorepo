@@ -75,9 +75,9 @@ func (s *Server) Start() error {
 
 	version.SetupVersionRoute(router)
 
-	routes.MapRoutes(router)
-	routes.ServerRoutes(router)
-	routes.HostRoutes(router)
+	routes.MapsRoutes(router)
+	routes.ServersRoutes(router)
+	routes.HostsRoutes(router)
 
 	log.Infof("Starting server on port %d", s.port)
 

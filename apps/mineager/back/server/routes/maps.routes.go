@@ -14,7 +14,7 @@ import (
 
 const mapsContextKey contextKey = "maps"
 
-func getMapControllerMiddleware(next http.Handler) http.Handler {
+func getMapsControllerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		controller := controllers.NewMapsController()
 
@@ -28,9 +28,9 @@ func getMapsControllerFromContext(ctx context.Context) *controllers.MapsControll
 	return ctx.Value(mapsContextKey).(*controllers.MapsController)
 }
 
-func MapRoutes(router *mux.Router) {
+func MapsRoutes(router *mux.Router) {
 	mapRouter := router.PathPrefix("/maps").Subrouter()
-	mapRouter.Use(getMapControllerMiddleware)
+	mapRouter.Use(getMapsControllerMiddleware)
 
 	mapRouter.HandleFunc("", getMaps).Methods("GET")
 	mapRouter.HandleFunc("/{name}", getMap).Methods("GET")
@@ -47,7 +47,7 @@ func getMaps(w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("Error getting maps: %v", err)
 		sendErrorResponse(w, "Error getting maps", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapsBoToMapsDto(maps), http.StatusOK)
+		serializeAndSendResponse(w, dto.MapMapsBoToMapsDto(maps), http.StatusOK)
 	}
 }
 
@@ -62,7 +62,7 @@ func getMap(w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("Error getting map: %v", err)
 		sendErrorResponse(w, "Error getting map", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapBoToMapDto(mapBo), http.StatusOK)
+		serializeAndSendResponse(w, dto.MapMapBoToMapDto(mapBo), http.StatusOK)
 	}
 }
 
@@ -87,7 +87,7 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 		logger.Errorf("Error creating map: %v", err)
 		sendErrorResponse(w, "Error creating map", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapBoToMapDto(newMap), http.StatusOK)
+		serializeAndSendResponse(w, dto.MapMapBoToMapDto(newMap), http.StatusOK)
 	}
 }
 

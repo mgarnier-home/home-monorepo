@@ -8,7 +8,7 @@ type MapDto struct {
 	Description string `json:"description"`
 }
 
-func MapBoToMapDto(mapBo *bo.MapBo) *MapDto {
+func MapMapBoToMapDto(mapBo *bo.MapBo) *MapDto {
 	return &MapDto{
 		Name:        mapBo.Name,
 		Version:     mapBo.Version,
@@ -16,11 +16,11 @@ func MapBoToMapDto(mapBo *bo.MapBo) *MapDto {
 	}
 }
 
-func MapsBoToMapsDto(mapsBo []*bo.MapBo) []*MapDto {
+func MapMapsBoToMapsDto(mapsBo []*bo.MapBo) []*MapDto {
 	mapsDto := make([]*MapDto, 0)
 
 	for _, mapBo := range mapsBo {
-		mapsDto = append(mapsDto, MapBoToMapDto(mapBo))
+		mapsDto = append(mapsDto, MapMapBoToMapDto(mapBo))
 	}
 
 	return mapsDto

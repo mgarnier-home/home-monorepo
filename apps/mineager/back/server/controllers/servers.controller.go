@@ -37,7 +37,7 @@ func getFilterArgs(name string) filters.Args {
 	return filterArgs
 }
 
-func mapContainerToServer(container *types.Container, inspect *types.ContainerJSON) *bo.ServerBo {
+func mapDockerContainerToServerBo(container *types.Container, inspect *types.ContainerJSON) *bo.ServerBo {
 	port := uint16(0)
 	containerPorts := inspect.HostConfig.PortBindings["25565/tcp"]
 	if len(containerPorts) > 0 {
@@ -106,7 +106,7 @@ func (controller *ServersController) GetServers() ([]*bo.ServerBo, error) {
 			return nil, err
 		}
 
-		servers = append(servers, mapContainerToServer(&container, &containerInspect))
+		servers = append(servers, mapDockerContainerToServerBo(&container, &containerInspect))
 	}
 
 	return servers, nil

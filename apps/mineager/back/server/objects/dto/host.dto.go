@@ -1,24 +1,28 @@
 package dto
 
-import "mgarnier11/mineager/config"
+import (
+	"mgarnier11/mineager/server/objects/bo"
+)
 
 type HostDto struct {
 	Name string `json:"name"`
 	Ip   string `json:"ip"`
+	Ping bool   `json:"ping"`
 }
 
-func DockerHostToHostDto(host *config.DockerHostConfig) *HostDto {
+func MapHostBoToHostDto(host *bo.HostBo) *HostDto {
 	return &HostDto{
 		Name: host.Name,
 		Ip:   host.Ip,
+		Ping: host.Ping,
 	}
 }
 
-func DockerHostsToHostsDto(hosts []*config.DockerHostConfig) []*HostDto {
+func MapHostsBoHostsDto(hosts []*bo.HostBo) []*HostDto {
 	hostsDto := make([]*HostDto, 0)
 
 	for _, host := range hosts {
-		hostsDto = append(hostsDto, DockerHostToHostDto(host))
+		hostsDto = append(hostsDto, MapHostBoToHostDto(host))
 	}
 
 	return hostsDto

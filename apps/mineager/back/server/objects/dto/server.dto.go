@@ -10,7 +10,7 @@ type ServerDto struct {
 	Status  string `json:"status"`
 }
 
-func ServerBoToServerDto(serverBo *bo.ServerBo) *ServerDto {
+func MapServerBoToServerDto(serverBo *bo.ServerBo) *ServerDto {
 	return &ServerDto{
 		Name:    serverBo.Name,
 		Url:     serverBo.Url,
@@ -20,11 +20,11 @@ func ServerBoToServerDto(serverBo *bo.ServerBo) *ServerDto {
 	}
 }
 
-func ServersBoToServersDto(serversBo []*bo.ServerBo) []*ServerDto {
+func MapServersBoToServersDto(serversBo []*bo.ServerBo) []*ServerDto {
 	serversDto := make([]*ServerDto, 0)
 
 	for _, serverBo := range serversBo {
-		serversDto = append(serversDto, ServerBoToServerDto(serverBo))
+		serversDto = append(serversDto, MapServerBoToServerDto(serverBo))
 	}
 
 	return serversDto
