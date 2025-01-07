@@ -4,10 +4,14 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/go-ping/ping"
 )
 
 func Min(a, b int) int {
@@ -122,4 +126,22 @@ func CopyFile(src string, dst string) error {
 		return err
 	}
 	return os.Chmod(dst, srcInfo.Mode())
+}
+
+func PingIp(ip string, timeout time.Duration) (bool, error) {
+	pinger, err := ping.NewPinger(ip)
+
+	if err != nil {
+		return false, fmt.Errorf("failed to create pinger: %v", err)
+	}
+
+	pinger.Count = 1
+	pinger.Timeout = timeout
+
+	err = pinger.Run()
+	if err != nil {
+		return false, fmt.Errorf("failed to run pinger: %v", err)
+	}
+
+	return pinger.Statistics().PacketsRecv > 0, nil
 }

@@ -10,6 +10,7 @@ import (
 	"mgarnier11/go/colors"
 	"mgarnier11/go/logger"
 	"mgarnier11/go/ntfy"
+	"mgarnier11/go/utils"
 	"slices"
 	"strings"
 	"sync"
@@ -126,7 +127,7 @@ func (host *Host) setupHostLoop() {
 }
 
 func (host *Host) updateState() {
-	pingSuccess, err := getHostStatus(host.Config.Ip)
+	pingSuccess, err := utils.PingIp(host.Config.Ip, 500*time.Millisecond)
 
 	if err != nil {
 		host.logger.Errorf("failed to check host status: %v", err)

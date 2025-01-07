@@ -5,7 +5,6 @@ go 1.23.0
 require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/docker/docker v27.4.1+incompatible
-	github.com/go-ping/ping v1.1.0
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	golang.org/x/crypto v0.30.0
@@ -33,6 +32,7 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-ping/ping v1.2.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -60,6 +60,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/grpc v1.68.1 // indirect
 	google.golang.org/protobuf v1.35.2 // indirect
+	mgarnier11/go/sshutils v0.0.0-00010101000000-000000000000 // indirect
 )
 
 replace mgarnier11/go/utils => ../../../libs/go/utils
@@ -73,3 +74,5 @@ replace mgarnier11/go/dockerssh => ../../../libs/go/dockerssh
 replace mgarnier11/go/ntfy => ../../../libs/go/ntfy
 
 replace mgarnier11/go/version => ../../../libs/go/version
+
+replace mgarnier11/go/sshutils => ../../../libs/go/sshutils

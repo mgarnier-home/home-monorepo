@@ -7,7 +7,7 @@ import (
 	"mgarnier11/go-proxy/config"
 	"mgarnier11/go/dockerssh"
 	"mgarnier11/go/logger"
-	sshUtils "mgarnier11/go/utils/ssh"
+	"mgarnier11/go/sshutils"
 
 	"net"
 	"net/http"
@@ -44,7 +44,7 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 }
 
 func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Client, error) {
-	authMethod, err := sshUtils.GetSSHKeyAuth(config.Config.SSHKeyPath)
+	authMethod, err := sshutils.GetSSHKeyAuth(config.Config.SSHKeyPath)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ssh key auth: %v", err)

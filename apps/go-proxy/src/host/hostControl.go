@@ -5,16 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"mgarnier11/go-proxy/config"
-	sshUtils "mgarnier11/go/utils/ssh"
+	"mgarnier11/go/sshutils"
 	"net"
 	"time"
 
-	"github.com/go-ping/ping"
 	"golang.org/x/crypto/ssh"
 )
 
 func sendSSHCommand(ctx context.Context, hostConfig *config.HostConfig, command string) error {
-	authMethod, err := sshUtils.GetSSHKeyAuth(config.Config.SSHKeyPath)
+	authMethod, err := sshutils.GetSSHKeyAuth(config.Config.SSHKeyPath)
 
 	if err != nil {
 		return fmt.Errorf("failed to get ssh key auth: %v", err)
@@ -44,24 +43,6 @@ func sendSSHCommand(ctx context.Context, hostConfig *config.HostConfig, command 
 	<-ctx.Done()
 
 	return nil
-}
-
-func getHostStatus(ip string) (bool, error) {
-	pinger, err := ping.NewPinger(ip)
-
-	if err != nil {
-		return false, fmt.Errorf("failed to create pinger: %v", err)
-	}
-
-	pinger.Count = 1
-	pinger.Timeout = 500 * time.Millisecond
-
-	err = pinger.Run()
-	if err != nil {
-		return false, fmt.Errorf("failed to run pinger: %v", err)
-	}
-
-	return pinger.Statistics().PacketsRecv > 0, nil
 }
 
 // MagicPacket is a slice of 102 bytes containing the magic packet data.
