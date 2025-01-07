@@ -51,7 +51,7 @@ func getServerMiddleware(next http.Handler) http.Handler {
 }
 
 func ServerRoutes(router *mux.Router) {
-	serverRouter := router.PathPrefix("/{hostName}/server").Subrouter()
+	serverRouter := router.PathPrefix("/{hostName}/servers").Subrouter()
 	serverRouter.Use(getServerControllerMiddleware)
 
 	serverRouter.HandleFunc("", getServers).Methods("GET")

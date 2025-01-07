@@ -11,18 +11,18 @@ export class MapsService extends ApiService {
   }
 
   public getMaps(): Promise<Map[]> {
-    return this.get(`${this.getApiUrl()}/map`);
+    return this.get(`maps`);
   }
 
   public getMap(name: string): Promise<Map> {
-    return this.get(`${this.getApiUrl()}/map/${name}`);
+    return this.get(`maps/${name}`);
   }
 
   public deleteMap(name: string): Promise<void> {
-    return this.delete(`${this.getApiUrl()}/map/${name}`);
+    return this.delete(`maps/${name}`);
   }
 
   public createMap(mapDto: CreateMapRequest): Promise<Map> {
-    return this.postJson(`${this.getApiUrl()}/map`, mapDto);
+    return this.postJson(`maps`, mapDto);
   }
 }

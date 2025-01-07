@@ -77,6 +77,7 @@ func (s *Server) Start() error {
 
 	routes.MapRoutes(router)
 	routes.ServerRoutes(router)
+	routes.HostRoutes(router)
 
 	log.Infof("Starting server on port %d", s.port)
 

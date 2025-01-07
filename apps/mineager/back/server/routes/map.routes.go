@@ -25,7 +25,7 @@ func getMapControllerMiddleware(next http.Handler) http.Handler {
 }
 
 func MapRoutes(router *mux.Router) {
-	mapRouter := router.PathPrefix("/map").Subrouter()
+	mapRouter := router.PathPrefix("/maps").Subrouter()
 	mapRouter.Use(getMapControllerMiddleware)
 
 	mapRouter.HandleFunc("", getMaps).Methods("GET")

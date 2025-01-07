@@ -11,26 +11,26 @@ export class ServersService extends ApiService {
   }
 
   public getServers(hostName: string): Promise<Server[]> {
-    return this.get(`${this.getApiUrl()}/${hostName}/server`);
+    return this.get(`${hostName}/servers`);
   }
 
   public getServer(hostName: string, serverName: string): Promise<Server> {
-    return this.get(`${this.getApiUrl()}/${hostName}/server/${serverName}`);
+    return this.get(`${hostName}/servers/${serverName}`);
   }
 
   public deleteServer(hostName: string, serverName: string): Promise<void> {
-    return this.delete(`${this.getApiUrl()}/${hostName}/server/${serverName}`);
+    return this.delete(`${hostName}/servers/${serverName}`);
   }
 
   public createServer(hostName: string, serverDto: CreateServerRequest): Promise<Server> {
-    return this.postJson(`${this.getApiUrl()}/${hostName}/server`, serverDto);
+    return this.postJson(`${hostName}/servers`, serverDto);
   }
 
   public startServer(hostName: string, serverName: string): Promise<void> {
-    return this.postJson(`${this.getApiUrl()}/${hostName}/server/${serverName}/start`, {});
+    return this.postJson(`${hostName}/servers/${serverName}/start`, {});
   }
 
   public stopServer(hostName: string, serverName: string): Promise<void> {
-    return this.postJson(`${this.getApiUrl()}/${hostName}/server/${serverName}/stop`, {});
+    return this.postJson(`${hostName}/servers/${serverName}/stop`, {});
   }
 }

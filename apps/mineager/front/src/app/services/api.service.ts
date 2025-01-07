@@ -14,9 +14,9 @@ export abstract class ApiService {
     return environment.apiUrl;
   }
 
-  private async makeRequest<T>(url: string | URL | globalThis.Request, init?: RequestInit): Promise<T> {
+  private async makeRequest<T>(path: string | URL | globalThis.Request, init?: RequestInit): Promise<T> {
     try {
-      const response = await fetch(url, init);
+      const response = await fetch(`${this.getApiUrl()}/${path}`, init);
 
       if (!response.ok) {
         throw response.body?.toString();
