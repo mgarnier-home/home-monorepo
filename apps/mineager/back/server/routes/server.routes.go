@@ -21,7 +21,7 @@ func getServerControllerMiddleware(next http.Handler) http.Handler {
 
 		if err != nil {
 			logger.Errorf("Error getting server controller: %v", err)
-			http.Error(w, "Error getting server controller", http.StatusInternalServerError)
+			sendErrorResponse(w, "Error getting server controller", http.StatusInternalServerError)
 			return
 		}
 
@@ -40,7 +40,7 @@ func getServerMiddleware(next http.Handler) http.Handler {
 
 		if err != nil {
 			logger.Errorf("Error getting server: %v", err)
-			http.Error(w, "Error getting server", http.StatusInternalServerError)
+			sendErrorResponse(w, "Error getting server", http.StatusInternalServerError)
 			return
 		}
 
@@ -74,16 +74,15 @@ func getServers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Errorf("Error getting servers: %v", err)
 		http.Error(w, "Error getting servers", http.StatusInternalServerError)
-		return
+	} else {
+		serializeAndSendResponse(w, dto.ServersBoToServersDto(servers), http.StatusOK)
 	}
-
-	serializeAndSendResponse(w, dto.ServersBoToServersDto(servers))
 }
 
 func getServer(w http.ResponseWriter, r *http.Request) {
 	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
 
-	serializeAndSendResponse(w, dto.ServerBoToServerDto(server))
+	serializeAndSendResponse(w, dto.ServerBoToServerDto(server), http.StatusOK)
 }
 
 func postServer(w http.ResponseWriter, r *http.Request) {
@@ -100,11 +99,10 @@ func postServer(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error creating server: %v", err)
-		http.Error(w, "Error creating server", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error creating server", http.StatusInternalServerError)
+	} else {
+		serializeAndSendResponse(w, dto.ServerBoToServerDto(newServer), http.StatusOK)
 	}
-
-	serializeAndSendResponse(w, dto.ServerBoToServerDto(newServer))
 }
 
 func deleteServer(w http.ResponseWriter, r *http.Request) {
@@ -114,7 +112,7 @@ func deleteServer(w http.ResponseWriter, r *http.Request) {
 	deleteServerDto, err := validation.ValidateServerDeleteRequest(r)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		sendErrorResponse(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -122,11 +120,10 @@ func deleteServer(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error deleting server: %v", err)
-		http.Error(w, "Error deleting server", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error deleting server", http.StatusInternalServerError)
+	} else {
+		sendOKResponse(w, "Server deleted")
 	}
-
-	w.Write([]byte("Server deleted"))
 }
 
 func startServer(w http.ResponseWriter, r *http.Request) {
@@ -137,11 +134,10 @@ func startServer(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error starting server: %v", err)
-		http.Error(w, "Error starting server", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error starting server", http.StatusInternalServerError)
+	} else {
+		sendOKResponse(w, "Server started")
 	}
-
-	w.Write([]byte("Server started"))
 }
 
 func stopServer(w http.ResponseWriter, r *http.Request) {
@@ -152,9 +148,8 @@ func stopServer(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error stopping server: %v", err)
-		http.Error(w, "Error stopping server", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error stopping server", http.StatusInternalServerError)
+	} else {
+		sendOKResponse(w, "Server stopped")
 	}
-
-	w.Write([]byte("Server stopped"))
 }

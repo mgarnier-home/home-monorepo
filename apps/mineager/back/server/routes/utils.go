@@ -8,7 +8,11 @@ import (
 
 type contextKey string
 
-func serializeAndSendResponse(w http.ResponseWriter, response interface{}) {
+type Reponse struct {
+	Message string `json:"message"`
+}
+
+func serializeAndSendResponse(w http.ResponseWriter, response interface{}, code int) {
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		logger.Errorf("Error serializing response: %v", err)
@@ -17,6 +21,16 @@ func serializeAndSendResponse(w http.ResponseWriter, response interface{}) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(code)
 	w.Write(jsonResponse)
+}
+
+func sendOKResponse(w http.ResponseWriter, message string) {
+	response := Reponse{Message: message}
+	serializeAndSendResponse(w, response, http.StatusOK)
+}
+
+func sendErrorResponse(w http.ResponseWriter, message string, code int) {
+	response := Reponse{Message: message}
+	serializeAndSendResponse(w, response, code)
 }

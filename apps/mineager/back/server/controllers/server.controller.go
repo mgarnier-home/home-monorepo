@@ -47,8 +47,6 @@ func mapContainerToServer(container *types.Container, inspect *types.ContainerJS
 		}
 	}
 
-	logger.Infof("Container %s port: %d", container.ID, port)
-
 	return &bo.ServerBo{
 		Id:      container.ID,
 		Status:  inspect.State.Status,
@@ -139,16 +137,11 @@ func (controller *ServerController) getNextPort() (uint16, error) {
 
 	var maxPort uint16 = uint16(controller.host.StartPort)
 
-	logger.Infof("Max port: %d", maxPort)
-
 	for _, server := range servers {
-		logger.Infof("Server port: %d", server.Port)
 		if server.Port > maxPort {
 			maxPort = server.Port
 		}
 	}
-
-	logger.Infof("Max port: %d", maxPort)
 
 	return maxPort + 1, nil
 }

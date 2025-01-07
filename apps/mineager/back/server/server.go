@@ -45,6 +45,23 @@ func (s *Server) checkApiTokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Replace * with specific origin(s) if needed
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Api-Token, Authorization")
+
+		// Handle preflight request
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *Server) Start() error {
 	log = logger.NewLogger("[SERVER]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
@@ -54,6 +71,7 @@ func (s *Server) Start() error {
 	if config.Config.ApiToken != "" {
 		router.Use(s.checkApiTokenMiddleware)
 	}
+	router.Use(s.corsMiddleware)
 
 	version.SetupVersionRoute(router)
 

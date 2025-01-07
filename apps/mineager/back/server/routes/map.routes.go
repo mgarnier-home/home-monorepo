@@ -41,11 +41,10 @@ func getMaps(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error getting maps: %v", err)
-		http.Error(w, "Error getting maps", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error getting maps", http.StatusInternalServerError)
+	} else {
+		serializeAndSendResponse(w, dto.MapsBoToMapsDto(maps), http.StatusOK)
 	}
-
-	serializeAndSendResponse(w, dto.MapsBoToMapsDto(maps))
 }
 
 func getMap(w http.ResponseWriter, r *http.Request) {
@@ -57,11 +56,10 @@ func getMap(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error getting map: %v", err)
-		http.Error(w, "Error getting map", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error getting map", http.StatusInternalServerError)
+	} else {
+		serializeAndSendResponse(w, dto.MapBoToMapDto(mapBo), http.StatusOK)
 	}
-
-	serializeAndSendResponse(w, dto.MapBoToMapDto(mapBo))
 }
 
 func postMap(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +68,7 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 	requestValidated, err := validation.ValidateMapPostRequest(r)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		sendErrorResponse(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -83,11 +81,10 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error creating map: %v", err)
-		http.Error(w, "Error creating map", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error creating map", http.StatusInternalServerError)
+	} else {
+		serializeAndSendResponse(w, dto.MapBoToMapDto(newMap), http.StatusOK)
 	}
-
-	serializeAndSendResponse(w, dto.MapBoToMapDto(newMap))
 }
 
 func deleteMap(w http.ResponseWriter, r *http.Request) {
@@ -99,9 +96,8 @@ func deleteMap(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		logger.Errorf("Error deleting map: %v", err)
-		http.Error(w, "Error deleting map", http.StatusInternalServerError)
-		return
+		sendErrorResponse(w, "Error deleting map", http.StatusInternalServerError)
+	} else {
+		sendOKResponse(w, "Map deleted")
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
