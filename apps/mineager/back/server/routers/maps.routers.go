@@ -1,11 +1,11 @@
-package routes
+package routers
 
 import (
 	"context"
 	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
 	"mgarnier11/mineager/server/objects/dto"
-	"mgarnier11/mineager/server/routes/validation"
+	"mgarnier11/mineager/server/routers/validation"
 	"net/http"
 	"strings"
 

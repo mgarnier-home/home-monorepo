@@ -5,7 +5,7 @@ import (
 	"mgarnier11/go/logger"
 	"mgarnier11/go/version"
 	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server/routes"
+	"mgarnier11/mineager/server/routers"
 	"net/http"
 
 	"github.com/charmbracelet/lipgloss"
@@ -13,20 +13,20 @@ import (
 )
 
 type Server struct {
-	port int
+	port   int
+	logger *logger.Logger
 }
-
-var log *logger.Logger
 
 func NewServer(port int) *Server {
 	return &Server{
-		port: port,
+		port:   port,
+		logger: logger.NewLogger("[SERVER]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil),
 	}
 }
 
 func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Infof("Request: %s %s", r.Method, r.URL.Path)
+		s.logger.Infof("Request: %s %s", r.Method, r.URL.Path)
 
 		next.ServeHTTP(w, r)
 	})
@@ -63,8 +63,6 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 }
 
 func (s *Server) Start() error {
-	log = logger.NewLogger("[SERVER]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
-
 	router := mux.NewRouter()
 
 	router.Use(s.logRequestMiddleware)
@@ -75,11 +73,13 @@ func (s *Server) Start() error {
 
 	version.SetupVersionRoute(router)
 
+	hostsRouter := routers.NewHostsRouter(router, s.logger)
+
 	routes.MapsRoutes(router)
 	hostNameRouter := routes.HostsRoutes(router)
 	routes.ServersRoutes(hostNameRouter)
 
-	log.Infof("Starting server on port %d", s.port)
+	s.logger.Infof("Starting server on port %d", s.port)
 
 	fs := http.FileServer(http.Dir(config.Config.FrontendPath))
 

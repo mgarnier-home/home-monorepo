@@ -1,15 +1,38 @@
-package routes
+package routers
 
 import (
 	"context"
+	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
 	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"
 )
 
 const hostsContextKey contextKey = "hosts"
+
+type HostsRouter struct {
+	contextKey             contextKey
+	logger                 *logger.Logger
+	hostsController        *controllers.HostsController
+	hostsSubrouter         *mux.Router
+	hostsHostnameSubrouter *mux.Router
+}
+
+func NewHostsRouter(router *mux.Router, serverLogger *logger.Logger) *HostsRouter {
+	return &HostsRouter{
+		contextKey: hostsContextKey,
+		logger: logger.NewLogger(
+			"[HOSTS]",
+			"%-10s ",
+			lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")),
+			serverLogger,
+		),
+		hostsController: controllers.NewHostsController(),
+	}
+}
 
 func getHostsControllerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -1,4 +1,4 @@
-package routes
+package routers
 
 import (
 	"context"
@@ -6,11 +6,14 @@ import (
 	"mgarnier11/mineager/server/controllers"
 	"mgarnier11/mineager/server/objects/bo"
 	"mgarnier11/mineager/server/objects/dto"
-	"mgarnier11/mineager/server/routes/validation"
+	"mgarnier11/mineager/server/routers/validation"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
+
+type ServerRouter struct {
+}
 
 const serversContextKey contextKey = "servers"
 const serverContextKey contextKey = "server"

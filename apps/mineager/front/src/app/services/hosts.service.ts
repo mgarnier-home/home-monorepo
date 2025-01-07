@@ -12,4 +12,8 @@ export class HostsService extends ApiService {
   getHosts() {
     return this.get('hosts');
   }
+
+  getHost(hostName: string) {
+    return this.get(`hosts/${hostName}`);
+  }
 }
