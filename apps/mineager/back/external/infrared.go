@@ -23,7 +23,7 @@ type CreateProxyRequest struct {
 	OfflineStatus     OfflineStatus `json:"offlineStatus"`
 }
 
-func CreateProxy(host *config.DockerHostConfig, serverBo *bo.ServerBo) error {
+func CreateProxy(host *bo.HostBo, serverBo *bo.ServerBo) error {
 	createProxyRequest := &CreateProxyRequest{
 		DomainName:        serverBo.Url,
 		ListenTo:          "0.0.0.0:25565",
@@ -62,7 +62,7 @@ func CreateProxy(host *config.DockerHostConfig, serverBo *bo.ServerBo) error {
 	return nil
 }
 
-func DeleteProxy(host *config.DockerHostConfig, serverBo *bo.ServerBo) error {
+func DeleteProxy(host *bo.HostBo, serverBo *bo.ServerBo) error {
 	requestUrl := fmt.Sprintf("%s/proxies/%s.json", config.Config.AppConfig.InfraredUrl, serverBo.Name)
 
 	// Create the DELETE request

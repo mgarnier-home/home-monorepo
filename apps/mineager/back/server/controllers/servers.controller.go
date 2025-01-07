@@ -22,7 +22,7 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func getDockerClient(host *config.DockerHostConfig) (*client.Client, error) {
+func getDockerClient(host *bo.HostBo) (*client.Client, error) {
 	return dockerssh.GetDockerClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
 }
 
@@ -61,15 +61,19 @@ func mapDockerContainerToServerBo(container *types.Container, inspect *types.Con
 }
 
 type ServersController struct {
-	host         *config.DockerHostConfig
+	host         *bo.HostBo
 	dockerClient *client.Client
 	mapRepo      *database.MapRepository
 }
 
 func NewServersController(hostName string) (*ServersController, error) {
-	host, err := config.GetHost(hostName)
+	host, err := NewHostsController().GetHost(hostName)
 	if err != nil {
 		return nil, err
+	}
+
+	if !host.Ping {
+		return nil, fmt.Errorf("host %s is not reachable", hostName)
 	}
 
 	dockerClient, err := getDockerClient(host)

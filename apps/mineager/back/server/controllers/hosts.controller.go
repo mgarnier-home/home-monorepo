@@ -45,3 +45,12 @@ func (controller *HostsController) GetHosts() []*bo.HostBo {
 
 	return boHosts
 }
+
+func (controller *HostsController) GetHost(hostName string) (*bo.HostBo, error) {
+	host, err := config.GetHost(hostName)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapDockerHostToHostBo(host), nil
+}

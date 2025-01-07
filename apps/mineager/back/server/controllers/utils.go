@@ -5,6 +5,7 @@ import (
 	"mgarnier11/go/sshutils"
 	"mgarnier11/go/sshutils/sftp"
 	"mgarnier11/mineager/config"
+	"mgarnier11/mineager/server/objects/bo"
 	"os"
 )
 
@@ -24,11 +25,11 @@ func deleteServerDirectory(serverName string) error {
 	return os.RemoveAll(getServerLocalPath(serverName))
 }
 
-func getServerHostMapPath(host *config.DockerHostConfig, serverName string) string {
+func getServerHostMapPath(host *bo.HostBo, serverName string) string {
 	return fmt.Sprintf("%s/world", getServerHostPath(host, serverName))
 }
 
-func getServerHostPath(host *config.DockerHostConfig, serverName string) string {
+func getServerHostPath(host *bo.HostBo, serverName string) string {
 	return fmt.Sprintf("%s/%s", host.MineagerPath, serverName)
 }
 
@@ -36,7 +37,7 @@ func getMapPath(mapName string) string {
 	return fmt.Sprintf("%s/%s", config.Config.MapsFolderPath, mapName)
 }
 
-func sendServerMapToHost(serverName string, host *config.DockerHostConfig) error {
+func sendServerMapToHost(serverName string, host *bo.HostBo) error {
 	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
 	if err != nil {
 		return fmt.Errorf("error connecting to ssh: %v", err)
@@ -50,7 +51,7 @@ func sendServerMapToHost(serverName string, host *config.DockerHostConfig) error
 	)
 }
 
-func getServerMapFromHost(serverName string, host *config.DockerHostConfig) error {
+func getServerMapFromHost(serverName string, host *bo.HostBo) error {
 	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
 	if err != nil {
 		return fmt.Errorf("error connecting to ssh: %v", err)
@@ -64,7 +65,7 @@ func getServerMapFromHost(serverName string, host *config.DockerHostConfig) erro
 	)
 }
 
-func deleteHostDirectory(serverName string, host *config.DockerHostConfig) error {
+func deleteHostDirectory(serverName string, host *bo.HostBo) error {
 	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
 	if err != nil {
 		return fmt.Errorf("error connecting to ssh: %v", err)
