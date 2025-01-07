@@ -16,17 +16,17 @@ import (
 	"strings"
 )
 
-type MapController struct {
+type MapsController struct {
 	mapRepository *database.MapRepository
 }
 
-func NewMapController() *MapController {
-	return &MapController{
+func NewMapsController() *MapsController {
+	return &MapsController{
 		mapRepository: database.CreateMapRepository(),
 	}
 }
 
-func (controller *MapController) GetMaps() ([]*bo.MapBo, error) {
+func (controller *MapsController) GetMaps() ([]*bo.MapBo, error) {
 	maps, err := controller.mapRepository.GetMaps()
 
 	if err != nil {
@@ -36,7 +36,7 @@ func (controller *MapController) GetMaps() ([]*bo.MapBo, error) {
 	return maps, nil
 }
 
-func (controller *MapController) GetMap(name string) (*bo.MapBo, error) {
+func (controller *MapsController) GetMap(name string) (*bo.MapBo, error) {
 	mapRow, err := controller.mapRepository.GetMapByName(name)
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (controller *MapController) GetMap(name string) (*bo.MapBo, error) {
 	return mapRow, nil
 }
 
-func (controller *MapController) PostMap(name string, version string, description string, file *[]byte) (*bo.MapBo, error) {
+func (controller *MapsController) PostMap(name string, version string, description string, file *[]byte) (*bo.MapBo, error) {
 	newMap, err := controller.mapRepository.CreateMap(name, version, description)
 
 	if err != nil {
@@ -130,7 +130,7 @@ func (controller *MapController) PostMap(name string, version string, descriptio
 	return newMap, nil
 }
 
-func (controller *MapController) DeleteMap(name string) error {
+func (controller *MapsController) DeleteMap(name string) error {
 	err := controller.mapRepository.DeleteMapByName(name)
 
 	if err != nil {

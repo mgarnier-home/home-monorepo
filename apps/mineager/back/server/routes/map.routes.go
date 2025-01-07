@@ -16,12 +16,16 @@ const mapsContextKey contextKey = "maps"
 
 func getMapControllerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller := controllers.NewMapController()
+		controller := controllers.NewMapsController()
 
 		ctx := context.WithValue(r.Context(), mapsContextKey, controller)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func getMapsControllerFromContext(ctx context.Context) *controllers.MapsController {
+	return ctx.Value(mapsContextKey).(*controllers.MapsController)
 }
 
 func MapRoutes(router *mux.Router) {
@@ -35,7 +39,7 @@ func MapRoutes(router *mux.Router) {
 }
 
 func getMaps(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+	controller := getMapsControllerFromContext(r.Context())
 
 	maps, err := controller.GetMaps()
 
@@ -48,7 +52,7 @@ func getMaps(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMap(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+	controller := getMapsControllerFromContext(r.Context())
 
 	mapName := strings.ToLower(mux.Vars(r)["name"])
 
@@ -63,7 +67,7 @@ func getMap(w http.ResponseWriter, r *http.Request) {
 }
 
 func postMap(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+	controller := getMapsControllerFromContext(r.Context())
 
 	requestValidated, err := validation.ValidateMapPostRequest(r)
 
@@ -88,7 +92,7 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteMap(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(mapsContextKey).(*controllers.MapController)
+	controller := getMapsControllerFromContext(r.Context())
 
 	mapName := strings.ToLower(mux.Vars(r)["name"])
 

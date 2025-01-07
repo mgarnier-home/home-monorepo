@@ -15,9 +15,9 @@ import (
 const serversContextKey contextKey = "servers"
 const serverContextKey contextKey = "server"
 
-func getServerControllerMiddleware(next http.Handler) http.Handler {
+func getServersControllerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller, err := controllers.NewServerController(mux.Vars(r)["hostName"])
+		controller, err := controllers.NewServersController(mux.Vars(r)["hostName"])
 
 		if err != nil {
 			logger.Errorf("Error getting server controller: %v", err)
@@ -33,9 +33,13 @@ func getServerControllerMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func getServersControllerFromContext(ctx context.Context) *controllers.ServersController {
+	return ctx.Value(serversContextKey).(*controllers.ServersController)
+}
+
 func getServerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+		controller := getServersControllerFromContext(r.Context())
 		server, err := controller.GetServer(mux.Vars(r)["name"])
 
 		if err != nil {
@@ -52,7 +56,7 @@ func getServerMiddleware(next http.Handler) http.Handler {
 
 func ServerRoutes(router *mux.Router) {
 	serverRouter := router.PathPrefix("/{hostName}/servers").Subrouter()
-	serverRouter.Use(getServerControllerMiddleware)
+	serverRouter.Use(getServersControllerMiddleware)
 
 	serverRouter.HandleFunc("", getServers).Methods("GET")
 	serverRouter.HandleFunc("", postServer).Methods("POST")
@@ -67,7 +71,7 @@ func ServerRoutes(router *mux.Router) {
 }
 
 func getServers(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	controller := getServersControllerFromContext(r.Context())
 
 	servers, err := controller.GetServers()
 
@@ -86,7 +90,7 @@ func getServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func postServer(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	controller := getServersControllerFromContext(r.Context())
 
 	createServerDto, err := validation.ValidateServerPostRequest(r)
 
@@ -106,7 +110,7 @@ func postServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteServer(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	controller := getServersControllerFromContext(r.Context())
 	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
 
 	deleteServerDto, err := validation.ValidateServerDeleteRequest(r)
@@ -127,7 +131,7 @@ func deleteServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func startServer(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	controller := getServersControllerFromContext(r.Context())
 	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
 
 	err := controller.StartServer(server)
@@ -141,7 +145,7 @@ func startServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func stopServer(w http.ResponseWriter, r *http.Request) {
-	controller := r.Context().Value(serversContextKey).(*controllers.ServerController)
+	controller := getServersControllerFromContext(r.Context())
 	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
 
 	err := controller.StopServer(server)

@@ -60,13 +60,13 @@ func mapContainerToServer(container *types.Container, inspect *types.ContainerJS
 	}
 }
 
-type ServerController struct {
+type ServersController struct {
 	host         *config.DockerHostConfig
 	dockerClient *client.Client
 	mapRepo      *database.MapRepository
 }
 
-func NewServerController(hostName string) (*ServerController, error) {
+func NewServersController(hostName string) (*ServersController, error) {
 	host, err := config.GetHost(hostName)
 	if err != nil {
 		return nil, err
@@ -77,18 +77,18 @@ func NewServerController(hostName string) (*ServerController, error) {
 		return nil, err
 	}
 
-	return &ServerController{
+	return &ServersController{
 		host:         host,
 		dockerClient: dockerClient,
 		mapRepo:      database.CreateMapRepository(),
 	}, nil
 }
 
-func (controller *ServerController) Dispose() {
+func (controller *ServersController) Dispose() {
 	controller.dockerClient.Close()
 }
 
-func (controller *ServerController) GetServers() ([]*bo.ServerBo, error) {
+func (controller *ServersController) GetServers() ([]*bo.ServerBo, error) {
 	containers, err := controller.dockerClient.ContainerList(context.Background(), container.ListOptions{
 		Filters: getFilterArgs(""),
 		All:     true,
@@ -112,7 +112,7 @@ func (controller *ServerController) GetServers() ([]*bo.ServerBo, error) {
 	return servers, nil
 }
 
-func (controller *ServerController) GetServer(name string) (*bo.ServerBo, error) {
+func (controller *ServersController) GetServer(name string) (*bo.ServerBo, error) {
 	servers, err := controller.GetServers()
 
 	if err != nil {
@@ -128,7 +128,7 @@ func (controller *ServerController) GetServer(name string) (*bo.ServerBo, error)
 	return nil, fmt.Errorf("server %s not found", name)
 }
 
-func (controller *ServerController) getNextPort() (uint16, error) {
+func (controller *ServersController) getNextPort() (uint16, error) {
 	servers, err := controller.GetServers()
 
 	if err != nil {
@@ -146,7 +146,7 @@ func (controller *ServerController) getNextPort() (uint16, error) {
 	return maxPort + 1, nil
 }
 
-func (controller *ServerController) ServerExists(name string) (bool, error) {
+func (controller *ServersController) ServerExists(name string) (bool, error) {
 	server, err := controller.GetServer(name)
 
 	if server != nil {
@@ -158,7 +158,7 @@ func (controller *ServerController) ServerExists(name string) (bool, error) {
 	}
 }
 
-func (controller *ServerController) CreateServer(createServerDto *dto.CreateServerRequestDto) (*bo.ServerBo, error) {
+func (controller *ServersController) CreateServer(createServerDto *dto.CreateServerRequestDto) (*bo.ServerBo, error) {
 	// Check if server already exists
 	if serverExist, err := controller.ServerExists(createServerDto.Name); err != nil || serverExist {
 		if err != nil {
@@ -277,7 +277,7 @@ func (controller *ServerController) CreateServer(createServerDto *dto.CreateServ
 	return serverBo, nil
 }
 
-func (controller *ServerController) StartServer(serverBo *bo.ServerBo) error {
+func (controller *ServersController) StartServer(serverBo *bo.ServerBo) error {
 	if err := sendServerMapToHost(serverBo.Name, controller.host); err != nil {
 		return fmt.Errorf("error sending map to host: %v", err)
 	}
@@ -289,7 +289,7 @@ func (controller *ServerController) StartServer(serverBo *bo.ServerBo) error {
 	return nil
 }
 
-func (controller *ServerController) StopServer(serverBo *bo.ServerBo) error {
+func (controller *ServersController) StopServer(serverBo *bo.ServerBo) error {
 
 	if err := controller.dockerClient.ContainerStop(context.Background(), serverBo.Id, container.StopOptions{}); err != nil {
 		return fmt.Errorf("error stopping container: %v", err)
@@ -308,7 +308,7 @@ func (controller *ServerController) StopServer(serverBo *bo.ServerBo) error {
 	return nil
 }
 
-func (controller *ServerController) DeleteServer(serverBo *bo.ServerBo, full bool) error {
+func (controller *ServersController) DeleteServer(serverBo *bo.ServerBo, full bool) error {
 	if err := external.DeleteProxy(controller.host, serverBo); err != nil {
 		logger.Errorf("Error deleting proxy: %v", err)
 	}
