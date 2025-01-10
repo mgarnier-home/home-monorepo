@@ -26,7 +26,7 @@ func NewServer(port int) *Server {
 
 func (s *Server) logRequestMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.logger.Infof("Request: %s %s", r.Method, r.URL.Path)
+		s.logger.Infof("%s %s Request", r.Method, r.URL.Path)
 
 		next.ServeHTTP(w, r)
 	})
@@ -73,11 +73,9 @@ func (s *Server) Start() error {
 
 	version.SetupVersionRoute(router)
 
-	hostsRouter := routers.NewHostsRouter(router, s.logger)
-
-	routes.MapsRoutes(router)
-	hostNameRouter := routes.HostsRoutes(router)
-	routes.ServersRoutes(hostNameRouter)
+	routers.NewHostsRouter(router, s.logger)
+	routers.NewMapsRouter(router, s.logger)
+	routers.NewServersRouter(router, s.logger)
 
 	s.logger.Infof("Starting server on port %d", s.port)
 

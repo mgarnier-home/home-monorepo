@@ -22,10 +22,6 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-func getDockerClient(host *bo.HostBo) (*client.Client, error) {
-	return dockerssh.GetDockerClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
-}
-
 func getFilterArgs(name string) filters.Args {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("label", "com.docker.compose.project=mineager")
@@ -61,35 +57,35 @@ func mapDockerContainerToServerBo(container *types.Container, inspect *types.Con
 }
 
 type ServersController struct {
+	mapRepo      *database.MapRepository
 	host         *bo.HostBo
 	dockerClient *client.Client
-	mapRepo      *database.MapRepository
 }
 
-func NewServersController(hostName string) (*ServersController, error) {
-	host, err := NewHostsController().GetHost(hostName)
-	if err != nil {
-		return nil, err
-	}
-
-	if !host.Ping {
-		return nil, fmt.Errorf("host %s is not reachable", hostName)
-	}
-
-	dockerClient, err := getDockerClient(host)
-	if err != nil {
-		return nil, err
-	}
-
+func NewServersController() *ServersController {
 	return &ServersController{
-		host:         host,
-		dockerClient: dockerClient,
-		mapRepo:      database.CreateMapRepository(),
-	}, nil
+		mapRepo: database.CreateMapRepository(),
+	}
+}
+
+func (controller *ServersController) WithHost(hostBo *bo.HostBo) (*ServersController, error) {
+	controller2 := new(ServersController)
+	*controller2 = *controller
+	controller2.host = hostBo
+
+	if dockerClient, err := dockerssh.GetDockerClient(hostBo.SSHUsername, hostBo.Ip, hostBo.SSHPort, config.Config.SSHKeyPath); err != nil {
+		return nil, fmt.Errorf("error getting docker client: %v", err)
+	} else {
+		controller2.dockerClient = dockerClient
+	}
+
+	return controller2, nil
 }
 
 func (controller *ServersController) Dispose() {
-	controller.dockerClient.Close()
+	if controller.dockerClient != nil {
+		controller.dockerClient.Close()
+	}
 }
 
 func (controller *ServersController) GetServers() ([]*bo.ServerBo, error) {

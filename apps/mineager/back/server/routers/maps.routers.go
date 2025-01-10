@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"context"
 	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
 	"mgarnier11/mineager/server/objects/dto"
@@ -9,74 +8,70 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"
 )
 
-const mapsContextKey contextKey = "maps"
-
-func getMapsControllerMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller := controllers.NewMapsController()
-
-		ctx := context.WithValue(r.Context(), mapsContextKey, controller)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+type MapsRouter struct {
+	utils          RouterUtils
+	mapsController *controllers.MapsController
 }
 
-func getMapsControllerFromContext(ctx context.Context) *controllers.MapsController {
-	return ctx.Value(mapsContextKey).(*controllers.MapsController)
-}
+func NewMapsRouter(router *mux.Router, serverLogger *logger.Logger) *MapsRouter {
+	mapsRouter := &MapsRouter{
+		utils: RouterUtils{
+			logger: logger.NewLogger(
+				"[MAPS]",
+				"%-10s ",
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")),
+				serverLogger,
+			),
+		},
+		mapsController: controllers.NewMapsController(),
+	}
 
-func MapsRoutes(router *mux.Router) {
 	mapRouter := router.PathPrefix("/maps").Subrouter()
-	mapRouter.Use(getMapsControllerMiddleware)
+	mapRouter.HandleFunc("", mapsRouter.getMaps).Methods("GET")
+	mapRouter.HandleFunc("/{name}", mapsRouter.getMap).Methods("GET")
+	mapRouter.HandleFunc("", mapsRouter.postMap).Methods("POST")
+	mapRouter.HandleFunc("/{name}", mapsRouter.deleteMap).Methods("DELETE")
 
-	mapRouter.HandleFunc("", getMaps).Methods("GET")
-	mapRouter.HandleFunc("/{name}", getMap).Methods("GET")
-	mapRouter.HandleFunc("", postMap).Methods("POST")
-	mapRouter.HandleFunc("/{name}", deleteMap).Methods("DELETE")
+	return mapsRouter
 }
 
-func getMaps(w http.ResponseWriter, r *http.Request) {
-	controller := getMapsControllerFromContext(r.Context())
-
-	maps, err := controller.GetMaps()
+func (router *MapsRouter) getMaps(w http.ResponseWriter, r *http.Request) {
+	maps, err := router.mapsController.GetMaps()
 
 	if err != nil {
-		logger.Errorf("Error getting maps: %v", err)
-		sendErrorResponse(w, "Error getting maps", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error getting maps: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error getting maps", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapMapsBoToMapsDto(maps), http.StatusOK)
+		router.utils.serializeAndSendResponse(w, r, dto.MapMapsBoToMapsDto(maps), http.StatusOK)
 	}
 }
 
-func getMap(w http.ResponseWriter, r *http.Request) {
-	controller := getMapsControllerFromContext(r.Context())
-
+func (router *MapsRouter) getMap(w http.ResponseWriter, r *http.Request) {
 	mapName := strings.ToLower(mux.Vars(r)["name"])
 
-	mapBo, err := controller.GetMap(mapName)
+	mapBo, err := router.mapsController.GetMap(mapName)
 
 	if err != nil {
-		logger.Errorf("Error getting map: %v", err)
-		sendErrorResponse(w, "Error getting map", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error getting map: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error getting map", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapMapBoToMapDto(mapBo), http.StatusOK)
+		router.utils.serializeAndSendResponse(w, r, dto.MapMapBoToMapDto(mapBo), http.StatusOK)
 	}
 }
 
-func postMap(w http.ResponseWriter, r *http.Request) {
-	controller := getMapsControllerFromContext(r.Context())
-
+func (router *MapsRouter) postMap(w http.ResponseWriter, r *http.Request) {
 	requestValidated, err := validation.ValidateMapPostRequest(r)
 
 	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusBadRequest)
+		router.utils.sendErrorResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	newMap, err := controller.PostMap(
+	newMap, err := router.mapsController.PostMap(
 		requestValidated.Name,
 		requestValidated.Version,
 		requestValidated.Description,
@@ -84,24 +79,22 @@ func postMap(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		logger.Errorf("Error creating map: %v", err)
-		sendErrorResponse(w, "Error creating map", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error creating map: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error creating map", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapMapBoToMapDto(newMap), http.StatusOK)
+		router.utils.serializeAndSendResponse(w, r, dto.MapMapBoToMapDto(newMap), http.StatusOK)
 	}
 }
 
-func deleteMap(w http.ResponseWriter, r *http.Request) {
-	controller := getMapsControllerFromContext(r.Context())
-
+func (router *MapsRouter) deleteMap(w http.ResponseWriter, r *http.Request) {
 	mapName := strings.ToLower(mux.Vars(r)["name"])
 
-	err := controller.DeleteMap(mapName)
+	err := router.mapsController.DeleteMap(mapName)
 
 	if err != nil {
-		logger.Errorf("Error deleting map: %v", err)
-		sendErrorResponse(w, "Error deleting map", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error deleting map: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error deleting map", http.StatusInternalServerError)
 	} else {
-		sendOKResponse(w, "Map deleted")
+		router.utils.sendOKResponse(w, r, "Map deleted")
 	}
 }

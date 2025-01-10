@@ -3,97 +3,128 @@ package routers
 import (
 	"context"
 	"mgarnier11/go/logger"
+	mineagerutils "mgarnier11/mineager/mineager-utils"
 	"mgarnier11/mineager/server/controllers"
 	"mgarnier11/mineager/server/objects/bo"
 	"mgarnier11/mineager/server/objects/dto"
 	"mgarnier11/mineager/server/routers/validation"
 	"net/http"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"
 )
 
-type ServerRouter struct {
+type ServersRouter struct {
+	utils             RouterUtils
+	hostsController   *controllers.HostsController
+	serversController *controllers.ServersController
 }
 
-const serversContextKey contextKey = "servers"
-const serverContextKey contextKey = "server"
+func NewServersRouter(router *mux.Router, serverLogger *logger.Logger) *ServersRouter {
+	serverRouter := &ServersRouter{
+		utils: RouterUtils{
+			logger: logger.NewLogger(
+				"[SERVERS]",
+				"%-10s ",
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")),
+				serverLogger,
+			),
+		},
+		hostsController:   controllers.NewHostsController(),
+		serversController: controllers.NewServersController(),
+	}
 
-func getServersControllerMiddleware(next http.Handler) http.Handler {
+	hostsRouter := router.PathPrefix("/hosts/{hostName}").Subrouter()
+	hostsRouter.Use(serverRouter.getServersControllerMiddleware)
+	hostsRouter.HandleFunc("/servers", serverRouter.getServers).Methods("GET")
+	hostsRouter.HandleFunc("/servers", serverRouter.postServer).Methods("POST")
+
+	serversRouter := hostsRouter.PathPrefix("/servers/{serverName}").Subrouter()
+	serversRouter.Use(serverRouter.getServerMiddleware)
+	serversRouter.HandleFunc("", serverRouter.getServer).Methods("GET")
+	serversRouter.HandleFunc("", serverRouter.deleteServer).Methods("DELETE")
+	serversRouter.HandleFunc("/start", serverRouter.startServer).Methods("POST")
+	serversRouter.HandleFunc("/stop", serverRouter.stopServer).Methods("POST")
+
+	return serverRouter
+}
+
+func getControllerFromContext(ctx context.Context) *controllers.ServersController {
+	return ctx.Value(mineagerutils.ServerControllerKey).(*controllers.ServersController)
+}
+
+func getServerFromContext(ctx context.Context) *bo.ServerBo {
+	return ctx.Value(mineagerutils.ServerKey).(*bo.ServerBo)
+}
+
+func (router *ServersRouter) getServersControllerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller, err := controllers.NewServersController(mux.Vars(r)["hostName"])
+		host, err := router.hostsController.GetHost(mux.Vars(r)["hostName"])
 
 		if err != nil {
-			logger.Errorf("Error getting server controller: %v", err)
-			sendErrorResponse(w, "Error getting server controller", http.StatusInternalServerError)
+			router.utils.logger.Errorf("Error getting host: %v", err)
+			router.utils.sendErrorResponse(w, r, "Error getting host", http.StatusInternalServerError)
 			return
 		}
 
-		defer controller.Dispose()
+		if !host.Ping {
+			router.utils.sendErrorResponse(w, r, "Host is not reachable", http.StatusInternalServerError)
+			return
+		}
 
-		ctx := context.WithValue(r.Context(), serversContextKey, controller)
+		serversController, err := router.serversController.WithHost(host)
+
+		if err != nil {
+			router.utils.sendErrorResponse(w, r, "Error getting servers controller", http.StatusInternalServerError)
+		}
+
+		defer serversController.Dispose()
+
+		ctx := context.WithValue(r.Context(), mineagerutils.ServerControllerKey, serversController)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func getServersControllerFromContext(ctx context.Context) *controllers.ServersController {
-	return ctx.Value(serversContextKey).(*controllers.ServersController)
-}
-
-func getServerMiddleware(next http.Handler) http.Handler {
+func (router *ServersRouter) getServerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller := getServersControllerFromContext(r.Context())
-		server, err := controller.GetServer(mux.Vars(r)["name"])
+		controller := getControllerFromContext(r.Context())
+
+		server, err := controller.GetServer(mux.Vars(r)["serverName"])
 
 		if err != nil {
-			logger.Errorf("Error getting server: %v", err)
-			sendErrorResponse(w, "Error getting server", http.StatusInternalServerError)
+			router.utils.logger.Errorf("Error getting server: %v", err)
+			router.utils.sendErrorResponse(w, r, "Error getting server", http.StatusInternalServerError)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), serverContextKey, server)
+		ctx := context.WithValue(r.Context(), mineagerutils.ServerKey, server)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func ServersRoutes(router *mux.Router) {
-	serverRouter := router.PathPrefix("/servers").Subrouter()
-	serverRouter.Use(getServersControllerMiddleware)
-
-	serverRouter.HandleFunc("", getServers).Methods("GET")
-	serverRouter.HandleFunc("", postServer).Methods("POST")
-
-	serverRouter = serverRouter.PathPrefix("/{name}").Subrouter()
-	serverRouter.Use(getServerMiddleware)
-
-	serverRouter.HandleFunc("", getServer).Methods("GET")
-	serverRouter.HandleFunc("/start", startServer).Methods("POST")
-	serverRouter.HandleFunc("/stop", stopServer).Methods("POST")
-	serverRouter.HandleFunc("", deleteServer).Methods("DELETE")
-}
-
-func getServers(w http.ResponseWriter, r *http.Request) {
-	controller := getServersControllerFromContext(r.Context())
+func (router *ServersRouter) getServers(w http.ResponseWriter, r *http.Request) {
+	controller := getControllerFromContext(r.Context())
 
 	servers, err := controller.GetServers()
 
 	if err != nil {
-		logger.Errorf("Error getting servers: %v", err)
-		http.Error(w, "Error getting servers", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error getting servers: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error getting servers", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapServersBoToServersDto(servers), http.StatusOK)
+		router.utils.serializeAndSendResponse(w, r, dto.MapServersBoToServersDto(servers), http.StatusOK)
 	}
 }
 
-func getServer(w http.ResponseWriter, r *http.Request) {
-	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+func (router *ServersRouter) getServer(w http.ResponseWriter, r *http.Request) {
+	server := getServerFromContext(r.Context())
 
-	serializeAndSendResponse(w, dto.MapServerBoToServerDto(server), http.StatusOK)
+	router.utils.serializeAndSendResponse(w, r, dto.MapServerBoToServerDto(server), http.StatusOK)
 }
 
-func postServer(w http.ResponseWriter, r *http.Request) {
-	controller := getServersControllerFromContext(r.Context())
+func (router *ServersRouter) postServer(w http.ResponseWriter, r *http.Request) {
+	controller := getControllerFromContext(r.Context())
 
 	createServerDto, err := validation.ValidateServerPostRequest(r)
 
@@ -105,58 +136,58 @@ func postServer(w http.ResponseWriter, r *http.Request) {
 	newServer, err := controller.CreateServer(createServerDto)
 
 	if err != nil {
-		logger.Errorf("Error creating server: %v", err)
-		sendErrorResponse(w, "Error creating server", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error creating server: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error creating server", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapServerBoToServerDto(newServer), http.StatusOK)
+		router.utils.serializeAndSendResponse(w, r, dto.MapServerBoToServerDto(newServer), http.StatusOK)
 	}
 }
 
-func deleteServer(w http.ResponseWriter, r *http.Request) {
-	controller := getServersControllerFromContext(r.Context())
-	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+func (router *ServersRouter) deleteServer(w http.ResponseWriter, r *http.Request) {
+	controller := getControllerFromContext(r.Context())
+	server := getServerFromContext(r.Context())
 
 	deleteServerDto, err := validation.ValidateServerDeleteRequest(r)
 
 	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusBadRequest)
+		router.utils.sendErrorResponse(w, r, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = controller.DeleteServer(server, deleteServerDto.Full)
 
 	if err != nil {
-		logger.Errorf("Error deleting server: %v", err)
-		sendErrorResponse(w, "Error deleting server", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error deleting server: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error deleting server", http.StatusInternalServerError)
 	} else {
-		sendOKResponse(w, "Server deleted")
+		router.utils.sendOKResponse(w, r, "Server deleted")
 	}
 }
 
-func startServer(w http.ResponseWriter, r *http.Request) {
-	controller := getServersControllerFromContext(r.Context())
-	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+func (router *ServersRouter) startServer(w http.ResponseWriter, r *http.Request) {
+	controller := getControllerFromContext(r.Context())
+	server := getServerFromContext(r.Context())
 
 	err := controller.StartServer(server)
 
 	if err != nil {
-		logger.Errorf("Error starting server: %v", err)
-		sendErrorResponse(w, "Error starting server", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error starting server: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error starting server", http.StatusInternalServerError)
 	} else {
-		sendOKResponse(w, "Server started")
+		router.utils.sendOKResponse(w, r, "Server started")
 	}
 }
 
-func stopServer(w http.ResponseWriter, r *http.Request) {
-	controller := getServersControllerFromContext(r.Context())
-	server := r.Context().Value(serverContextKey).(*bo.ServerBo)
+func (router *ServersRouter) stopServer(w http.ResponseWriter, r *http.Request) {
+	controller := getControllerFromContext(r.Context())
+	server := getServerFromContext(r.Context())
 
 	err := controller.StopServer(server)
 
 	if err != nil {
-		logger.Errorf("Error stopping server: %v", err)
-		sendErrorResponse(w, "Error stopping server", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error stopping server: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error stopping server", http.StatusInternalServerError)
 	} else {
-		sendOKResponse(w, "Server stopped")
+		router.utils.sendOKResponse(w, r, "Server stopped")
 	}
 }

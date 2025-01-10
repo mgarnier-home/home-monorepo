@@ -1,7 +1,6 @@
 package routers
 
 import (
-	"context"
 	"mgarnier11/go/logger"
 	"mgarnier11/mineager/server/controllers"
 	"mgarnier11/mineager/server/objects/dto"
@@ -11,73 +10,45 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const hostsContextKey contextKey = "hosts"
-
 type HostsRouter struct {
-	contextKey             contextKey
-	logger                 *logger.Logger
-	hostsController        *controllers.HostsController
-	hostsSubrouter         *mux.Router
-	hostsHostnameSubrouter *mux.Router
+	utils           RouterUtils
+	hostsController *controllers.HostsController
 }
 
 func NewHostsRouter(router *mux.Router, serverLogger *logger.Logger) *HostsRouter {
-	return &HostsRouter{
-		contextKey: hostsContextKey,
-		logger: logger.NewLogger(
-			"[HOSTS]",
-			"%-10s ",
-			lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")),
-			serverLogger,
-		),
+	hostsRouter := &HostsRouter{
+		utils: RouterUtils{
+			logger: logger.NewLogger(
+				"[HOSTS]",
+				"%-10s ",
+				lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")),
+				serverLogger,
+			),
+		},
 		hostsController: controllers.NewHostsController(),
 	}
+	router.HandleFunc("/hosts", hostsRouter.getHosts).Methods("GET")
+
+	router.HandleFunc("/hosts/{hostName}", hostsRouter.getHost).Methods("GET")
+
+	return hostsRouter
 }
 
-func getHostsControllerMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		controller := controllers.NewHostsController()
+func (router *HostsRouter) getHosts(w http.ResponseWriter, r *http.Request) {
+	hosts := router.hostsController.GetHosts()
 
-		ctx := context.WithValue(r.Context(), hostsContextKey, controller)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+	router.utils.serializeAndSendResponse(w, r, dto.MapHostsBoHostsDto(hosts), http.StatusOK)
 }
 
-func getHostsControllerFromContext(ctx context.Context) *controllers.HostsController {
-	return ctx.Value(hostsContextKey).(*controllers.HostsController)
-}
-
-func HostsRoutes(router *mux.Router) *mux.Router {
-	hostRouter := router.PathPrefix("/hosts").Subrouter()
-	hostRouter.Use(getHostsControllerMiddleware)
-
-	hostRouter.HandleFunc("", getHosts).Methods("GET")
-	hostNameRouter := hostRouter.PathPrefix("/{hostName}").Subrouter()
-
-	hostNameRouter.HandleFunc("", getHost).Methods("GET")
-
-	return hostNameRouter
-}
-
-func getHosts(w http.ResponseWriter, r *http.Request) {
-	controller := getHostsControllerFromContext(r.Context())
-
-	hosts := controller.GetHosts()
-
-	serializeAndSendResponse(w, dto.MapHostsBoHostsDto(hosts), http.StatusOK)
-}
-
-func getHost(w http.ResponseWriter, r *http.Request) {
-	controller := getHostsControllerFromContext(r.Context())
-
+func (router *HostsRouter) getHost(w http.ResponseWriter, r *http.Request) {
 	hostName := mux.Vars(r)["hostName"]
 
-	host, err := controller.GetHost(hostName)
+	host, err := router.hostsController.GetHost(hostName)
 
 	if err != nil {
-		sendErrorResponse(w, "Error getting host", http.StatusInternalServerError)
+		router.utils.logger.Errorf("Error getting host: %v", err)
+		router.utils.sendErrorResponse(w, r, "Error getting host", http.StatusInternalServerError)
 	} else {
-		serializeAndSendResponse(w, dto.MapHostBoToHostDto(host), http.StatusOK)
+		router.utils.serializeAndSendResponse(w, r, dto.MapHostBoToHostDto(host), http.StatusOK)
 	}
 }
