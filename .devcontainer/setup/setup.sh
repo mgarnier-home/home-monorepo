@@ -43,40 +43,6 @@ setupHomeMonorepo() {
   echo "source <(home-cli completion zsh)" >>~/.zshrc
 }
 
-# setupHomeContainer() {
-#   home_container_dir=/mnt/dev/home-container
-
-#   if [ ! -d $home_container_dir ]; then
-#     git clone git@github.com:mgarnier-home/home-container.git $home_container_dir
-#   fi
-
-#   git config --global --add safe.directory $home_container_dir
-# }
-
-# setupHomeConfig() {
-#   home_config_dir=/mnt/dev/home-config
-
-#   if [ ! -d $home_config_dir ]; then
-#     git clone git@github.com:mgarnier-home/home-config.git $home_config_dir
-#   fi
-
-#   git config --global --add safe.directory $home_config_dir
-# }
-
-# setupCoderTemplates() {
-#   CODER_TEMPLATES_DIR=/mnt/dev/coder-templates
-
-#   if [ ! -d $CODER_TEMPLATES_DIR ]; then
-#     git clone git@github.com:mgarnier-home/coder-templates.git $CODER_TEMPLATES_DIR
-#   fi
-
-#   git config --global --add safe.directory $CODER_TEMPLATES_DIR
-
-#   cd $CODER_TEMPLATES_DIR
-
-#   coder login --url https://coder.int.mgarnier11.fr --token ${CODER_SESSION_TOKEN}
-# }
-
 setupGhActions() {
   gh_actions_dir=/mnt/dev/gh-actions
 
@@ -103,30 +69,19 @@ setupBlindtestGen() {
   git config --global --add safe.directory $blindtest_gen_dir
 }
 
-# setupTerraformModules() {
-#   TERRAFORM_MODULES_DIR=/mnt/dev/terraform-modules
 
-#   if [ ! -d $TERRAFORM_MODULES_DIR ]; then
-#     git clone git@github.com:mgarnier-home/terraform-modules.git $TERRAFORM_MODULES_DIR
-#   fi
+setupVsCodeFolder() {
+  vscode_dir=/mnt/dev/.vscode
 
-#   git config --global --add safe.directory $TERRAFORM_MODULES_DIR
-# }
+  mkdir -p $vscode_dir
 
-# setupMyTraefik() {
-#   MY_TRAEFIK_DIR=/mnt/dev/my-traefik
-
-#   if [ ! -d $MY_TRAEFIK_DIR ]; then
-#     git clone git@github.com:mgarnier-home/my-traefik.git $MY_TRAEFIK_DIR
-#   fi
-
-#   git config --global --add safe.directory $MY_TRAEFIK_DIR
-# }
+  mv /setup/settings.json $vscode_dir/settings.json
+  mv /setup/workspace.code-workspace $vscode_dir/workspace.code-workspace
+}
 
 setupHomeMonorepo
 setupGhActions
 setupBlindtestGen
-
-bash /setup/get-workspace-file.sh "$(tr '\n' ' ' </setup/workspace.json)"
+setupVsCodeFolder
 
 echo "Setup done!"

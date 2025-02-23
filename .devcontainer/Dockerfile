@@ -77,7 +77,7 @@ WORKDIR /home/${USER}
 COPY home ./
 RUN \
   sudo chmod 644 ./.p10k.zsh; \
-  sudo chown -R ${USER}:${USER} .ssh; \
+  sudo chown -R ${USER}:${USER} /home/${USER}; \
   sudo chmod 700 .ssh; \
   sudo chmod 600 .ssh/*
 
@@ -141,7 +141,7 @@ RUN \
 VOLUME [ "/mnt/dev" ]
 
 RUN sudo mkdir -p /mnt/dev; \
-  sudo chown -R ${USER}:${USER} /mnt/dev
+  sudo chown -R ${USER}:${USER} /mnt
 
 COPY --chmod=755 --chown=${USER}:${USER} ./setup /setup
 

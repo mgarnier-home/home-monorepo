@@ -1,6 +1,10 @@
 {
   "folders": [
     {
+      "name": "dev",
+      "path": "/mnt/dev"
+    },
+    {
       "name": "orchestrator",
       "path": "/mnt/docker-data/zephyr/orchestrator"
     },
@@ -9,8 +13,8 @@
       "path": "/mnt/docker-data"
     },
     {
-      "name": "dev",
-      "path": "/mnt/dev"
+      "name": "home-monorepo",
+      "path": "/mnt/dev/home-monorepo"
     }
   ],
   "settings": { "window.title": "Mgarnier Home" },
