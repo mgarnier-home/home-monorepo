@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"mgarnier11/go/sshutils"
 	"net"
 	"net/http"
 	"sync"
 	"time"
+
+	"mgarnier11.fr/go/libs/sshutils"
 
 	"github.com/docker/docker/client"
 	"golang.org/x/crypto/ssh"

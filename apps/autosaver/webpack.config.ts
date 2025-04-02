@@ -8,7 +8,7 @@ const autosaverConfig = (env: Env, args: Args): webpack.Configuration => {
 
   config.entry = {
     main: './src/main.ts',
-  };
+  };    
 
   return config;
 };

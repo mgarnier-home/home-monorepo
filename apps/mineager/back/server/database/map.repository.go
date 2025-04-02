@@ -2,8 +2,9 @@ package database
 
 import (
 	"database/sql"
-	"mgarnier11/mineager/server/objects/bo"
 	"strings"
+
+	"mgarnier11.fr/go/mineager/server/objects/bo"
 )
 
 type MapRepository struct {

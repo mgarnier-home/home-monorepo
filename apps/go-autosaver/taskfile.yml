@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    dir: ./src
+    cmds:
+      - go build -o ../dist/go-autosaver
+
+  start:
+    cmds:
+      - task build
+      - ENV_FILE_PATH=../../.env ./dist/go-autosaver
+
+  test:
+    dir: ./src
+    cmds:
+      - go clean -testcache
+      - go test -v ./...
+
+  build-prod:
+    dir: ./src
+    cmds:
+      - task test
+      - go build -o ../dist/go-autosaver

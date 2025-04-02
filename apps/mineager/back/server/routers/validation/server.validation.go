@@ -3,11 +3,12 @@ package validation
 import (
 	"encoding/json"
 	"errors"
-	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"mgarnier11.fr/go/mineager/server/objects/dto"
 )
 
 const minMemory = 1

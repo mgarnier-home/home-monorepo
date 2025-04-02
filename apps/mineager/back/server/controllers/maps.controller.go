@@ -5,10 +5,12 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"mgarnier11/go/logger"
-	"mgarnier11/go/utils"
-	"mgarnier11/mineager/server/database"
-	"mgarnier11/mineager/server/objects/bo"
+
+	"mgarnier11.fr/go/mineager/server/database"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
+
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/utils"
 
 	"os"
 	"path/filepath"

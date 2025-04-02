@@ -1,10 +1,12 @@
 package routers
 
 import (
-	"mgarnier11/go/logger"
-	"mgarnier11/mineager/server/controllers"
-	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
+
+	"mgarnier11.fr/go/mineager/server/controllers"
+	"mgarnier11.fr/go/mineager/server/objects/dto"
+
+	"mgarnier11.fr/go/libs/logger"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"

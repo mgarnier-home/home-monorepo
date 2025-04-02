@@ -3,16 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
-	"mgarnier11/go-proxy/host"
-	"mgarnier11/go-proxy/hostManager"
-	"mgarnier11/go-proxy/hostState"
 	"net/http"
+
+	"mgarnier11.fr/go/go-proxy/host"
+	"mgarnier11.fr/go/go-proxy/hostManager"
+	"mgarnier11.fr/go/go-proxy/hostState"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"
 
-	"mgarnier11/go/logger"
-	"mgarnier11/go/version"
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/version"
 )
 
 type contextKey string

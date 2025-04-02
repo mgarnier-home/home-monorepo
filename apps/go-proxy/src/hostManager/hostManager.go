@@ -1,11 +1,13 @@
 package hostManager
 
 import (
-	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/host"
-	"mgarnier11/go/logger"
 	"slices"
 	"strings"
+
+	"mgarnier11.fr/go/libs/logger"
+
+	"mgarnier11.fr/go/go-proxy/config"
+	"mgarnier11.fr/go/go-proxy/host"
 )
 
 var hosts map[string]*host.Host = make(map[string]*host.Host)

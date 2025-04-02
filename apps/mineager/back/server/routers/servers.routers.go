@@ -2,13 +2,15 @@ package routers
 
 import (
 	"context"
-	"mgarnier11/go/logger"
-	mineagerutils "mgarnier11/mineager/mineager-utils"
-	"mgarnier11/mineager/server/controllers"
-	"mgarnier11/mineager/server/objects/bo"
-	"mgarnier11/mineager/server/objects/dto"
-	"mgarnier11/mineager/server/routers/validation"
 	"net/http"
+
+	mineagerutils "mgarnier11.fr/go/mineager/mineager-utils"
+	"mgarnier11.fr/go/mineager/server/controllers"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
+	"mgarnier11.fr/go/mineager/server/objects/dto"
+	"mgarnier11.fr/go/mineager/server/routers/validation"
+
+	"mgarnier11.fr/go/libs/logger"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"

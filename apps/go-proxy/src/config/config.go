@@ -2,11 +2,12 @@ package config
 
 import (
 	"fmt"
-	"mgarnier11/go/logger"
-	"mgarnier11/go/utils"
 	"os"
 	"path"
 	"time"
+
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/utils"
 
 	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"

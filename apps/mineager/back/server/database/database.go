@@ -3,7 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"mgarnier11/mineager/config"
+
+	"mgarnier11.fr/go/mineager/config"
 
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )

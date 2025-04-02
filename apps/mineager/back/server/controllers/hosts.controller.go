@@ -1,11 +1,13 @@
 package controllers
 
 import (
-	"mgarnier11/go/logger"
-	"mgarnier11/go/utils"
-	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server/objects/bo"
 	"time"
+
+	"mgarnier11.fr/go/mineager/config"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
+
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/utils"
 )
 
 type HostsController struct {

@@ -3,16 +3,18 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"mgarnier11/go/dockerssh"
-	"mgarnier11/go/logger"
-	"mgarnier11/go/utils"
-	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/external"
-	"mgarnier11/mineager/server/database"
-	"mgarnier11/mineager/server/objects/bo"
-	"mgarnier11/mineager/server/objects/dto"
 	"os"
 	"strconv"
+
+	"mgarnier11.fr/go/mineager/config"
+	"mgarnier11.fr/go/mineager/external"
+	"mgarnier11.fr/go/mineager/server/database"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
+	"mgarnier11.fr/go/mineager/server/objects/dto"
+
+	"mgarnier11.fr/go/libs/dockerssh"
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/utils"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"

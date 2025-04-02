@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
 
-	"mgarnier11/go/utils"
+	"mgarnier11.fr/go/libs/utils"
 )
 
 const VerboseLevel log.Level = log.DebugLevel - 1

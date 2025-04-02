@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"fmt"
-	"mgarnier11/go/sshutils"
-	"mgarnier11/go/sshutils/sftp"
-	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server/objects/bo"
 	"os"
+
+	"mgarnier11.fr/go/mineager/config"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
+
+	"mgarnier11.fr/go/libs/sshutils"
+	"mgarnier11.fr/go/libs/sshutils/sftp"
 )
 
 func getServerLocalMapPath(serverName string) string {

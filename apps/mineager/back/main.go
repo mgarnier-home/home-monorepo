@@ -1,10 +1,11 @@
 package main
 
 import (
-	"mgarnier11/go/logger"
-	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server"
-	"mgarnier11/mineager/server/database"
+	"mgarnier11.fr/go/mineager/config"
+	"mgarnier11.fr/go/mineager/server"
+	"mgarnier11.fr/go/mineager/server/database"
+
+	"mgarnier11.fr/go/libs/logger"
 )
 
 func initDatabase() {

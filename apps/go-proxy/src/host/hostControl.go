@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"mgarnier11/go-proxy/config"
-	"mgarnier11/go/sshutils"
 	"net"
 	"time"
+
+	"mgarnier11.fr/go/libs/sshutils"
+
+	"mgarnier11.fr/go/go-proxy/config"
 
 	"golang.org/x/crypto/ssh"
 )

@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mgarnier11/go/logger"
-	"mgarnier11/mineager/config"
-	"mgarnier11/mineager/server/objects/bo"
 	"net/http"
+
+	"mgarnier11.fr/go/mineager/config"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
+
+	"mgarnier11.fr/go/libs/logger"
 )
 
 type OfflineStatus struct {

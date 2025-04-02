@@ -102,6 +102,8 @@ const archiveZip: ArchiveFn = async (folderToBackupPath: string, totalNbFiles: n
 
     const newFileRegex = new RegExp(`(U|\\+) ${folderName}`, 'gm');
 
+    let lastPercent = 0;
+
     let lastLine = '';
 
     // Live stdout logging
@@ -118,8 +120,11 @@ const archiveZip: ArchiveFn = async (folderToBackupPath: string, totalNbFiles: n
       const newFiles = dataStr.match(newFileRegex);
       if (newFiles) {
         filesNb += newFiles.length;
-
-        logger.info(`Zipping ${filesNb}/${totalNbFiles} files: ${((filesNb / totalNbFiles) * 100).toFixed(2)}%`);
+        const percent = Math.floor((filesNb / totalNbFiles) * 100);
+        if (percent > lastPercent) {
+          lastPercent = percent;
+          logger.info(`Zipping ${filesNb}/${totalNbFiles} files: ${percent}%`);
+        }
       } else {
         logger.info('stdout: ', dataStr);
       }

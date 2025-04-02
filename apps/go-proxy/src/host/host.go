@@ -3,18 +3,20 @@ package host
 import (
 	"context"
 	"fmt"
-	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/docker"
-	"mgarnier11/go-proxy/hostState"
-	"mgarnier11/go-proxy/proxies"
-	"mgarnier11/go/colors"
-	"mgarnier11/go/logger"
-	"mgarnier11/go/ntfy"
-	"mgarnier11/go/utils"
 	"slices"
 	"strings"
 	"sync"
 	"time"
+
+	"mgarnier11.fr/go/libs/colors"
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/ntfy"
+	"mgarnier11.fr/go/libs/utils"
+
+	"mgarnier11.fr/go/go-proxy/config"
+	"mgarnier11.fr/go/go-proxy/docker"
+	"mgarnier11.fr/go/go-proxy/hostState"
+	"mgarnier11.fr/go/go-proxy/proxies"
 
 	"github.com/charmbracelet/lipgloss"
 )

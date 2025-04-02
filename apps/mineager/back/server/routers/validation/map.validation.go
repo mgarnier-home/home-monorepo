@@ -5,12 +5,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"mgarnier11/go/logger"
-	"mgarnier11/mineager/server/objects/dto"
 	"net/http"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"mgarnier11.fr/go/mineager/server/objects/dto"
+
+	"mgarnier11.fr/go/libs/logger"
 )
 
 func validateMinecraftMap(fileBuffer *[]byte) error {

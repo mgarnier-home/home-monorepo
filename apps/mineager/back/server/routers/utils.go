@@ -2,8 +2,9 @@ package routers
 
 import (
 	"encoding/json"
-	"mgarnier11/go/logger"
 	"net/http"
+
+	"mgarnier11.fr/go/libs/logger"
 )
 
 type Response struct {

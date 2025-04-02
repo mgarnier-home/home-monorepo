@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"mgarnier11/go/utils"
+	"mgarnier11.fr/go/libs/utils"
 )
 
 func SetupVersionRoute(router *mux.Router) {

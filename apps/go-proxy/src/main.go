@@ -1,12 +1,14 @@
 package main
 
 import (
-	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/hostManager"
-	"mgarnier11/go-proxy/server"
-	"mgarnier11/go/logger"
 	"runtime"
 	"time"
+
+	"mgarnier11.fr/go/libs/logger"
+
+	"mgarnier11.fr/go/go-proxy/config"
+	"mgarnier11.fr/go/go-proxy/hostManager"
+	"mgarnier11.fr/go/go-proxy/server"
 
 	_ "net/http/pprof"
 )

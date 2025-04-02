@@ -5,10 +5,11 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"mgarnier11/go/utils"
 	"net/http"
 	"strings"
 	"time"
+
+	"mgarnier11.fr/go/libs/utils"
 )
 
 func SendNotification(title, message, tags string) error {

@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"mgarnier11/go/utils"
 	"os"
 	"strings"
+
+	"mgarnier11.fr/go/libs/utils"
 
 	"gopkg.in/yaml.v3"
 )

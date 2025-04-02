@@ -4,15 +4,17 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"mgarnier11/go-proxy/config"
-	"mgarnier11/go-proxy/hostState"
-	"mgarnier11/go/colors"
-	"mgarnier11/go/logger"
-	"mgarnier11/go/utils"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"mgarnier11.fr/go/libs/colors"
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/utils"
+
+	"mgarnier11.fr/go/go-proxy/config"
+	"mgarnier11.fr/go/go-proxy/hostState"
 
 	"github.com/charmbracelet/lipgloss"
 )

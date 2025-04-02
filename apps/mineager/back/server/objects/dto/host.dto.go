@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"mgarnier11/mineager/server/objects/bo"
+	"mgarnier11.fr/go/mineager/server/objects/bo"
 )
 
 type HostDto struct {

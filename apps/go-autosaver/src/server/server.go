@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"mgarnier11.fr/go/mineager/config"
-	"mgarnier11.fr/go/mineager/server/routers"
-
 	"mgarnier11.fr/go/libs/httputils"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
@@ -31,20 +28,17 @@ func (s *Server) Start() error {
 	router := mux.NewRouter()
 
 	router.Use(httputils.LogRequestMiddleware(s.logger))
-	if config.Config.ApiToken != "" {
-		router.Use(httputils.CheckApiTokenMiddleware(config.Config.ApiToken, "Api-Token"))
-	}
 	router.Use(httputils.CorsMiddleware)
 
 	version.SetupVersionRoute(router)
 
-	routers.NewHostsRouter(router, s.logger)
-	routers.NewMapsRouter(router, s.logger)
-	routers.NewServersRouter(router, s.logger)
+	// routers.NewHostsRouter(router, s.logger)
+	// routers.NewMapsRouter(router, s.logger)
+	// routers.NewServersRouter(router, s.logger)
 
 	s.logger.Infof("Starting server on port %d", s.port)
 
-	fs := http.FileServer(http.Dir(config.Config.FrontendPath))
+	fs := http.FileServer(http.Dir("frontend"))
 
 	router.PathPrefix("/").Handler(fs)
 

@@ -5,6 +5,10 @@ dotenv:
   - .env
 
 includes:
+  go-autosaver:
+    taskfile: ./apps/go-autosaver/taskfile.yml
+    dir: ./apps/go-autosaver
+    optional: true
   go-proxy:
     taskfile: ./apps/go-proxy/taskfile.yml
     dir: ./apps/go-proxy
