@@ -1,6 +1,6 @@
 FROM build AS build
 
-FROM node:20-buster AS runtime
+FROM node:20-bookworm AS runtime
 
 RUN apt update && apt install p7zip-full rsync cifs-utils gpg -y
 
