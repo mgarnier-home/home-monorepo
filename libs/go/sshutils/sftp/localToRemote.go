@@ -2,15 +2,15 @@ package sftp
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
+	"mgarnier11.fr/go/libs/utils"
 )
 
-func LocalToRemote(sshClient *ssh.Client, localDirPath, remoteDirPath string) error {
+func LocalToRemoteProgress(sshClient *ssh.Client, localDirPath, remoteDirPath string, progressFunc func(int64, float64, int64)) error {
 	// Create SFTP client
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
@@ -19,10 +19,31 @@ func LocalToRemote(sshClient *ssh.Client, localDirPath, remoteDirPath string) er
 	defer sftpClient.Close()
 
 	// Copy the directory
-	return copyDirectoryToRemote(localDirPath, remoteDirPath, sftpClient)
+	return copyDirectoryToRemote(localDirPath, remoteDirPath, sftpClient, progressFunc)
 }
 
-func copyDirectoryToRemote(localDir, remoteDir string, sftpClient *sftp.Client) error {
+func LocalToRemote(sshClient *ssh.Client, localDirPath, remoteDirPath string) error {
+	return LocalToRemoteProgress(sshClient, localDirPath, remoteDirPath, nil)
+}
+
+func copyDirectoryToRemote(localDir, remoteDir string, sftpClient *sftp.Client, progressFunc func(int64, float64, int64)) error {
+	totalSize, err := utils.GetDirSize(localDir)
+	if err != nil {
+		return fmt.Errorf("failed to get directory size: %v", err)
+	}
+	copiedSize := int64(0)
+
+	progressFunc(0, 0.0, totalSize)
+
+	fileProgress := func(n int, copiedFileSize, totalFileSize int64) {
+		copiedSize += int64(n)
+		percent := float64(copiedSize) / float64(totalSize) * 100.0
+
+		if progressFunc != nil {
+			progressFunc(copiedSize, percent, totalSize)
+		}
+	}
+
 	return filepath.Walk(localDir, func(localPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("failed to walk path %s: %v", localPath, err)
@@ -40,26 +61,12 @@ func copyDirectoryToRemote(localDir, remoteDir string, sftpClient *sftp.Client) 
 			return sftpClient.MkdirAll(remotePath)
 		}
 
-		return copyFileToRemote(localPath, remotePath, sftpClient)
+		return utils.ParallelCopyFile(
+			localPath,
+			remotePath,
+			func(s string) (utils.ReadWriterAt, error) { return os.Open(s) },
+			func(s string) (utils.ReadWriterAt, error) { return sftpClient.Create(s) },
+			fileProgress,
+		)
 	})
-}
-
-func copyFileToRemote(localPath, remotePath string, sftpClient *sftp.Client) error {
-	localFile, err := os.Open(localPath)
-	if err != nil {
-		return fmt.Errorf("failed to open local file %s: %v", localPath, err)
-	}
-	defer localFile.Close()
-
-	remoteFile, err := sftpClient.Create(remotePath)
-	if err != nil {
-		return fmt.Errorf("failed to create remote file %s: %v", remotePath, err)
-	}
-
-	_, err = io.Copy(remoteFile, localFile)
-	if err != nil {
-		return fmt.Errorf("failed to copy file: %v", err)
-	}
-
-	return nil
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-ping/ping"
+	"gopkg.in/yaml.v3"
 )
 
 func Min(a, b int) int {
@@ -144,4 +145,40 @@ func PingIp(ip string, timeout time.Duration) (bool, error) {
 	}
 
 	return pinger.Statistics().PacketsRecv > 0, nil
+}
+
+func ReadYamlFile[T any](filePath string) (*T, error) {
+	configFile, err := os.ReadFile(filePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	appConfig := new(T)
+
+	err = yaml.Unmarshal(configFile, appConfig)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return appConfig, nil
+}
+
+func GetDirSize(path string) (int64, error) {
+	var size int64
+
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		size += info.Size()
+		return nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return size, nil
 }

@@ -8,31 +8,11 @@ import (
 	"strings"
 
 	"mgarnier11.fr/go/libs/utils"
-
-	"gopkg.in/yaml.v3"
 )
 
 type AppConfigFile struct {
 	InfraredUrl string              `yaml:"infraredUrl"`
 	DockerHosts []*DockerHostConfig `yaml:"dockerHosts"`
-}
-
-func readAppConfig(filePath string) (*AppConfigFile, error) {
-	configFile, err := os.ReadFile(filePath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	appConfig := &AppConfigFile{}
-
-	err = yaml.Unmarshal(configFile, appConfig)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return appConfig, nil
 }
 
 type DockerHostConfig struct {
@@ -87,7 +67,7 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 		panic(err)
 	}
 
-	appEnvConfig.AppConfig, err = readAppConfig(appEnvConfig.ConfigFilePath)
+	appEnvConfig.AppConfig, err = utils.ReadYamlFile[AppConfigFile](appEnvConfig.ConfigFilePath)
 	if err != nil {
 		log.Fatalf("Error reading config file: %v", err)
 		panic(err)
