@@ -106,3 +106,31 @@ func ParallelCopyFile(
 
 	return nil
 }
+
+func CopyWithProgress(dst io.Writer, src io.Reader, progressFunc func(int, int64)) (int64, error) {
+	if progressFunc == nil {
+		return io.Copy(dst, src)
+	}
+
+	var total int64
+	buf := make([]byte, 32*1024) // 32 KB buffer size
+	for {
+		n, err := src.Read(buf)
+		if n > 0 {
+			written, err := dst.Write(buf[:n])
+			if err != nil {
+				return total, err
+			}
+			total += int64(written)
+			progressFunc(written, total)
+		}
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return total, err
+		}
+	}
+
+	return total, nil
+}

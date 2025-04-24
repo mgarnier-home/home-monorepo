@@ -7,7 +7,25 @@ import (
 )
 
 type AppConfigFile struct {
-	InfraredUrl string `yaml:"infraredUrl"`
+	Mail       MailConfig       `yaml:"mail"`
+	BackupDest BackupDestConfig `yaml:"backupDest"`
+}
+
+type MailConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Login    string `yaml:"login"`
+	Password string `yaml:"password"`
+	InfoTo   string `yaml:"infoTo"`
+	ErrorTo  string `yaml:"errorTo"`
+}
+
+type BackupDestConfig struct {
+	SSHHost string `yaml:"sshHost"`
+	SSHPort int    `yaml:"sshPort"`
+	SSHUser string `yaml:"sshUser"`
+	SSHKey  string `yaml:"sshKey"`
+	SSHPath string `yaml:"sshPath"`
 }
 
 type AppEnvConfig struct {

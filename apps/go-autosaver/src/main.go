@@ -1,11 +1,10 @@
 package main
 
 import (
-	"time"
-
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/sshutils"
-	"mgarnier11.fr/go/libs/sshutils/sftp"
+
+	"mgarnier11.fr/go/go-autosaver/backup"
 )
 
 func main() {
@@ -22,8 +21,8 @@ func main() {
 	}
 	defer sshClient.Close()
 
-	lastPercent := 0.0
-	startTime := time.Now()
+	// lastPercent := 0.0
+	// startTime := time.Now()
 
 	// err = sftp.LocalToRemoteProgress(
 	// 	sshClient,
@@ -40,24 +39,50 @@ func main() {
 	// 	},
 	// )
 
-	err = sftp.RemoteToLocalProgress(
-		sshClient,
-		"test-send",
-		"test-receive",
-		func(current int64, percent float64, total int64) {
-			if percent-lastPercent > 0.1 {
-				lastPercent = percent
-				elapsed := time.Since(startTime)
-				speed := float64(current) / elapsed.Seconds() / 1024 / 1024
+	// err = sftp.RemoteToLocalProgress(
+	// 	sshClient,
+	// 	"test-send",
+	// 	"test-receive",
+	// 	func(current int64, percent float64, total int64) {
+	// 		if percent-lastPercent > 0.1 {
+	// 			lastPercent = percent
+	// 			elapsed := time.Since(startTime)
+	// 			speed := float64(current) / elapsed.Seconds() / 1024 / 1024
 
-				logger.Infof("Progress: %0.1f, %0.1f MB/s", percent, speed)
-			}
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
+	// 			logger.Infof("Progress: %0.1f, %0.1f MB/s", percent, speed)
+	// 		}
+	// 	},
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	logger.Infof("File uploaded successfully")
+	// logger.Infof("File uploaded successfully")
+
+	// backup.EncryptFileWithPassword(
+	// 	"./10GB.bin",
+	// 	"./10GB.bin.gpg",
+	// 	"test",
+	// 	func(bytesRead int, totalBytesRead int64, totalSize int64) {
+	// 		if totalBytesRead > 0 {
+	// 			percent := float64(totalBytesRead) / float64(totalSize) * 100.0
+
+	// 			if percent-lastPercent > 0.1 {
+	// 				lastPercent = percent
+
+	// 				elapsed := time.Since(startTime)
+	// 				speed := float64(totalBytesRead) / elapsed.Seconds() / 1024 / 1024
+
+	// 				logger.Infof("Progress: %0.1f, %0.1f MB/s", percent, speed)
+	// 			}
+	// 		}
+	// 	},
+	// )
+
+	backup.ZipFolder("./test-send", "./test-send.zip", func(filePath string, bytesRead int, totalBytesRead int64, totalSize int64) {
+		logger.Infof("Zipping : %s, %d bytes read, %d total bytes read, %d total size", filePath, bytesRead, totalBytesRead, totalSize)
+	})
+
+	logger.Infof("File encrypted successfully")
 
 }
