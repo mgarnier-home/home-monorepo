@@ -8,6 +8,7 @@ import (
 
 type AppConfigFile struct {
 	Mail       MailConfig       `yaml:"mail"`
+	BackupSrc  string           `yaml:"backupSrc"`
 	BackupDest BackupDestConfig `yaml:"backupDest"`
 }
 
@@ -21,11 +22,11 @@ type MailConfig struct {
 }
 
 type BackupDestConfig struct {
-	SSHHost string `yaml:"sshHost"`
-	SSHPort int    `yaml:"sshPort"`
-	SSHUser string `yaml:"sshUser"`
-	SSHKey  string `yaml:"sshKey"`
-	SSHPath string `yaml:"sshPath"`
+	SSHHost    string `yaml:"sshHost"`
+	SSHPort    int    `yaml:"sshPort"`
+	SSHUser    string `yaml:"sshUser"`
+	SSHKeyPath string `yaml:"sshKey"`
+	SSHPath    string `yaml:"sshPath"`
 }
 
 type AppEnvConfig struct {

@@ -1,18 +1,21 @@
 package main
 
 import (
+	"time"
+
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/sshutils"
 
 	"mgarnier11.fr/go/go-autosaver/backup"
+	"mgarnier11.fr/go/go-autosaver/config"
+	"mgarnier11.fr/go/go-autosaver/server"
 )
 
 func main() {
 	logger.InitAppLogger("")
 
-	// api := server.NewServer(3000)
-
-	// api.Start()
+	api := server.NewServer(config.Config.ServerPort)
+	go api.Start()
 
 	sshClient, err := sshutils.GetSSHClient("u368422", "u368422.your-storagebox.de", "23", "./id_rsa")
 
@@ -20,6 +23,10 @@ func main() {
 		panic(err)
 	}
 	defer sshClient.Close()
+
+	backup.RunSave(config.Config.AppConfig)
+
+	time.Sleep(5 * time.Hour)
 
 	// lastPercent := 0.0
 	// startTime := time.Now()
@@ -78,11 +85,5 @@ func main() {
 	// 		}
 	// 	},
 	// )
-
-	backup.ZipFolder("./test-send", "./test-send.zip", func(filePath string, bytesRead int, totalBytesRead int64, totalSize int64) {
-		logger.Infof("Zipping : %s, %d bytes read, %d total bytes read, %d total size", filePath, bytesRead, totalBytesRead, totalSize)
-	})
-
-	logger.Infof("File encrypted successfully")
 
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"mgarnier11.fr/go/go-autosaver/backup"
+	"mgarnier11.fr/go/go-autosaver/config"
 	"mgarnier11.fr/go/libs/httputils"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
@@ -32,9 +34,28 @@ func (s *Server) Start() error {
 
 	version.SetupVersionRoute(router)
 
-	// routers.NewHostsRouter(router, s.logger)
-	// routers.NewMapsRouter(router, s.logger)
-	// routers.NewServersRouter(router, s.logger)
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "Welcome to the Go Autosaver API")
+	})
+
+	router.HandleFunc("/run", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+
+		saveStarted := backup.RunSave(config.Config.AppConfig)
+
+		if saveStarted {
+			fmt.Fprintln(w, "Autosave started")
+		} else {
+			fmt.Fprintln(w, "Autosave already started")
+		}
+	})
+
+	router.HandleFunc("/last", func(w http.ResponseWriter, r *http.Request) {
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "Run backup")
+	})
 
 	s.logger.Infof("Starting server on port %d", s.port)
 

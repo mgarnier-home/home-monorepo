@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -77,19 +78,19 @@ func ParallelCopyFile(
 
 	srcHandle, err := openFile(srcPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open source file: %s: %w", srcPath, err)
 	}
 	defer srcHandle.Close()
 
 	dstHandle, err := createFile(dstPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create destination file: %s: %w", dstPath, err)
 	}
 	defer dstHandle.Close()
 
 	fileInfo, err := srcHandle.Stat()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get source file info: %s: %w", srcPath, err)
 	}
 
 	totalSize := fileInfo.Size()
@@ -107,7 +108,7 @@ func ParallelCopyFile(
 	return nil
 }
 
-func CopyWithProgress(dst io.Writer, src io.Reader, progressFunc func(int, int64)) (int64, error) {
+func CopyWithProgress(dst io.Writer, src io.Reader, progressFunc func(written int, totalWritten int64)) (int64, error) {
 	if progressFunc == nil {
 		return io.Copy(dst, src)
 	}
