@@ -7,9 +7,10 @@ import (
 )
 
 type AppConfigFile struct {
-	Mail       MailConfig       `yaml:"mail"`
-	BackupSrc  string           `yaml:"backupSrc"`
-	BackupDest BackupDestConfig `yaml:"backupDest"`
+	Mail       MailConfig        `yaml:"mail"`
+	BackupSrc  string            `yaml:"backupSrc"`
+	LocalDest  string            `yaml:"localDest"`
+	RemoteDest *RemoteDestConfig `yaml:"remoteDest"`
 }
 
 type MailConfig struct {
@@ -21,7 +22,7 @@ type MailConfig struct {
 	ErrorTo  string `yaml:"errorTo"`
 }
 
-type BackupDestConfig struct {
+type RemoteDestConfig struct {
 	SSHHost    string `yaml:"sshHost"`
 	SSHPort    int    `yaml:"sshPort"`
 	SSHUser    string `yaml:"sshUser"`

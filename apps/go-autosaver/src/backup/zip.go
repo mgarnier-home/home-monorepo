@@ -3,14 +3,56 @@ package backup
 import (
 	"archive/zip"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 
+	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/utils"
 )
 
-// zipFolder creates a zip archive of the given folder.
-func ZipFolder(
+func zipFolder(backupSrc string) error {
+	filePercent, lastFilePercent := 0.0, 0.0
+	totalPercent, lastTotalPercent := 0.0, 0.0
+
+	logger.Infof("Zipping folder %s", backupSrc)
+
+	err := zipFolderWithProgress(
+		backupSrc,
+		"backup.zip",
+		func(
+			fileName string,
+			written int,
+			fileWritten,
+			fileSize,
+			totalWritten,
+			totalSize int64,
+		) {
+			filePercent = float64(fileWritten) / float64(fileSize) * 100
+			totalPercent = float64(totalWritten) / float64(totalSize) * 100
+
+			if math.Abs(filePercent-lastFilePercent) > 1 {
+				lastFilePercent = filePercent
+				logger.Debugf("Zipping file %s: %d", fileName, int(filePercent))
+			}
+
+			if totalPercent-lastTotalPercent > 1 {
+				lastTotalPercent = totalPercent
+				logger.Infof("Zipping folder: %d", int(totalPercent))
+			}
+
+		})
+
+	if err != nil {
+		return fmt.Errorf("failed to zip folder: %w", err)
+	}
+
+	logger.Infof("Successfully zipped folder")
+
+	return nil
+}
+
+func zipFolderWithProgress(
 	folderPath,
 	zipPath string,
 	progressFunc func(

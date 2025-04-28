@@ -70,7 +70,7 @@ func ParallelCopyFile(
 	dstPath string,
 	openFile func(string) (ReadWriterAt, error),
 	createFile func(string) (ReadWriterAt, error),
-	progressFunc func(int, int64, int64),
+	progressFunc func(written int, totalWritten int64, totalSize int64),
 ) error {
 	if openFile == nil || createFile == nil {
 		return errors.New("open and create functions cannot be nil")
