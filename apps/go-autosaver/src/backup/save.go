@@ -2,6 +2,7 @@ package backup
 
 import (
 	"mgarnier11.fr/go/go-autosaver/config"
+	"mgarnier11.fr/go/go-autosaver/external"
 	"mgarnier11.fr/go/libs/logger"
 )
 
@@ -32,20 +33,22 @@ func save(appConfig *config.AppConfigFile) error {
 	logger.Infof("Starting backup")
 	var err error
 
-	err = zipFolder(appConfig.BackupSrc)
+	err = zipFolder(appConfig.BackupSrc, appConfig.FileName)
 	if err != nil {
 		return err
 	}
 
-	_, err = encryptFile("./backup.zip", "./backup.zip.gpg")
+	encryptedFileName := appConfig.FileName + ".gpg"
+
+	_, err = encryptFile(appConfig.FileName, encryptedFileName)
 	if err != nil {
 		return err
 	}
 
 	if appConfig.LocalDest != "" {
-		err = copyToLocal(
+		err = external.CopyToLocal(
 			appConfig.LocalDest,
-			"./backup.zip",
+			appConfig.FileName,
 		)
 		if err != nil {
 			return err
@@ -53,9 +56,9 @@ func save(appConfig *config.AppConfigFile) error {
 	}
 
 	if appConfig.RemoteDest != nil {
-		err = copyToRemote(
+		err = external.CopyToRemote(
 			appConfig.RemoteDest,
-			"./backup.zip.gpg",
+			appConfig.FileName,
 		)
 		if err != nil {
 			return err

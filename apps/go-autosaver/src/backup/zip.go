@@ -11,7 +11,7 @@ import (
 	"mgarnier11.fr/go/libs/utils"
 )
 
-func zipFolder(backupSrc string) error {
+func zipFolder(backupSrc string, fileName string) error {
 	filePercent, lastFilePercent := 0.0, 0.0
 	totalPercent, lastTotalPercent := 0.0, 0.0
 
@@ -19,7 +19,7 @@ func zipFolder(backupSrc string) error {
 
 	err := zipFolderWithProgress(
 		backupSrc,
-		"backup.zip",
+		fileName,
 		func(
 			fileName string,
 			written int,
@@ -84,6 +84,11 @@ func zipFolderWithProgress(
 			return fmt.Errorf("failed to walk through folder: %w", err)
 		}
 
+		if info.Mode()&os.ModeSymlink != 0 {
+			logger.Debugf("Skipping symlink: %s", filePath)
+			return nil
+		}
+
 		header, err := zip.FileInfoHeader(info)
 		if err != nil {
 			return fmt.Errorf("failed to create zip header: %w", err)
@@ -130,7 +135,7 @@ func zipFolderWithProgress(
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to walk through folder: %w", err)
+		return fmt.Errorf("failed to zip files: %w", err)
 	}
 
 	return nil

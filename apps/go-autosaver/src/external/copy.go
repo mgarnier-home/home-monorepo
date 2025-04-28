@@ -1,4 +1,4 @@
-package backup
+package external
 
 import (
 	"fmt"
@@ -101,7 +101,7 @@ func deleteOldFolders(
 	return nil
 }
 
-func copyToRemote(remoteDest *config.RemoteDestConfig, srcFile string) error {
+func CopyToRemote(remoteDest *config.RemoteDestConfig, srcFile string) error {
 	logger.Infof("Copying backup to remote dest")
 
 	sshClient, err := sshutils.GetSSHClient(
@@ -163,7 +163,7 @@ func copyToRemote(remoteDest *config.RemoteDestConfig, srcFile string) error {
 	return nil
 }
 
-func copyToLocal(localDest, srcFile string) error {
+func CopyToLocal(localDest, srcFile string) error {
 	logger.Infof("Copying backup to local dest")
 
 	err := createBackupFolder(
