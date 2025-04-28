@@ -32,15 +32,15 @@ func save(appConfig *config.AppConfigFile) error {
 	logger.Infof("Starting backup")
 	var err error
 
-	// err := zipFolder(appConfig.BackupSrc)
-	// if err != nil {
-	// 	return err
-	// }
+	err = zipFolder(appConfig.BackupSrc)
+	if err != nil {
+		return err
+	}
 
-	// _, err = encryptFile("./backup.zip", "./backup.zip.gpg")
-	// if err != nil {
-	// 	return err
-	// }
+	_, err = encryptFile("./backup.zip", "./backup.zip.gpg")
+	if err != nil {
+		return err
+	}
 
 	if appConfig.LocalDest != "" {
 		err = copyToLocal(
