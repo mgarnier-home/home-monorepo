@@ -1,6 +1,7 @@
 package httputils
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 
@@ -50,7 +51,12 @@ func CheckApiTokenMiddleware(authorizedToken string, header string) func(next ht
 }
 
 func GetRequest(url string) error {
-	client := &http.Client{}
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // WARNING: disables all certificate checks!
+	}
+	client := &http.Client{
+		Transport: transport,
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
