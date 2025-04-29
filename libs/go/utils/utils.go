@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -181,4 +182,21 @@ func GetDirSize(path string) (int64, error) {
 	}
 
 	return size, nil
+}
+
+func GetDateOfDay() string {
+	return fmt.Sprintf("%d-%02d-%02d", time.Now().Year(), time.Now().Month(), time.Now().Day())
+}
+
+func RunPeriodic(ctx context.Context, interval time.Duration, fn func()) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			fn()
+		}
+	}
 }

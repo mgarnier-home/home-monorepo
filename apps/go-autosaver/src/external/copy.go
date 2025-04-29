@@ -35,19 +35,16 @@ func osReadDir(path string) ([]os.FileInfo, error) {
 	return fileInfos, nil
 }
 
-func getDateOfDay() string {
-	return fmt.Sprintf("%d-%02d-%02d", time.Now().Year(), time.Now().Month(), time.Now().Day())
-}
-
 func createBackupFolder(
 	stat func(string) (os.FileInfo, error),
+	mkdirAll func(string, os.FileMode) error,
 	dirPath string,
 ) error {
-
 	_, err := stat(dirPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(dirPath, os.ModePerm)
+			logger.Debugf("Creating directory %s", dirPath)
+			err = mkdirAll(dirPath, os.ModePerm)
 			if err != nil {
 				return fmt.Errorf("failed to create directory %s: %w", dirPath, err)
 			}
@@ -90,6 +87,7 @@ func deleteOldFolders(
 				if time.Since(dirDate) > _14days && dirDate.Day() != 1 || time.Since(dirDate) > _1year {
 					// delete the directory
 					err = removeAll(filepath.Join(dirPath, dirName))
+					logger.Infof("Deleting directory %s", dirName)
 					if err != nil {
 						return fmt.Errorf("failed to remove directory %s: %w", dirName, err)
 					}
@@ -125,7 +123,10 @@ func CopyToRemote(remoteDest *config.RemoteDestConfig, srcFile string) error {
 
 	err = createBackupFolder(
 		sftpClient.Stat,
-		filepath.Join(remoteDest.SSHPath, getDateOfDay()),
+		func(path string, perm os.FileMode) error {
+			return sftpClient.MkdirAll(path)
+		},
+		"./"+filepath.Join(remoteDest.SSHPath, utils.GetDateOfDay()),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create backup folder: %w", err)
@@ -145,7 +146,7 @@ func CopyToRemote(remoteDest *config.RemoteDestConfig, srcFile string) error {
 	err = sftpUtils.LocalToRemoteProgress(
 		sshClient,
 		srcFile,
-		filepath.Join(remoteDest.SSHPath, getDateOfDay(), filepath.Base(srcFile)),
+		filepath.Join(remoteDest.SSHPath, utils.GetDateOfDay(), filepath.Base(srcFile)),
 		func(current int64, percent float64, total int64) {
 			if percent-lastCopyPercent > 1 {
 				lastCopyPercent = percent
@@ -168,7 +169,8 @@ func CopyToLocal(localDest, srcFile string) error {
 
 	err := createBackupFolder(
 		os.Stat,
-		filepath.Join(localDest, getDateOfDay()),
+		os.MkdirAll,
+		filepath.Join(localDest, utils.GetDateOfDay()),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create backup folder: %w", err)
@@ -177,7 +179,7 @@ func CopyToLocal(localDest, srcFile string) error {
 	err = deleteOldFolders(
 		osReadDir,
 		os.RemoveAll,
-		filepath.Join(localDest, getDateOfDay()),
+		filepath.Join(localDest, utils.GetDateOfDay()),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to delete old folders: %w", err)
@@ -187,7 +189,7 @@ func CopyToLocal(localDest, srcFile string) error {
 
 	err = utils.ParallelCopyFile(
 		srcFile,
-		filepath.Join(localDest, getDateOfDay(), filepath.Base(srcFile)),
+		filepath.Join(localDest, utils.GetDateOfDay(), filepath.Base(srcFile)),
 		func(s string) (utils.ReadWriterAt, error) { return os.Open(s) },
 		func(s string) (utils.ReadWriterAt, error) { return os.Create(s) },
 		func(written int, totalWritten, totalSize int64) {

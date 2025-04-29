@@ -7,11 +7,12 @@ import (
 )
 
 type AppConfigFile struct {
-	Mail       MailConfig        `yaml:"mail"`
-	FileName   string            `yaml:"fileName"`
-	BackupSrc  string            `yaml:"backupSrc"`
-	LocalDest  string            `yaml:"localDest"`
-	RemoteDest *RemoteDestConfig `yaml:"remoteDest"`
+	KeepAliveUrl string            `yaml:"keepAliveUrl"`
+	Mail         *MailConfig       `yaml:"mail"`
+	FileName     string            `yaml:"fileName"`
+	BackupSrc    string            `yaml:"backupSrc"`
+	LocalDest    string            `yaml:"localDest"`
+	RemoteDest   *RemoteDestConfig `yaml:"remoteDest"`
 }
 
 type MailConfig struct {
