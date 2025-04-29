@@ -7,6 +7,7 @@ import (
 
 	"mgarnier11.fr/go/go-autosaver/config"
 	"mgarnier11.fr/go/go-autosaver/external"
+	"mgarnier11.fr/go/libs/httputils"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/ntfy"
 	"mgarnier11.fr/go/libs/utils"
@@ -31,7 +32,14 @@ func RunSave(appConfig *config.AppConfigFile) bool {
 		if appConfig.KeepAliveUrl != "" {
 			logger.Infof("Starting keep alive url: %s", appConfig.KeepAliveUrl)
 			go utils.RunPeriodic(ctx, 30*time.Second, func() {
-				logger.Infof("Keep alive url: %s", appConfig.KeepAliveUrl)
+				logger.Infof("Running keep alive request to %s", appConfig.KeepAliveUrl)
+				err := httputils.GetRequest(appConfig.KeepAliveUrl)
+
+				if err != nil {
+					logger.Errorf("Failed to send keep alive request: %s", err)
+				} else {
+					logger.Infof("Keep alive request sent successfully")
+				}
 			})
 		}
 
