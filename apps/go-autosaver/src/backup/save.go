@@ -13,7 +13,29 @@ import (
 	"mgarnier11.fr/go/libs/utils"
 )
 
+type Execution struct {
+	Success       bool
+	Duration      time.Duration
+	TimeFormatted string
+}
+
 var running bool = false
+
+var LastExecution *Execution = &Execution{
+	Success:       false,
+	Duration:      time.Duration(0),
+	TimeFormatted: "",
+}
+
+func formatDuration(d time.Duration) string {
+	// Calculate total minutes and seconds
+	totalMinutes := int(d.Minutes())
+	minutes := totalMinutes % 60
+	seconds := int(d.Seconds()) % 60
+
+	// Format as mm:ss
+	return fmt.Sprintf("%02dm %02ds", minutes, seconds)
+}
 
 func RunSave(appConfig *config.AppConfigFile) bool {
 	if running {
@@ -43,9 +65,16 @@ func RunSave(appConfig *config.AppConfigFile) bool {
 			})
 		}
 
+		timeStart := time.Now()
+
 		err := save(appConfig)
+
+		LastExecution.Duration = time.Since(timeStart)
+		LastExecution.TimeFormatted = formatDuration(LastExecution.Duration)
+		LastExecution.Success = err == nil
+
 		if err != nil {
-			logger.Errorf("Failed to save: %s", err)
+			logger.Errorf("Failed to save: %s in %s", err, LastExecution.TimeFormatted)
 
 			err = external.SendMail(
 				appConfig.Mail,
@@ -59,7 +88,7 @@ func RunSave(appConfig *config.AppConfigFile) bool {
 
 			err = ntfy.SendNotification(
 				"Autosaver",
-				fmt.Sprintf("Backup of %s failed 🔴", appConfig.FileName),
+				fmt.Sprintf("🔴 Backup of %s failed in %s", appConfig.FileName, LastExecution.TimeFormatted),
 				"bomb",
 			)
 			if err != nil {
@@ -67,6 +96,16 @@ func RunSave(appConfig *config.AppConfigFile) bool {
 			}
 
 			return
+		} else {
+			err = ntfy.SendNotification(
+				"Autosaver",
+				fmt.Sprintf("🟢 Backup of %s success in %s", appConfig.FileName, LastExecution.TimeFormatted),
+				"partying_face",
+			)
+			if err != nil {
+				logger.Errorf("Failed to send ntfy notification: %s", err)
+			}
+
 		}
 		logger.Infof("Successfully saved")
 	}()
@@ -114,20 +153,11 @@ func save(appConfig *config.AppConfigFile) error {
 	if appConfig.RemoteDest != nil {
 		err = external.CopyToRemote(
 			appConfig.RemoteDest,
-			appConfig.FileName,
+			appConfig.FileName+".gpg",
 		)
 		if err != nil {
 			return err
 		}
-	}
-
-	err = ntfy.SendNotification(
-		"Autosaver",
-		fmt.Sprintf("Backup of %s success 🟢", appConfig.FileName),
-		"partying_face",
-	)
-	if err != nil {
-		logger.Errorf("Failed to send ntfy notification: %s", err)
 	}
 
 	return nil

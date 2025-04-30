@@ -52,9 +52,19 @@ func (s *Server) Start() error {
 	})
 
 	router.HandleFunc("/last", func(w http.ResponseWriter, r *http.Request) {
+		if backup.LastExecution == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintln(w, "No last execution found")
+			return
+		}
 
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Run backup")
+		if backup.LastExecution.Success {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprintf(w, "Last execution took: %s\n", backup.LastExecution.TimeFormatted)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "Last execution failed in %s\n", backup.LastExecution.TimeFormatted)
+		}
 	})
 
 	s.logger.Infof("Starting server on port %d", s.port)
