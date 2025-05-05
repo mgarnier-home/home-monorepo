@@ -321,8 +321,8 @@ importers:
   apps/nodesight:
     dependencies:
       systeminformation:
-        specifier: ^5.22.11
-        version: 5.24.9
+        specifier: ^5.25.11
+        version: 5.25.11
 
   apps/stats-api:
     dependencies:
@@ -5789,8 +5789,8 @@ packages:
     resolution: {integrity: sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==}
     engines: {node: '>=0.10'}
 
-  systeminformation@5.24.9:
-    resolution: {integrity: sha512-vXPAVnOo9zFqkc44dog2aBL7jqnS+zoSWwprUKY+/1lLPDIbU4Nrowqmw2UDo7u5001DqQaEEqnSFSOGRQbR6w==}
+  systeminformation@5.25.11:
+    resolution: {integrity: sha512-jI01fn/t47rrLTQB0FTlMCC+5dYx8o0RRF+R4BPiUNsvg5OdY0s9DKMFmJGrx5SwMZQ4cag0Gl6v8oycso9b/g==}
     engines: {node: '>=8.0.0'}
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
@@ -12782,7 +12782,7 @@ snapshots:
 
   symbol-observable@4.0.0: {}
 
-  systeminformation@5.24.9: {}
+  systeminformation@5.25.11: {}
 
   tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.10.4)(@types/node@22.10.5)(typescript@5.5.2)):
     dependencies:

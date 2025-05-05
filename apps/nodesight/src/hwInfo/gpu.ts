@@ -23,6 +23,8 @@ const sortControllers = (
 const getStaticInfo = async (): Promise<HwGpu.Static> => {
   const gpuInfo = await si.graphics();
 
+  console.log(gpuInfo);
+
   return {
     gpus: sortControllers(gpuInfo.controllers).map((controller, index) => ({
       index,
@@ -38,6 +40,8 @@ export class Gpu {
 
   public static current = async (): Promise<HwGpu.Load> => {
     const gpuInfo = await si.graphics();
+
+    console.log(gpuInfo);
 
     return {
       gpus: sortControllers(gpuInfo.controllers).map((controller, index) => ({

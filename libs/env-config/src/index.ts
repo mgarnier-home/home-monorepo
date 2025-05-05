@@ -37,7 +37,7 @@ export function getEnvVariable<T extends string | number | boolean>(
   }
 
   if (typeof defaultValue === 'boolean') {
-    if (value !== 'true' && value !== 'false') {
+    if (value !== 'true' && value !== 'false' && value !== true && value !== false) {
       throw new Error(`Environment variable ${variableName} is neither 'true' nor 'false'.`);
     }
 
