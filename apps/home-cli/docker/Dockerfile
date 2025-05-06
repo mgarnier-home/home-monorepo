@@ -18,7 +18,9 @@ ENV COMPOSE_DIR="/compose"
 ENV OLIVETIN_CONFIG_DIR="/config"
 
 RUN mkdir -p /root/.ssh; \
-  echo "Host *\n\tStrictHostKeyChecking no\n\tIdentityFile /run/secrets/ssh_private_key" >> /root/.ssh/config; \
+  { echo "Host *"; \
+  echo "    StrictHostKeyChecking no"; \
+  echo "    IdentityFile /run/secrets/ssh_private_key"; } >> /root/.ssh/config; \
   chmod 600 /root/.ssh/config
 
 ENTRYPOINT ["/bin/sh", "-c", "/usr/bin/home-cli build-olivetin && /usr/bin/OliveTin"]
