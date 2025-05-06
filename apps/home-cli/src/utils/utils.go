@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"mgarnier11/home-cli/config"
 	"os"
 	"path"
 	"slices"
@@ -9,16 +10,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type EnvVariable struct {
-	Variable     string
-	DefaultValue string
+type ComposeConfig struct {
+	Stacks  map[string][]string
+	Hosts   map[string][]string
+	Actions []string
 }
-
-var (
-	ComposeDir        = EnvVariable{"COMPOSE_DIR", "/workspaces/home-config/compose"}
-	EnvDir            = EnvVariable{"ENV_DIR", "/workspaces/home-config/compose"}
-	OliveTinConfigDir = EnvVariable{"OLIVETIN_CONFIG_DIR", "/workspaces/home-config/olivetin"}
-)
 
 var (
 	StackList  = getStacks()
@@ -26,22 +22,26 @@ var (
 	ActionList = getActions()
 )
 
-func GetEnvVariable(env EnvVariable) string {
-	envDir := os.Getenv(env.Variable)
+func GetCompose() *ComposeConfig {
+	config := &ComposeConfig{}
 
-	if envDir == "" {
-		envDir = env.DefaultValue
+	config.Stacks = make(map[string][]string)
+	config.Hosts = make(map[string][]string)
+	config.Actions = ActionList
+
+	for _, stack := range StackList {
+		config.Stacks[stack] = GetHostsByStack(stack)
 	}
 
-	return envDir
-}
+	for _, host := range HostList {
+		config.Hosts[host] = GetStacksByHost(host)
+	}
 
-func GetFileInDir(dir EnvVariable, file string) string {
-	return path.Join(GetEnvVariable(dir), file)
+	return config
 }
 
 func getStacks() []string {
-	entries, err := os.ReadDir(GetEnvVariable(ComposeDir))
+	entries, err := os.ReadDir(config.Env.ComposeDir)
 	if err != nil {
 		return []string{}
 	}
@@ -63,7 +63,7 @@ func getHosts() []string {
 	hosts := []string{}
 
 	for _, stack := range getStacks() {
-		entries, err := os.ReadDir(path.Join(GetEnvVariable(ComposeDir), stack))
+		entries, err := os.ReadDir(path.Join(config.Env.ComposeDir, stack))
 		if err != nil {
 			continue
 		}
@@ -83,7 +83,7 @@ func getHosts() []string {
 }
 
 func stackFileExists(stack string, host string) bool {
-	_, err := os.Stat(path.Join(GetEnvVariable(ComposeDir), stack, host+"."+stack+".yml"))
+	_, err := os.Stat(path.Join(config.Env.ComposeDir, stack, host+"."+stack+".yml"))
 	return err == nil
 }
 

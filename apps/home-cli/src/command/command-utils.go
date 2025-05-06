@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"mgarnier11/home-cli/compose"
+	"mgarnier11/home-cli/config"
 	"mgarnier11/home-cli/utils"
+
+	globalUtils "mgarnier11.fr/go/libs/utils"
+
 	"os"
 	"os/exec"
 	"slices"
@@ -28,7 +31,7 @@ type OsCommand struct {
 }
 
 func ExecCommand(stacks []string, hosts []string, action string, args []string) {
-	config := compose.GetConfig()
+	compose := utils.GetCompose()
 
 	commands := []*CliCommand{}
 
@@ -36,7 +39,7 @@ func ExecCommand(stacks []string, hosts []string, action string, args []string) 
 	fmt.Println(hosts)
 
 	for _, stack := range stacks {
-		for _, host := range config.Stacks[stack] {
+		for _, host := range compose.Stacks[stack] {
 			if slices.Contains(hosts, host) {
 				commands = append(commands, &CliCommand{action, stack, host})
 			}
@@ -115,7 +118,7 @@ func getEnvFilesPaths(composeDir string, stack string) []string {
 }
 
 func getEnvFiles(command *CliCommand) []string {
-	composeDir := utils.GetEnvVariable(utils.ComposeDir)
+	composeDir := config.Env.ComposeDir
 	globalEnvFiles := getEnvFilesPaths(composeDir, "")
 	stackEnvFiles := getEnvFilesPaths(composeDir, command.stack)
 
@@ -153,7 +156,7 @@ func setContext(host string) error {
 	dockerContextCreateCommand := &OsCommand{
 		cliCommand:    nil,
 		osCommand:     "docker",
-		osCommandArgs: []string{"context", "create", host, "--docker", "host=" + utils.GetEnvVariable(utils.EnvVariable{Variable: strings.ToUpper(host) + "_HOST", DefaultValue: ""})},
+		osCommandArgs: []string{"context", "create", host, "--docker", "host=" + globalUtils.GetEnv(strings.ToUpper(host)+"_HOST", "")},
 	}
 
 	err := execOsCommand(dockerContextCreateCommand)
@@ -189,7 +192,7 @@ func execCommand(command *CliCommand) error {
 		cliCommand:    command,
 		osCommand:     "docker",
 		osCommandArgs: getComposeCommandArgs(command),
-		dir:           utils.GetEnvVariable(utils.ComposeDir),
+		dir:           config.Env.ComposeDir,
 	}
 
 	err = execOsCommand(dockerComposeCommand)

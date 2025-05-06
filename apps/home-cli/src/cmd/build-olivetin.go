@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"mgarnier11/home-cli/compose"
+	"mgarnier11/home-cli/config"
 	"mgarnier11/home-cli/utils"
 	"os"
+	"path"
 	"slices"
 	"strings"
 
@@ -63,10 +64,10 @@ func createActionCommands(stack string, host string) []*Action {
 	return actions
 }
 
-func getActions(config *compose.Config) (actions []*Action, stacksActions map[string][]*Action, hostsActions map[string][]*Action) {
+func getActions(compose *utils.ComposeConfig) (actions []*Action, stacksActions map[string][]*Action, hostsActions map[string][]*Action) {
 	actions = []*Action{}
 
-	for stack, hosts := range config.Stacks {
+	for stack, hosts := range compose.Stacks {
 		if len(hosts) > 1 {
 			actions = append(actions, createActionCommands(stack, "all")...)
 		}
@@ -76,7 +77,7 @@ func getActions(config *compose.Config) (actions []*Action, stacksActions map[st
 		}
 	}
 
-	for host, stacks := range config.Hosts {
+	for host, stacks := range compose.Hosts {
 		actions = append(actions, createActionCommands("all", host)...)
 
 		for _, stack := range stacks {
@@ -145,8 +146,8 @@ func getContents(action string, actions []*Action) []*Content {
 	return contents
 }
 
-func saveConfig(config *compose.Config) {
-	actions, stacksActions, hostsActions := getActions(config)
+func saveConfig(compose *utils.ComposeConfig) {
+	actions, stacksActions, hostsActions := getActions(compose)
 
 	fmt.Println("===========Actions===========")
 	for _, action := range actions {
@@ -163,8 +164,8 @@ func saveConfig(config *compose.Config) {
 		printActions(actions)
 	}
 
-	os.Mkdir(utils.GetEnvVariable(utils.OliveTinConfigDir), 0755)
-	file, err := os.OpenFile(utils.GetFileInDir(utils.OliveTinConfigDir, "config.yaml"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	os.Mkdir(config.Env.OliveTinConfigDir, 0755)
+	file, err := os.OpenFile(path.Join(config.Env.OliveTinConfigDir, "config.yaml"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Println(err)
 		panic("File error while saving config")
@@ -213,7 +214,7 @@ var buildOlivetinCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Building olivetin config")
 
-		saveConfig(compose.GetConfig())
+		saveConfig(utils.GetCompose())
 
 	},
 }
