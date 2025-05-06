@@ -9,7 +9,6 @@ on:
         required: true
         type: choice
         options:
-          - 'autosaver'
           - 'autoscaler'
           - 'cron-runner'
           - 'dashboard'
@@ -17,7 +16,6 @@ on:
           - 'go-proxy'
           - 'home-cli'
           - 'home-container'
-          - 'node-proxy'
           - 'nodesight'
           - 'stats-api'
           - 'syslog-app'
