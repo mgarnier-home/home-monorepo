@@ -3,11 +3,10 @@ import { Component, inject } from '@angular/core';
 import { SocketService } from '../../services/socket.service';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [],
-  templateUrl: './root.component.html',
-  styleUrl: './root.component.scss',
+    selector: 'app-root',
+    imports: [],
+    templateUrl: './root.component.html',
+    styleUrl: './root.component.scss'
 })
 export class RootComponent {
   private socketService: SocketService = inject(SocketService);

@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "esModuleInterop": true,
     "paths": {
       "@shared/*": ["shared/*"],
       "@libs/*": ["../../libs/*/src/index.ts"]
