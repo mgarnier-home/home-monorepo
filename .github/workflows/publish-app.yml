@@ -18,7 +18,6 @@ on:
           - 'home-container'
           - 'nodesight'
           - 'stats-api'
-          - 'syslog-app'
           - 'traefik-conf'
       version-upgrade:
         description: 'How to upgrade the version'
