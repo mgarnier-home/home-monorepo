@@ -25,7 +25,7 @@ export const actionSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
-export const serviceStatusSchema = z.object({
+export const healthCheckSchema = z.object({
   name: z.string(),
   url: z.string(),
   action: actionSchema,
@@ -36,9 +36,11 @@ export const serviceSchema = z.object({
   name: z.string(),
   icon: z.string(),
   dockerName: z.string().optional(),
-  primary: serviceStatusSchema.optional(),
-  secondaries: z.array(serviceStatusSchema).optional(),
+  healthCheck: healthCheckSchema.optional(),
+  healthChecks: z.array(healthCheckSchema).optional(),
 });
+
+export type Service = z.infer<typeof serviceSchema>;
 
 export const hostSchema = z.object({
   name: z.string(),
@@ -48,7 +50,11 @@ export const hostSchema = z.object({
   services: z.array(serviceSchema),
 });
 
+export type Host = z.infer<typeof hostSchema>;
+
 export const dashboardConfigSchema = z.object({
   hosts: z.array(hostSchema).optional(),
   statsApiUrl: z.string().url(),
 });
+
+export type DashboardConfig = z.infer<typeof dashboardConfigSchema>;

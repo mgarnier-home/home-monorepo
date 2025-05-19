@@ -17,8 +17,6 @@ const loadConfigFromEnv = (): ServerConfig => {
     serverPort: Number(process.env.SERVER_PORT) || 3000,
   };
 
-  console.log('Config loaded from environment variables:', config);
-
   return config;
 };
 

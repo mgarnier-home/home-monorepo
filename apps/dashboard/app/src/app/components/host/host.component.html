@@ -1,0 +1,10 @@
+<div class="flex text-black bg-primary h-8">
+  <div class="flex items-center"></div>
+  <h2 class="text-xl pl-1 pt-0.5 flex-1">{{ host?.name }}</h2>
+  <div class="flex flex-col items-end justify-center"></div>
+</div>
+<div class="flex flex-wrap p-2">
+  @for (service of host?.services; track $index) {
+  <app-service [service]="service" class="text-primary grow basis-1/2 flex-1"> </app-service>
+  }
+</div>
