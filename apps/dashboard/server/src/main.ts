@@ -7,7 +7,7 @@ import { logger } from '@libs/logger';
 // import { DEFAULT_ROOM } from '@shared/interfaces/socket';
 
 // import { state } from './state.class';
-import { configSchema } from '@shared/schemas/config.schema';
+import { dashboardConfigSchema } from '@shared/schemas/config.schema';
 import { socketEvents } from '@shared/socketEvents.enum';
 import { readFileSync } from 'fs';
 import YAML from 'yaml';
@@ -58,10 +58,10 @@ const getNumberOfClients = () => {
   return socketIOServer.sockets.sockets.size;
 };
 
-const loadConfig = (): z.infer<typeof configSchema> => {
+const loadConfig = (): z.infer<typeof dashboardConfigSchema> => {
   const yamlConf = YAML.parse(readFileSync(config.configFilePath, 'utf8'));
 
-  const result = configSchema.parse(yamlConf);
+  const result = dashboardConfigSchema.parse(yamlConf);
 
   return result;
 };
@@ -81,7 +81,7 @@ socketIOServer.on('connection', async (socket) => {
   try {
     const config = loadConfig();
 
-    socket.emit(socketEvents.Enum.config, config);
+    socket.emit(socketEvents.Enum.dashboardConfig, config);
   } catch (error) {
     socket.emit('error', 'Error loading config file');
     logger.error('Error loading config file', error);

@@ -91,7 +91,13 @@ export const getConfig = (env: Env, args: Args, app: string): webpack.Configurat
         new RunScriptWebpackPlugin({
           name: 'main.js',
 
-          nodeArgs: ['--inspect=0.0.0.0:9229', '--env-file', path.join(getAppPath(app), '../../.env')], // Allow debugging
+          nodeArgs: [
+            '--inspect=0.0.0.0:9229',
+            '--env-file',
+            path.join(getAppPath(app), '../../.env'),
+            '--env-file',
+            path.join(getAppPath(app), '.env'),
+          ], // Allow debugging
           autoRestart: true, // auto
           // signal: true, // Signal to send for HMR (defaults to `false`, uses 'SIGUSR2' if `true`)
           // keyboard: true, // Allow typing 'rs' to restart the server. default: only if NODE_ENV is 'development'

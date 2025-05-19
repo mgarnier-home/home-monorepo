@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { SocketService } from '../../services/socket.service';
 
@@ -10,8 +10,11 @@ import { SocketService } from '../../services/socket.service';
   styleUrl: './root.component.scss',
 })
 export class RootComponent {
-  constructor(private socketService: SocketService) {
-    console.log('Test');
-    socketService.connect();
+  private socketService: SocketService = inject(SocketService);
+
+  public dashboardConfig = this.socketService.dashboardConfig;
+
+  constructor() {
+    this.socketService.connect();
   }
 }

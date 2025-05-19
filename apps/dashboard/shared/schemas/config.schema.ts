@@ -48,7 +48,7 @@ export const hostSchema = z.object({
   services: z.array(serviceSchema),
 });
 
-export const configSchema = z.object({
+export const dashboardConfigSchema = z.object({
   hosts: z.array(hostSchema).optional(),
   statsApiUrl: z.string().url(),
 });
