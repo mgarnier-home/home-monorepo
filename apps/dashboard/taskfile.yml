@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    dir: ./back
+    cmds:
+      - go build -o ../dist/dashboard-back
+
+  start:
+    cmds:
+      - task build
+      - ENV_FILE_PATH=../../.env ./dist/dashboard-back

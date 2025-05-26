@@ -17,6 +17,6 @@ export class RootComponent {
   });
 
   constructor() {
-    this.socketService.connect();
+    // this.socketService.connect();
   }
 }

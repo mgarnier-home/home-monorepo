@@ -5,23 +5,24 @@ export const responseColorSchema = z.object({
   code: z.number(),
 });
 
+export const actionTypeEnum = z.enum(['open', 'fetch', 'request']);
+
 export const actionSchema = z.discriminatedUnion('type', [
   z.object({
     name: z.string(),
-    type: z.literal('open'),
+    type: z.literal(actionTypeEnum.enum.open),
     url: z.string().url(),
   }),
   z.object({
     name: z.string(),
-    type: z.literal('fetch'),
+    type: z.literal(actionTypeEnum.enum.fetch),
     url: z.string().url(),
   }),
   z.object({
     name: z.string(),
-    type: z.literal('request'),
-    method: z.string(),
+    type: z.literal(actionTypeEnum.enum.request),
+    method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']),
     url: z.string().url(),
-    body: z.string().optional(),
   }),
 ]);
 
@@ -31,6 +32,8 @@ export const healthCheckSchema = z.object({
   action: actionSchema,
   responsesColors: z.array(responseColorSchema),
 });
+
+export type HealthCheck = z.infer<typeof healthCheckSchema>;
 
 export const serviceSchema = z.object({
   name: z.string(),
