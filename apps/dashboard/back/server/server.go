@@ -6,19 +6,12 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/websocket"
+	"github.com/zishang520/socket.io/v2/socket"
 	"mgarnier11.fr/go/dashboard/config"
 	"mgarnier11.fr/go/libs/httputils"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
 )
-
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		// Allow connections from any origin for demo purposes
-		return true
-	},
-}
 
 type Server struct {
 	port   int
@@ -33,6 +26,7 @@ func NewServer(port int) *Server {
 }
 
 func (s *Server) Start() error {
+
 	router := mux.NewRouter()
 
 	router.Use(httputils.LogRequestMiddleware(s.logger))
@@ -40,7 +34,10 @@ func (s *Server) Start() error {
 
 	version.SetupVersionRoute(router)
 
-	router.HandleFunc("/ws", handleWebSocket).Methods("GET")
+	// router.HandleFunc("/ws", handleWebSocket).Methods("GET")
+
+	io := socket.NewServer(nil, nil)
+	router.Handle("/socket.io/", io.ServeHandler(nil))
 
 	s.logger.Infof("Starting server on port %d", s.port)
 
@@ -48,34 +45,28 @@ func (s *Server) Start() error {
 
 	router.PathPrefix("/").Handler(fs)
 
+	io.On("connection", func(clients ...any) {
+		client := clients[0].(*socket.Socket)
+		// defer client.Conn().Close(true)
+		logger.Infof("Client connected: %s", client.Id())
+		client.On("event", func(datas ...any) {
+			logger.Infof("Received event from client %s: %v", client.Id(), datas)
+			// Here you can handle the event and send a response back to the client if needed
+			client.Emit("response", "Event received successfully")
+		})
+		client.On("disconnect", func(...any) {
+			logger.Infof("Client disconnected: %s", client.Id())
+		})
+
+		dashboardConfig, err := config.Config.GetDashboardConfig()
+
+		if err != nil {
+			logger.Errorf("Error loading dashboardConfig: %v", err)
+			return
+		}
+
+		client.Emit("dashboardConfig", dashboardConfig)
+	})
+
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
-
-}
-
-func handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		logger.Errorf("Upgrade error: %v", err)
-		return
-	}
-	defer conn.Close()
-
-	logger.Infof("Client connected")
-
-	for {
-		// Read message
-		messageType, message, err := conn.ReadMessage()
-		if err != nil {
-			logger.Errorf("Read error: %v", err)
-			break
-		}
-		logger.Debugf("Received: %s", message)
-
-		// Echo message back to client
-		err = conn.WriteMessage(messageType, message)
-		if err != nil {
-			logger.Errorf("Write error: %v", err)
-			break
-		}
-	}
 }

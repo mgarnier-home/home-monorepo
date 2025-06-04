@@ -13,58 +13,43 @@ import { StateService } from './state.service';
   providedIn: 'root',
 })
 export class SocketService {
-  private ws: WebSocket;
+  private socket!: Socket;
 
   private stateService = inject(StateService);
 
   public dashboardConfig = signal<DashboardConfig | null>(null);
 
   constructor() {
-    this.ws = new WebSocket(environment.apiUrl.replace('http', 'ws') + '/ws');
-
-    this.ws.onopen = () => {
-      console.log('Connected to server');
-      this.sendMessage('Hello from Angular!');
-    };
-
-    this.ws.onmessage = (event) => {
-      console.log(event);
-    };
-
     this._onDashboardConfig = this._onDashboardConfig.bind(this);
-    // this._onHostStateUpdate = this._onHostStateUpdate.bind(this);
-    // this._onServiceStateUpdate = this._onServiceStateUpdate.bind(this);
+    this._onHostStateUpdate = this._onHostStateUpdate.bind(this);
+    this._onServiceStateUpdate = this._onServiceStateUpdate.bind(this);
   }
 
-  private sendMessage(message: string) {
-    if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(message);
-    }
+  public connect() {
+    this.socket = connect(environment.apiUrl, {
+      // transports: ['websocket'],
+    });
+    console.log('SocketService connected to', environment.apiUrl);
+
+    this.socket.on(socketEvents.Enum.dashboardConfig, this._onDashboardConfig);
+    this.socket.on(socketEvents.Enum.hostStateUpdate, this._onHostStateUpdate);
+    this.socket.on(socketEvents.Enum.serviceStateUpdate, this._onServiceStateUpdate);
   }
-
-  // public connect() {
-  //   this.socket = connect(environment.apiUrl);
-  //   console.log('SocketService connected to', environment.apiUrl);
-
-  //   this.socket.on(socketEvents.Enum.dashboardConfig, this._onDashboardConfig);
-  //   this.socket.on(socketEvents.Enum.hostStateUpdate, this._onHostStateUpdate);
-  //   this.socket.on(socketEvents.Enum.serviceStateUpdate, this._onServiceStateUpdate);
-  // }
 
   private _onDashboardConfig(config: DashboardConfig) {
-    console.log('SocketService received config', config);
+    console.log('DashboardConfig received', config);
     this.dashboardConfig.set(config);
   }
 
-  // private _onHostStateUpdate(hostId: string, hostState: HostState) {
-  //   console.log('SocketService received host state', hostId, hostState);
+  private _onHostStateUpdate(hostId: string, hostState: HostState) {
+    console.log('SocketService received host state', hostId, hostState);
 
-  //   this.stateService.updateHostState(hostId, hostState);
-  // }
+    this.stateService.updateHostState(hostId, hostState);
+  }
 
-  // private _onServiceStateUpdate(serviceId: string, serviceState: ServiceState) {
-  //   console.log('SocketService received service state', serviceId, serviceState);
+  private _onServiceStateUpdate(serviceId: string, serviceState: ServiceState) {
+    console.log('SocketService received service state', serviceId, serviceState);
 
-  //   this.stateService.updateServiceState(serviceId, serviceState);
-  // }
+    this.stateService.updateServiceState(serviceId, serviceState);
+  }
 }
