@@ -1,8 +1,8 @@
 import { Component, inject, Input, OnInit, signal } from '@angular/core';
-import { Service, serviceSchema } from '@shared/schemas/dashboard-config.schema';
 import { z } from 'zod';
 import { StateService } from '../../services/state.service';
-import { ServiceState } from '@shared/schemas/dashboard-state.schema';
+import { Service } from '../../models/dashboardConfig.schema';
+import { ServiceState } from '../../models/dashboardState.schema';
 
 @Component({
   selector: 'app-service',

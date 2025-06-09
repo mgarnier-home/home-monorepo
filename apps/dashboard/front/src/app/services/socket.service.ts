@@ -3,11 +3,17 @@ import { connect, Socket } from 'socket.io-client';
 import { inject, Injectable, signal } from '@angular/core';
 
 import { environment } from '../../environments/environment';
-import { socketEvents } from '@shared/socketEvents.enum';
-import { DashboardConfig, dashboardConfigSchema } from '@shared/schemas/dashboard-config.schema';
+
 import { z } from 'zod';
-import { HostState, ServiceState } from '@shared/schemas/dashboard-state.schema';
 import { StateService } from './state.service';
+import { DashboardConfig } from '../models/dashboardConfig.schema';
+import { HostState, ServiceState } from '../models/dashboardState.schema';
+
+const socketEvents = z.enum([
+  'dashboardConfig',
+  'hostStateUpdate',
+  'serviceStateUpdate',
+]);
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +39,10 @@ export class SocketService {
 
     this.socket.on(socketEvents.Enum.dashboardConfig, this._onDashboardConfig);
     this.socket.on(socketEvents.Enum.hostStateUpdate, this._onHostStateUpdate);
-    this.socket.on(socketEvents.Enum.serviceStateUpdate, this._onServiceStateUpdate);
+    this.socket.on(
+      socketEvents.Enum.serviceStateUpdate,
+      this._onServiceStateUpdate
+    );
   }
 
   private _onDashboardConfig(config: DashboardConfig) {
@@ -48,7 +57,11 @@ export class SocketService {
   }
 
   private _onServiceStateUpdate(serviceId: string, serviceState: ServiceState) {
-    console.log('SocketService received service state', serviceId, serviceState);
+    console.log(
+      'SocketService received service state',
+      serviceId,
+      serviceState
+    );
 
     this.stateService.updateServiceState(serviceId, serviceState);
   }

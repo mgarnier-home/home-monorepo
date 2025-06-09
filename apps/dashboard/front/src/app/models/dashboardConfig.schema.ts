@@ -21,7 +21,15 @@ export const actionSchema = z.discriminatedUnion('type', [
   z.object({
     name: z.string(),
     type: z.literal(actionTypeEnum.enum.request),
-    method: z.enum(['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']),
+    method: z.enum([
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+      'PATCH',
+      'HEAD',
+      'OPTIONS',
+    ]),
     url: z.string().url(),
   }),
 ]);

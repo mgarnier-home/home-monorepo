@@ -1,10 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, Input, OnInit, signal } from '@angular/core';
-import { hostSchema } from '@shared/schemas/dashboard-config.schema';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { z } from 'zod';
 import { ServiceComponent } from '../service/service.component';
 import { StateService } from '../../services/state.service';
-import { HostState } from '@shared/schemas/dashboard-state.schema';
+import { HostState } from '../../models/dashboardState.schema';
+import { hostSchema } from '../../models/dashboardConfig.schema';
 
 @Component({
   selector: 'app-host',

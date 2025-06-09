@@ -3,49 +3,37 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "dashboard-app": {
+    "dashboard-2": {
       "projectType": "application",
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
+      "schematics": {},
       "root": "front",
       "sourceRoot": "front/src",
-      "prefix": "dashboard",
+      "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/app",
-            "index": "front/src/index.html",
             "browser": "front/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
             "tsConfig": "front/tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
             "assets": [
-              "front/src/favicon.ico",
               "front/src/assets"
             ],
             "styles": [
-              "front/src/index.css"
-            ],
-            "scripts": []
+              "front/src/styles.css"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
                 }
               ],
               "outputHashing": "all"
@@ -65,40 +53,36 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "dashboard-app:build:production"
+              "buildTarget": "dashboard-2:build:production"
             },
             "development": {
-              "buildTarget": "dashboard-app:build:development"
+              "buildTarget": "dashboard-2:build:development"
             }
           },
           "defaultConfiguration": "development"
         },
+        "extract-i18n": {
+          "builder": "@angular/build:extract-i18n"
+        },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
-            "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
+            "tsConfig": "front/tsconfig.spec.json",
             "assets": [
-              "front/src/favicon.ico",
-              "front/src/assets"
+              {
+                "glob": "**/*",
+                "input": "front/public"
+              }
             ],
             "styles": [
-              "front/src/styles.scss"
-            ],
-            "scripts": []
+              "front/src/styles.css"
+            ]
           }
         }
       }
     }
-  },
-  "cli": {
-    "analytics": false
   }
 }
