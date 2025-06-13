@@ -76,17 +76,18 @@ WORKDIR /home/${USER}
 # Setup user home directory and SSH keys
 COPY home ./
 RUN \
-  sudo chmod 644 ./.p10k.zsh; \
   sudo chown -R ${USER}:${USER} /home/${USER}; \
   sudo chmod 700 .ssh; \
   sudo chmod 600 .ssh/*
 
-# Zsh Installation
-RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.0/zsh-in-docker.sh)" && \
-  sudo chsh -s /usr/bin/zsh $USER
-SHELL ["/usr/bin/zsh", "-c"]
+# Install fish and 
+RUN \
+  sudo add-apt-repository ppa:fish-shell/release-4; \
+  sudo apt-get install --yes fish: \
+  curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher; \
+  fisher install IlanCosman/tide@v6
 
-RUN echo "[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh" >> ~/.zshrc
+SHELL ["/usr/bin/fish", "-c"]
 
 # Tasks Installation
 ARG INSTALL_TASKS=true
@@ -115,16 +116,6 @@ RUN \
   echo "NVM Installed"; \
   source ~/.zshrc; \
   nvm install 20; \
-  fi
-
-
-# Ansible Installation
-ARG INSTALL_ANSIBLE=true
-RUN \
-  if [ "${INSTALL_ANSIBLE}" = "true" ]; then \
-  sudo add-apt-repository --yes --update ppa:ansible/ansible; \
-  sudo DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt-get install -y ansible; \
-  echo "Ansible Installed"; \
   fi
 
 # Copy entrypoint before setting up vscode, because vscode install script will modify the entrypoint

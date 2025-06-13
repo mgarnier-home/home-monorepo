@@ -33,15 +33,12 @@ setupHomeMonorepo() {
 
   task home-cli:build
 
-  ln -s $home_monorepo_dir/apps/home-cli/dist/home-cli ~/.local/home-cli
-
-  echo "export ATHENA_HOST=ssh://mgarnier@100.64.98.100" >>~/.zshrc
-  echo "export ZEPHYR_HOST=ssh://mgarnier@100.64.98.97" >>~/.zshrc
-  echo "export APOLLON_HOST=ssh://mgarnier@100.64.98.99" >>~/.zshrc
-  echo "export ATLAS_HOST=ssh://mgarnier@100.64.98.98" >>~/.zshrc
-  echo "export COMPOSE_DIR=$docker_data_dir/zephyr/orchestrator" >>~/.zshrc
-  echo "export ENV_DIR=$docker_data_dir/zephyr/orchestrator" >>~/.zshrc
-  echo "source <(home-cli completion zsh)" >>~/.zshrc
+  if [ ! -L ~/.local/home-cli ]; then
+    echo "Creating symlink for home-cli"
+    ln -s $home_monorepo_dir/apps/home-cli/dist/home-cli ~/.local/home-cli
+  else
+    echo "Symlink for home-cli already exists"
+  fi
 }
 
 setupGhActions() {
