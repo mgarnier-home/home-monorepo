@@ -82,51 +82,37 @@ RUN \
 
 # Install fish and 
 RUN \
-  sudo add-apt-repository ppa:fish-shell/release-4; \
-  sudo apt-get install --yes fish: \
-  curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher; \
-  fisher install IlanCosman/tide@v6
+  sudo add-apt-repository ppa:fish-shell/release-4 && \
+  sudo apt-get update && \
+  sudo apt-get install --yes fish
 
-SHELL ["/usr/bin/fish", "-c"]
-
-# Tasks Installation
-ARG INSTALL_TASKS=true
-RUN \
-  if [ "${INSTALL_TASKS}" = "true" ]; then \
-  sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b .local; \
-  echo "export PATH=\$PATH:~/.local" >> ~/.zshrc; \
-  fi
+RUN fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher install IlanCosman/tide@v6"
 
 # GO Installation
-ARG INSTALL_GO=true
 RUN \
-  if [ "${INSTALL_GO}" = "true" ]; then \
   curl -o go.tar.gz https://dl.google.com/go/go1.23.3.linux-amd64.tar.gz; \
   sudo tar -C /usr/local -xzf go.tar.gz; \
   rm go.tar.gz; \
-  echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc; \
-  echo "Go Installed"; \
-  fi
+  echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
 
 # NVM Installation
-ARG INSTALL_NVM=true
 RUN \
-  if [ "${INSTALL_NVM}" = "true" ]; then \
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash; \
-  echo "NVM Installed"; \
-  source ~/.zshrc; \
-  nvm install 20; \
-  fi
+  fisher install jorgebucaran/nvm.fish; \
+  nvm install 20
+
+# Tasks Installation
+RUN \
+  sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b .local; \
+  echo "set -Ux PATH \$PATH \$HOME/.local" >> .config/fish/config.fish;
+
 
 # Copy entrypoint before setting up vscode, because vscode install script will modify the entrypoint
 COPY --chmod=755 --chown=${USER}:${USER} ./entrypoint.sh /entrypoint.sh
 
-ARG INSTALL_VSCODE=true
+# Setup VSCode
 COPY --chmod=755 --chown=${USER}:${USER} ./setup-vscode /setup-vscode
 RUN \
-  if [ "${INSTALL_VSCODE}" = "true" ]; then \
-  bash /setup-vscode/setup.sh "$(tr '\n' ' ' </setup-vscode/vscode-params.json)"; \
-  fi
+  bash /setup-vscode/setup.sh "$(tr '\n' ' ' </setup-vscode/vscode-params.json)";
 
 
 VOLUME [ "/mnt/dev" ]
@@ -136,6 +122,7 @@ RUN sudo mkdir -p /mnt/dev; \
 
 COPY --chmod=755 --chown=${USER}:${USER} ./setup /setup
 
+SHELL ["/usr/bin/fish", "-c"]
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 

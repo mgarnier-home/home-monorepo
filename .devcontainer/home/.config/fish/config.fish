@@ -9,4 +9,5 @@ if status is-interactive
     set -x ENV_DIR /mnt/docker-data/zephyr/orchestrator
 
     home-cli completion fish | source
+    task --completion fish | source
 end
