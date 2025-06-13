@@ -69,42 +69,16 @@ RUN \
   sudo usermod -aG docker ${USER}
 
 
+# Setup ssh authorized keys
+COPY ssh /home/${USER}/.ssh
+RUN \
+  chown -R ${USER}:${USER} /home/${USER}; \
+  chmod 700 /home/${USER}/.ssh; \
+  chmod 600 /home/${USER}/.ssh/*
+
 # Switch to the non-root user
 USER ${USER}
 WORKDIR /home/${USER}
-
-# Setup user home directory and SSH keys
-COPY home ./
-RUN \
-  sudo chown -R ${USER}:${USER} /home/${USER}; \
-  sudo chmod 700 .ssh; \
-  sudo chmod 600 .ssh/*
-
-# Install fish and 
-RUN \
-  sudo add-apt-repository ppa:fish-shell/release-4 && \
-  sudo apt-get update && \
-  sudo apt-get install --yes fish
-
-RUN fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher install IlanCosman/tide@v6"
-
-# GO Installation
-RUN \
-  curl -o go.tar.gz https://dl.google.com/go/go1.23.3.linux-amd64.tar.gz; \
-  sudo tar -C /usr/local -xzf go.tar.gz; \
-  rm go.tar.gz; \
-  echo "export PATH=\$PATH:/usr/local/go/bin" >> ~/.zshrc
-
-# NVM Installation
-RUN \
-  fisher install jorgebucaran/nvm.fish; \
-  nvm install 20
-
-# Tasks Installation
-RUN \
-  sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b .local; \
-  echo "set -Ux PATH \$PATH \$HOME/.local" >> .config/fish/config.fish;
-
 
 # Copy entrypoint before setting up vscode, because vscode install script will modify the entrypoint
 COPY --chmod=755 --chown=${USER}:${USER} ./entrypoint.sh /entrypoint.sh
@@ -114,15 +88,36 @@ COPY --chmod=755 --chown=${USER}:${USER} ./setup-vscode /setup-vscode
 RUN \
   bash /setup-vscode/setup.sh "$(tr '\n' ' ' </setup-vscode/vscode-params.json)";
 
-
 VOLUME [ "/mnt/dev" ]
 
 RUN sudo mkdir -p /mnt/dev; \
   sudo chown -R ${USER}:${USER} /mnt
 
-COPY --chmod=755 --chown=${USER}:${USER} ./setup /setup
+
+# Install fish and fisher
+COPY --chmod=755 --chown=${USER}:${USER} ./fish /home/${USER}/.config/fish
+RUN \
+  sudo add-apt-repository ppa:fish-shell/release-4 && \
+  sudo apt-get update && \
+  sudo apt-get install --yes fish
+RUN sudo chsh -s /usr/bin/fish ${USER}
+RUN fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher install IlanCosman/tide@v6"
+
+# NVM Installation
+RUN fish -c "fisher install jorgebucaran/nvm.fish"
+
+# Tasks Installation
+RUN \
+  sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b .local; \
+  fish -c "set -U fish_user_paths /home/${USER}/.local $fish_user_paths"
+
+RUN \
+  sudo add-apt-repository --yes --update ppa:ansible/ansible; \
+  sudo DEBIAN_FRONTEND=noninteractive TZ=Europe/Paris apt-get install -y ansible
 
 SHELL ["/usr/bin/fish", "-c"]
+
+COPY --chmod=755 --chown=${USER}:${USER} ./setup /setup
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 

@@ -7,11 +7,6 @@ services:
       dockerfile: Dockerfile
       args:
         - SSHD_PORT=2222
-        - INSTALL_TASKS=true
-        - INSTALL_GO=true
-        - INSTALL_NVM=true
-        - INSTALL_ANSIBLE=true
-        - INSTALL_VSCODE=true
     privileged: true
     ports:
       - 2222:2222

@@ -1,5 +1,4 @@
 if status is-interactive
-    # Commands to run in interactive sessions can go here
     set -x ZEPHYR_HOST ssh://mgarnier@100.64.98.97
     set -x ATLAS_HOST ssh://mgarnier@100.64.98.98
     set -x APOLLON_HOST ssh://mgarnier@100.64.98.99
