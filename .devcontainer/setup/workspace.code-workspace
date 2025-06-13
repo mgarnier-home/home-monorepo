@@ -17,7 +17,12 @@
       "path": "/mnt/dev/home-monorepo"
     }
   ],
-  "settings": { "window.title": "Mgarnier Home" },
+  "settings": {
+    "window.title": "Mgarnier Home",
+    "yaml.schemas": {
+      "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "file:///mnt/docker-data/zephyr/orchestrator/**/*.yml"
+    }
+  },
   "search.exclude": {
     "**/node_modules": true,
     "**/bower_components": true,
