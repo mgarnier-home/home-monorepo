@@ -1,0 +1,19 @@
+[
+  "formulahendry.docker-explorer",
+  "quilicicf.markdown-spec-formatter",
+  "redhat.vscode-xml",
+  "ecmel.vscode-html-css",
+  "christian-kohler.npm-intellisense",
+  "christian-kohler.path-intellisense",
+  "formulahendry.auto-rename-tag",
+  "wix.vscode-import-cost",
+  "pranaygp.vscode-css-peek",
+  "johnpapa.vscode-peacock",
+  "shakram02.bash-beautify",
+  "firsttris.vscode-jest-runner",
+  "bradlc.vscode-tailwindcss",
+  "angular.ng-template",
+  "golang.go",
+  "qwtel.sqlite-viewer",
+  "amodio.tsl-problem-matcher"
+]
