@@ -9,11 +9,7 @@ import { StateService } from './state.service';
 import { DashboardConfig } from '../models/dashboardConfig.schema';
 import { HostState, ServiceState } from '../models/dashboardState.schema';
 
-const socketEvents = z.enum([
-  'dashboardConfig',
-  'hostStateUpdate',
-  'serviceStateUpdate',
-]);
+const socketEvents = z.enum(['dashboardConfig', 'hostStateUpdate', 'serviceStateUpdate']);
 
 @Injectable({
   providedIn: 'root',
@@ -33,16 +29,13 @@ export class SocketService {
 
   public connect() {
     this.socket = connect(environment.apiUrl, {
-      // transports: ['websocket'],
+      transports: ['websocket'],
     });
     console.log('SocketService connected to', environment.apiUrl);
 
     this.socket.on(socketEvents.Enum.dashboardConfig, this._onDashboardConfig);
     this.socket.on(socketEvents.Enum.hostStateUpdate, this._onHostStateUpdate);
-    this.socket.on(
-      socketEvents.Enum.serviceStateUpdate,
-      this._onServiceStateUpdate
-    );
+    this.socket.on(socketEvents.Enum.serviceStateUpdate, this._onServiceStateUpdate);
   }
 
   private _onDashboardConfig(config: DashboardConfig) {
@@ -57,11 +50,7 @@ export class SocketService {
   }
 
   private _onServiceStateUpdate(serviceId: string, serviceState: ServiceState) {
-    console.log(
-      'SocketService received service state',
-      serviceId,
-      serviceState
-    );
+    console.log('SocketService received service state', serviceId, serviceState);
 
     this.stateService.updateServiceState(serviceId, serviceState);
   }

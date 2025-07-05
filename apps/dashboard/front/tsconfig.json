@@ -15,7 +15,7 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
-      "@libs/*": ["../../../libs/*/src/index.ts"]
+      "@libs/*": ["../../../libs/*"]
     }
   },
   "angularCompilerOptions": {
