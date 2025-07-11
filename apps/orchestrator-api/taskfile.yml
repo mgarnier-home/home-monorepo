@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    dir: ./src
+    cmds:
+      - go build -o ../dist/orchestrator-api
+  start:
+    dir: ./src
+    cmds:
+      - task: build
+      - ../dist/orchestrator-api {{.CLI_ARGS}}

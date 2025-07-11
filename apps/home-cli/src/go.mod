@@ -1,6 +1,6 @@
 module mgarnier11/home-cli
 
-go 1.23.3
+go 1.24.5
 
 replace mgarnier11.fr/go/libs => ../../../libs/go
 

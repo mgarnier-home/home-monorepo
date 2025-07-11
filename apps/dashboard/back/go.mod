@@ -1,8 +1,8 @@
 module mgarnier11.fr/go/dashboard
 
-go 1.24.1
+go 1.24.5
 
-toolchain go1.24.3
+toolchain go1.24.5
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0

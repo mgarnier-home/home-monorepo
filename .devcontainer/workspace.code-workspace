@@ -15,13 +15,60 @@
     {
       "name": "home-monorepo",
       "path": "/mnt/dev/home-monorepo"
+    },
+    {
+      "name": "Docker-data Apollon",
+      "uri": "ssh://apollon/docker-data"
+    },
+    {
+      "name": "Docker-data Zephyr",
+      "uri": "ssh://zephyr/docker-data"
+    },
+    // {
+    //   "name": "Docker-data Athena",
+    //   "uri": "ssh://athena/docker-data"
+    // },
+    {
+      "name": "Docker-data Atlas",
+      "uri": "ssh://atlas/docker-data"
     }
   ],
   "settings": {
     "window.title": "Mgarnier Home",
     "yaml.schemas": {
       "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "file:///mnt/docker-data/zephyr/orchestrator/**/*.yml"
-    }
+    },
+    "sshfs.configs": [
+      {
+        "name": "zephyr",
+        "host": "100.64.98.97",
+        "root": "/docker-data",
+        "username": "mgarnier",
+        "privateKeyPath": "$HOME/.ssh/id_rsa"
+      },
+      {
+        "name": "apollon",
+        "host": "100.64.98.99",
+        "root": "/docker-data",
+        "username": "mgarnier",
+        "privateKeyPath": "$HOME/.ssh/id_rsa"
+      },
+      {
+        "name": "athena",
+        "host": "100.64.98.100",
+        "root": "/ssd-1/docker-data",
+        "username": "mgarnier",
+        "privateKeyPath": "$HOME/.ssh/id_rsa"
+      },
+      {
+        "name": "atlas",
+        "host": "100.64.98.98",
+        "root": "/docker-data",
+        "username": "mgarnier",
+        "privateKeyPath": "$HOME/.ssh/id_rsa",
+
+      }
+    ]
   },
   "search.exclude": {
     "**/node_modules": true,
