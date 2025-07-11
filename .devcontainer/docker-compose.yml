@@ -7,8 +7,12 @@ services:
       dockerfile: Dockerfile
     privileged: true
     ports:
-      - 2222:2222
-      - 2223:8080
+      - 2223:2222
+      - 2224:8080
+    environment:
+      - NODE_VERSION=22
+      - GIT_EMAIL=mgarnier11@gmail.com
+      - GIT_NAME=mgarnier11
     secrets: 
       - SSH_PRIVATE_KEY
     volumes:
