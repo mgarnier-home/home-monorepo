@@ -33,6 +33,8 @@ func InitAppLogger(appName string) *Logger {
 func getLogLevel() log.Level {
 	stringLogLevel := utils.GetEnv("LOG_LEVEL", "info")
 
+	println("Log level:", stringLogLevel)
+
 	level := log.InfoLevel
 
 	if strings.ToLower(stringLogLevel) == verboseLevelString {

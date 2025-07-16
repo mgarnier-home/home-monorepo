@@ -19,7 +19,7 @@ func InitEnvFromFile() {
 
 	exPath := path.Dir(ex)
 
-	if path.IsAbs(envFilePath) {
+	if !path.IsAbs(envFilePath) {
 		envFilePath = path.Join(exPath, envFilePath)
 	}
 

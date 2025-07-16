@@ -5,11 +5,9 @@ tasks:
   build:
     dir: ./src
     cmds:
-      - go build -o ../dist/orchestrator-api
+      - go build -o ../dist/home-cli
   start:
     dir: ./src
-    env:
-      ENV_FILE_PATH: /mnt/dev/home-monorepo/.env
     cmds:
       - task: build
-      - ../dist/orchestrator-api {{.CLI_ARGS}}
+      - ../dist/home-cli {{.CLI_ARGS}}

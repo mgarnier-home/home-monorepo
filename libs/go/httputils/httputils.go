@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"gopkg.in/yaml.v3"
 	"mgarnier11.fr/go/libs/logger"
 )
 
@@ -72,4 +73,35 @@ func GetRequest(url string) error {
 	}
 	logger.Infof("Successfully got %s", url)
 	return nil
+}
+
+func WriteYamlResponse(w http.ResponseWriter, data interface{}) {
+	// w.Header().Set("Content-Type", "application/x-yaml")
+	w.WriteHeader(http.StatusOK)
+
+	bytes, err := yaml.Marshal(data)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		logger.Errorf("Error marshalling data to YAML: %v", err)
+		return
+	}
+
+	_, err = w.Write(bytes)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		logger.Errorf("Error writing response: %v", err)
+		return
+	}
+}
+
+func WriteTextResponse(w http.ResponseWriter, data string) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+
+	_, err := w.Write([]byte(data))
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		logger.Errorf("Error writing response: %v", err)
+		return
+	}
 }
