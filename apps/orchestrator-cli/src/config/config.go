@@ -5,18 +5,14 @@ import (
 )
 
 type EnvConfig struct {
-	OliveTinConfigDir string
-	ComposeDir        string
-	EnvDir            string
-	SshKeyPath        string
+	OrchestratorApiUrl string
 }
 
 func getEnv() (env *EnvConfig) {
+	utils.InitEnvFromFile()
+
 	env = &EnvConfig{
-		OliveTinConfigDir: utils.GetEnv("OLIVETIN_CONFIG_DIR", "/workspaces/home-config/olivetin"),
-		ComposeDir:        utils.GetEnv("COMPOSE_DIR", "/workspaces/home-config/compose"),
-		EnvDir:            utils.GetEnv("ENV_DIR", "/workspaces/home-config/compose"),
-		SshKeyPath:        utils.GetEnv("SSH_KEY_PATH", ""),
+		OrchestratorApiUrl: utils.GetEnv("ORCHESTRATOR_API_URL", "http://localhost:3000"),
 	}
 
 	return env
