@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
+. ~/.zshrc
+
+
 setupHomeMonorepo() {
     home_monorepo_dir=/mnt/dev/home-monorepo
     docker_data_dir=/mnt/docker-data
