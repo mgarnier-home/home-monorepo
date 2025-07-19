@@ -1,7 +1,7 @@
 FROM build-go-app AS build
 
 
-FROM registry.fedoraproject.org/fedora-minimal:42-x86_64 AS runtime
+FROM registry.fedoraproject.org/fedora-minimal AS runtime
 
 RUN microdnf -y install dnf-plugins-core && \
   dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo && \
