@@ -5,31 +5,15 @@
       "path": "/mnt/dev"
     },
     {
-      "name": "orchestrator",
-      "path": "/mnt/docker-data/zephyr/orchestrator"
-    },
-    {
-      "name": "docker-data",
-      "path": "/mnt/docker-data"
-    },
-    {
       "name": "home-monorepo",
       "path": "/mnt/dev/home-monorepo"
     },
     {
-      "name": "Docker-data Apollon",
-      "uri": "ssh://apollon/docker-data"
+      "name": "Orchestrator",
+      "uri": "ssh://atlas/docker-data/orchestrator"
     },
     {
-      "name": "Docker-data Zephyr",
-      "uri": "ssh://zephyr/docker-data"
-    },
-    // {
-    //   "name": "Docker-data Athena",
-    //   "uri": "ssh://athena/docker-data"
-    // },
-    {
-      "name": "Docker-data Atlas",
+      "name": "Docker-data",
       "uri": "ssh://atlas/docker-data"
     }
   ],
@@ -40,33 +24,11 @@
     },
     "sshfs.configs": [
       {
-        "name": "zephyr",
-        "host": "100.64.98.97",
-        "root": "/docker-data",
-        "username": "mgarnier",
-        "privateKeyPath": "$HOME/.ssh/id_rsa"
-      },
-      {
-        "name": "apollon",
-        "host": "100.64.98.99",
-        "root": "/docker-data",
-        "username": "mgarnier",
-        "privateKeyPath": "$HOME/.ssh/id_rsa"
-      },
-      {
-        "name": "athena",
-        "host": "100.64.98.100",
-        "root": "/ssd-1/docker-data",
-        "username": "mgarnier",
-        "privateKeyPath": "$HOME/.ssh/id_rsa"
-      },
-      {
         "name": "atlas",
         "host": "100.64.98.98",
         "root": "/docker-data",
         "username": "mgarnier",
         "privateKeyPath": "$HOME/.ssh/id_rsa",
-
       }
     ]
   },

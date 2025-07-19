@@ -13,10 +13,6 @@ includes:
     taskfile: ./apps/go-proxy/taskfile.yml
     dir: ./apps/go-proxy
     optional: true
-  home-cli:
-    taskfile: ./apps/home-cli/taskfile.yml
-    dir: ./apps/home-cli
-    optional: true
   mineager:
     taskfile: ./apps/mineager/taskfile.yml
     dir: ./apps/mineager

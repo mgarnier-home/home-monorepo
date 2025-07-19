@@ -13,20 +13,14 @@ services:
       - NODE_VERSION=22
       - GIT_EMAIL=mgarnier11@gmail.com
       - GIT_NAME=mgarnier11
+      - ORCHESTRATOR_API_URL=https://orchestrator.int.mgarnier11.fr
     secrets: 
       - SSH_PRIVATE_KEY
     volumes:
       - mnt-dev:/mnt/dev
-      - mnt-docker-data-zephyr:/mnt/docker-data/zephyr
 
 volumes:
   mnt-dev:
-  mnt-docker-data-zephyr:
-    driver: local
-    driver_opts:
-      type: cifs
-      device: //100.64.98.97/share/docker-data
-      o: rw,vers=3.02,mfsymlinks,cache=none,username=mgarnier,password=password,iocharset=utf8,uid=1000,sec=ntlmv2,file_mode=0777,dir_mode=0777
 
 secrets:
   SSH_PRIVATE_KEY:

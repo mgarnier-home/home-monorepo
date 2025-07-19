@@ -16,22 +16,6 @@ setupHomeMonorepo() {
     # Install pnpm and install dependencies
     npm install pnpm -g
     pnpm install
-
-    # Build and install home-cli
-    export COMPOSE_DIR="$docker_data_dir/zephyr/orchestrator"
-    export ENV_DIR="$docker_data_dir/zephyr/orchestrator"
-
-    task home-cli:build
-
-    # check if the symlink  ~/.local/home-cli exists and create a symlink if it does not
-    if [ ! -d ~/.local/home-cli ]; then
-        echo "Creating symlink for home-cli"
-        mkdir -p ~/.local
-        ln -s $home_monorepo_dir/apps/home-cli/dist/home-cli ~/.local/home-cli
-    else
-        echo "Symlink for home-cli already exists"
-    fi
-
 }
 
 setupHomeMonorepo
