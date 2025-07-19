@@ -8,11 +8,15 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
+	"github.com/fatih/color"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/utils"
 	"mgarnier11.fr/go/orchestrator-api/config"
 	osUtils "mgarnier11.fr/go/orchestrator-api/os-utils"
 )
+
+var Logger = logger.NewLogger("[COMPOSE]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 type Command struct {
 	Command     string       `yaml:"command"`
@@ -46,8 +50,6 @@ func GetCommandsToExecute(commandString string) ([]*Command, error) {
 
 	command := allCommands[commandIndex]
 
-	logger.Debugf("Executing command: %s (%s) for stack: %s and host: %s", command.Command, command.Action, command.ComposeFile.Stack, command.ComposeFile.Host)
-
 	commands := []*Command{}
 
 	for _, composeFile := range composeFiles {
@@ -75,7 +77,7 @@ func GetCommandsToExecute(commandString string) ([]*Command, error) {
 
 func ExecCommandsStream(commands []*Command, writer io.Writer) {
 	exec := func(command *Command) error {
-		logger.Debugf("Executing command: %s %s %s", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action)
+		Logger.Infof("Executing command: %s %s %s", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action)
 
 		err := setContext(command.ComposeFile.Host, writer)
 
@@ -89,7 +91,7 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 			Dir:           config.Env.ComposeDir,
 		}
 
-		err = osUtils.ExecOsCommandStream(osCommand, writer, fmt.Sprintf("%s %s %s ", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action))
+		err = osUtils.ExecOsCommandStream(osCommand, writer, command.Command)
 
 		if err != nil {
 			return fmt.Errorf("error executing command %s %s %s: %w", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action, err)
@@ -104,22 +106,24 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 		results[command] = exec(command)
 	}
 
-	for cmd, err := range results {
-		if err != nil {
-			logger.Errorf("Error executing command %s: %v", cmd.Command, err)
-		} else {
-			logger.Infof("Successfully executed command %s", cmd.Command)
-		}
-	}
-
-	err := osUtils.ExecOsCommandStream(&osUtils.OsCommand{
+	results[&Command{Command: "docker context use default"}] = osUtils.ExecOsCommandStream(&osUtils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "use", "default"},
 		Dir:           config.Env.ComposeDir,
 	}, writer, "docker context use default")
 
-	if err != nil {
-		logger.Errorf("Error resetting docker context to default: %v", err)
+	for cmd, err := range results {
+		if err != nil {
+			log := color.RedString("%s - Error : %v", cmd.Command, err)
+
+			Logger.Errorf("%s", log)
+			writer.Write([]byte(fmt.Sprintf("%s\n", log)))
+		} else {
+			log := color.GreenString("%s - Success", cmd.Command)
+
+			Logger.Infof("%s", log)
+			writer.Write([]byte(fmt.Sprintf("%s\n", log)))
+		}
 	}
 }
 
@@ -132,7 +136,7 @@ func setContext(host string, writer io.Writer) error {
 
 	err := osUtils.ExecOsCommandStream(dockerContextCreateCommand, writer, "docker context create "+host)
 	if err != nil {
-		logger.Infof("Context %s already exists, skipping creation", host)
+		Logger.Debugf("Context %s already exists, skipping creation", host)
 	}
 
 	dockerContextUseCommand := &osUtils.OsCommand{
@@ -166,11 +170,12 @@ func getComposeCommandArgs(command *ComposeFile, action string) []string {
 		fmt.Sprintf("%s/%s.%s.yml", command.Stack, command.Host, command.Stack),
 	)
 
-	if action == "up" {
+	switch action {
+	case "up":
 		args = append(args, "up", "-d", "--pull", "always")
-	} else if action == "down" {
+	case "down":
 		args = append(args, "down", "-v")
-	} else if action == "restart" {
+	case "restart":
 		args = append(args, "up", "-d", "--pull", "always", "--force-recreate")
 	}
 

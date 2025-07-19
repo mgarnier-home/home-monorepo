@@ -8,9 +8,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
 	"mgarnier11.fr/go/libs/logger"
 )
+
+var Logger = logger.NewLogger("[OS]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 type OsCommand struct {
 	OsCommand     string
@@ -19,7 +22,7 @@ type OsCommand struct {
 }
 
 func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error) {
-	logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
+	Logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
@@ -34,7 +37,7 @@ func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error
 }
 
 func ExecOsCommand(osCommand *OsCommand, commandLog string) error {
-	logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
+	Logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
@@ -64,29 +67,6 @@ func printExecCommandInfo(command string, std io.ReadCloser) {
 	}
 }
 
-// func ExecOsCommandStream(osCommand *OsCommand, writer io.Writer) error {
-// 	logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
-
-// 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
-// 	cmd.Dir = osCommand.Dir
-
-// 	stdout, _ := cmd.StdoutPipe()
-// 	stderr, _ := cmd.StderrPipe()
-
-// 	go io.Copy(writer, stdout)
-// 	go io.Copy(writer, stderr)
-
-// 	if err := cmd.Start(); err != nil {
-// 		return fmt.Errorf("error starting command %s %s: %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
-// 	}
-
-// 	if err := cmd.Wait(); err != nil {
-// 		return fmt.Errorf("error waiting for command %s %s to finish: %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
-// 	}
-
-// 	return nil
-// }
-
 var mu sync.Mutex
 
 func streamWithPrefix(reader io.Reader, writer io.Writer, prefix string, wg *sync.WaitGroup) {
@@ -96,8 +76,9 @@ func streamWithPrefix(reader io.Reader, writer io.Writer, prefix string, wg *syn
 	for scanner.Scan() {
 		line := scanner.Text()
 		mu.Lock()
-		str := color.YellowString("%s %s", prefix, line)
-		fmt.Fprintf(writer, "%s\r\n", str)
+		str := color.YellowString("%s - %s", prefix, line)
+		Logger.Infof("%s", str)
+		fmt.Fprintf(writer, "%s\n", str)
 		if f, ok := writer.(interface{ Flush() }); ok {
 			f.Flush()
 		}
@@ -106,7 +87,8 @@ func streamWithPrefix(reader io.Reader, writer io.Writer, prefix string, wg *syn
 }
 
 func ExecOsCommandStream(osCommand *OsCommand, writer io.Writer, prefix string) error {
-	logger.Verbosef("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
+	Logger.Debugf("Executing command in directory: %s", osCommand.Dir)
+	Logger.Debugf("%s %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "))
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir

@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
+	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 	"mgarnier11.fr/go/orchestrator-cli/config"
@@ -46,4 +48,41 @@ func ExecCommandStream(command string) error {
 	// Stream response to stdout
 	_, err = io.Copy(os.Stdout, resp.Body)
 	return err
+}
+
+func DownloadCliBinary(arch, osName string) (string, error) {
+	url := fmt.Sprintf("%s/cli?arch=%s&os=%s", config.Env.OrchestratorApiUrl, arch, osName)
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("error downloading CLI binary: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("error downloading CLI binary: %s", resp.Status)
+	}
+
+	fileName := fmt.Sprintf("orchestrator-cli-%s-%s", osName, arch)
+	if osName == "windows" {
+		fileName += ".exe"
+	}
+
+	binPath, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("error getting current directory: %w", err)
+	}
+
+	filePath := path.Join(filepath.Dir(binPath), fileName)
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return "", fmt.Errorf("error creating file: %w", err)
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(file, resp.Body); err != nil {
+		return "", fmt.Errorf("error writing to file: %w", err)
+	}
+
+	return filePath, nil
 }

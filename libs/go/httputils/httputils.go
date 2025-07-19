@@ -12,7 +12,7 @@ import (
 func LogRequestMiddleware(logger *logger.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			logger.Infof("%s %s Request", r.Method, r.URL.Path)
+			logger.Infof("%s \"%s\" Request", r.Method, r.URL.Path)
 
 			next.ServeHTTP(w, r)
 		})

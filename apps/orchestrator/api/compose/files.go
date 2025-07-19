@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-api/config"
 )
 
@@ -31,7 +30,7 @@ func composeFile(stackName, hostName string) *ComposeFile {
 }
 
 func GetComposeFiles() ([]*ComposeFile, error) {
-	logger.Infof("Getting compose files from directory: %s", config.Env.ComposeDir)
+	Logger.Infof("Getting compose files from directory: %s", config.Env.ComposeDir)
 
 	stacks, err := os.ReadDir(config.Env.ComposeDir)
 	if err != nil {
@@ -48,13 +47,13 @@ func GetComposeFiles() ([]*ComposeFile, error) {
 
 		stackName := stack.Name()
 
-		logger.Verbosef("Found stack: %s", stackName)
+		Logger.Verbosef("Found stack: %s", stackName)
 
 		stackPath := path.Join(config.Env.ComposeDir, stackName)
 		hostsFiles, err := os.ReadDir(stackPath)
 
 		if err != nil {
-			logger.Errorf("Error reading directory %s: %v", stackPath, err)
+			Logger.Errorf("Error reading directory %s: %v", stackPath, err)
 			continue
 		}
 
@@ -69,7 +68,7 @@ func GetComposeFiles() ([]*ComposeFile, error) {
 
 			hostName := parts[0]
 
-			logger.Verbosef("Found compose file: %s for host: %s for stack: %s", hostFileName, hostName, stackName)
+			Logger.Verbosef("Found compose file: %s for host: %s for stack: %s", hostFileName, hostName, stackName)
 
 			composeFiles = append(composeFiles, composeFile(stackName, hostName))
 		}

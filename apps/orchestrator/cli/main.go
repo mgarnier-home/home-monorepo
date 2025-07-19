@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -73,6 +74,65 @@ func getCobraCommand(command *Command, parentCmd *cobra.Command) *cobra.Command 
 	return cmd
 }
 
+func completionCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:                   "completion [bash|zsh|fish|powershell]",
+		Short:                 "Generate completion script",
+		DisableFlagsInUseLine: true,
+		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
+		Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		Run: func(cmd *cobra.Command, args []string) {
+			switch args[0] {
+			case "bash":
+				cmd.Root().GenBashCompletion(os.Stdout)
+			case "zsh":
+				cmd.Root().GenZshCompletion(os.Stdout)
+			case "fish":
+				cmd.Root().GenFishCompletion(os.Stdout, true)
+			case "powershell":
+				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			}
+		},
+		Hidden: true,
+	}
+}
+
+func updateCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "update",
+		Short: "Update the orchestrator-cli",
+		Run: func(cmd *cobra.Command, args []string) {
+			logger.Infof("Updating orchestrator-cli...")
+
+			oldFilePath, err := os.Executable()
+			if err != nil {
+				logger.Errorf("Error getting current executable path: %v", err)
+				return
+			}
+
+			filePath, err := api.DownloadCliBinary(runtime.GOARCH, runtime.GOOS)
+			if err != nil {
+				logger.Errorf("Error downloading CLI binary: %v", err)
+				return
+			}
+
+			err = os.Rename(oldFilePath, oldFilePath+".old")
+			if err != nil {
+				logger.Errorf("Error renaming old file: %v", err)
+				return
+			}
+
+			err = os.Rename(filePath, oldFilePath)
+			if err != nil {
+				logger.Errorf("Error renaming new file to old file path: %v", err)
+				return
+			}
+
+			logger.Infof("Update completed successfully.")
+		},
+	}
+}
+
 func main() {
 	logger.InitAppLogger("orchestrator-cli")
 
@@ -94,28 +154,8 @@ func main() {
 
 	rootCobraCommand := getCobraCommand(rootCommand, nil)
 
-	var completionCmd = &cobra.Command{
-		Use:                   "completion [bash|zsh|fish|powershell]",
-		Short:                 "Generate completion script",
-		DisableFlagsInUseLine: true,
-		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
-		Args:                  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-		Run: func(cmd *cobra.Command, args []string) {
-			switch args[0] {
-			case "bash":
-				cmd.Root().GenBashCompletion(os.Stdout)
-			case "zsh":
-				cmd.Root().GenZshCompletion(os.Stdout)
-			case "fish":
-				cmd.Root().GenFishCompletion(os.Stdout, true)
-			case "powershell":
-				cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
-			}
-		},
-	}
-	completionCmd.Hidden = true
-
-	rootCobraCommand.AddCommand(completionCmd)
+	rootCobraCommand.AddCommand(completionCommand())
+	rootCobraCommand.AddCommand(updateCommand())
 
 	err = rootCobraCommand.Execute()
 	if err != nil {

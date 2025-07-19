@@ -21,6 +21,10 @@ includes:
     taskfile: ./apps/mineager/taskfile.yml
     dir: ./apps/mineager
     optional: true
+  orchestrator:
+    taskfile: ./apps/orchestrator/taskfile.yml
+    dir: ./apps/orchestrator
+    optional: true
 # tasks:
 #   build-test-proxy:
 #     dir: tests/test-proxy

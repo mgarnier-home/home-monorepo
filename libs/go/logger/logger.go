@@ -15,6 +15,26 @@ type Logger struct {
 	parent *Logger
 }
 
+func (logger *Logger) Debug(msg string) {
+	logger.logf(log.DebugLevel, msg, nil)
+}
+
+func (logger *Logger) Info(msg string) {
+	logger.logf(log.InfoLevel, msg, nil)
+}
+
+func (logger *Logger) Warn(msg string) {
+	logger.logf(log.WarnLevel, msg, nil)
+}
+
+func (logger *Logger) Error(msg string) {
+	logger.logf(log.ErrorLevel, msg, nil)
+}
+
+func (logger *Logger) Verbose(msg string) {
+	logger.logf(VerboseLevel, msg, nil)
+}
+
 func (logger *Logger) Debugf(format string, args ...interface{}) {
 	logger.logf(log.DebugLevel, format, args...)
 }

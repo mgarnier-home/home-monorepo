@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+version: "3"
+
+tasks:
+  build:
+    dir: ./cli
+    cmds:
+      - task: build-api
+      - task: build-cli-all
+  build-api:
+    dir: ./api
+    cmds:
+      - go build -o ../dist/orchestrator-api
+  start-api:
+    dir: ./api
+    env:
+      ENV_FILE_PATH: /mnt/dev/home-monorepo/.env
+    cmds:
+      - task: build-api
+      - ../dist/orchestrator-api {{.CLI_ARGS}}
+  build-cli-all:
+    dir: ./cli
+    cmds:
+      - GOOS=windows GOARCH=amd64 go build -o ../dist/orchestrator-cli-windows-amd64.exe
+      - GOOS=linux GOARCH=amd64 go build -o ../dist/orchestrator-cli-linux-amd64
+      - GOOS=linux GOARCH=arm go build -o ../dist/orchestrator-cli-linux-arm
+  build-cli:
+    dir: ./cli
+    cmds:
+      - go build -o ../dist/orchestrator-cli
+  start-cli:
+    dir: ./cli
+    env:
+      ENV_FILE_PATH: /mnt/dev/home-monorepo/.env
+    cmds:
+      - task: build-cli
+      - ../dist/orchestrator-cli {{.CLI_ARGS}}
