@@ -9,28 +9,19 @@
       "path": "/mnt/dev/home-monorepo"
     },
     {
-      "name": "Orchestrator",
-      "uri": "ssh://atlas/docker-data/orchestrator"
+      "name": "orchestrator",
+      "path": "/mnt/docker-data/orchestrator"
     },
     {
-      "name": "Docker-data",
-      "uri": "ssh://atlas/docker-data"
+      "name": "docker-data",
+      "path": "/mnt/docker-data"
     }
   ],
   "settings": {
     "window.title": "Mgarnier Home",
     "yaml.schemas": {
-      "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "file:///mnt/docker-data/zephyr/orchestrator/**/*.yml"
-    },
-    "sshfs.configs": [
-      {
-        "name": "atlas",
-        "host": "100.64.98.98",
-        "root": "/docker-data",
-        "username": "mgarnier",
-        "privateKeyPath": "$HOME/.ssh/id_rsa",
-      }
-    ]
+      "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "file:///mnt/docker-data/orchestrator/**/*.yml"
+    }
   },
   "search.exclude": {
     "**/node_modules": true,

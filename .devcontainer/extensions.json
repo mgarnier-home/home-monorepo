@@ -15,6 +15,5 @@
   "angular.ng-template",
   "golang.go",
   "qwtel.sqlite-viewer",
-  "amodio.tsl-problem-matcher",
-  "kelvin.vscode-sshfs"
+  "amodio.tsl-problem-matcher"
 ]
