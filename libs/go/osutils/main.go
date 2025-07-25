@@ -1,4 +1,4 @@
-package osUtils
+package osutils
 
 import (
 	"bufio"

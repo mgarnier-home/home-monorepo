@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
 	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/osutils"
 	"mgarnier11.fr/go/libs/utils"
 	"mgarnier11.fr/go/orchestrator-api/config"
-	osUtils "mgarnier11.fr/go/orchestrator-api/os-utils"
 )
 
 var Logger = logger.NewLogger("[COMPOSE]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
@@ -90,13 +90,13 @@ func GetComposeConfigs(commands []*Command) ([]*ComposeConfig, error) {
 			continue
 		}
 
-		osCommand := &osUtils.OsCommand{
+		osCommand := &osutils.OsCommand{
 			OsCommand:     "docker",
 			OsCommandArgs: getComposeCommandArgs(command.ComposeFile, "config"),
 			Dir:           config.Env.ComposeDir,
 		}
 
-		configOutput, err := osUtils.ExecOsCommandOutput(osCommand, command.Command)
+		configOutput, err := osutils.ExecOsCommandOutput(osCommand, command.Command)
 		if err != nil {
 			Logger.Errorf("Error executing command %s %s %s: %v", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action, err)
 			continue
@@ -125,13 +125,13 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 			return fmt.Errorf("error setting context for host %s: %w", command.ComposeFile.Host, err)
 		}
 
-		osCommand := &osUtils.OsCommand{
+		osCommand := &osutils.OsCommand{
 			OsCommand:     "docker",
 			OsCommandArgs: getComposeCommandArgs(command.ComposeFile, command.Action),
 			Dir:           config.Env.ComposeDir,
 		}
 
-		err = osUtils.ExecOsCommandStream(osCommand, writer, command.Command)
+		err = osutils.ExecOsCommandStream(osCommand, writer, command.Command)
 
 		if err != nil {
 			return fmt.Errorf("error executing command %s %s %s: %w", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action, err)
@@ -146,7 +146,7 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 		results[command] = exec(command)
 	}
 
-	results[&Command{Command: "docker context use default"}] = osUtils.ExecOsCommandStream(&osUtils.OsCommand{
+	results[&Command{Command: "docker context use default"}] = osutils.ExecOsCommandStream(&osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "use", "default"},
 		Dir:           config.Env.ComposeDir,
@@ -168,24 +168,24 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 }
 
 func setContext(host string, writer io.Writer) error {
-	dockerContextCreateCommand := &osUtils.OsCommand{
+	dockerContextCreateCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "create", host, "--docker", "host=" + utils.GetEnv(strings.ToUpper(host)+"_HOST", "")},
 		Dir:           config.Env.ComposeDir,
 	}
 
-	err := osUtils.ExecOsCommandStream(dockerContextCreateCommand, writer, "docker context create "+host)
+	err := osutils.ExecOsCommandStream(dockerContextCreateCommand, writer, "docker context create "+host)
 	if err != nil {
 		Logger.Debugf("Context %s already exists, skipping creation", host)
 	}
 
-	dockerContextUseCommand := &osUtils.OsCommand{
+	dockerContextUseCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "use", host},
 		Dir:           config.Env.ComposeDir,
 	}
 
-	err = osUtils.ExecOsCommandStream(dockerContextUseCommand, writer, "docker context use "+host)
+	err = osutils.ExecOsCommandStream(dockerContextUseCommand, writer, "docker context use "+host)
 
 	if err != nil {
 		return err
