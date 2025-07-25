@@ -3,21 +3,14 @@ package sshutils
 import (
 	"fmt"
 	"net"
-	"os"
 	"time"
 
 	"golang.org/x/crypto/ssh"
 )
 
-func GetSSHKeyAuth(sshKeyPath string) (ssh.AuthMethod, error) {
-	// Load the private key file
-	key, err := os.ReadFile(sshKeyPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read private key: %w", err)
-	}
-
+func GetSSHKeyAuth(sshKey string) (ssh.AuthMethod, error) {
 	// Parse the private key
-	signer, err := ssh.ParsePrivateKey(key)
+	signer, err := ssh.ParsePrivateKey([]byte(sshKey))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse private key: %w", err)
 	}
@@ -25,8 +18,8 @@ func GetSSHKeyAuth(sshKeyPath string) (ssh.AuthMethod, error) {
 	return ssh.PublicKeys(signer), nil
 }
 
-func GetSSHClient(sshUsername, sshIP, sshPort, sshKeyPath string) (*ssh.Client, error) {
-	sshAuth, err := GetSSHKeyAuth(sshKeyPath)
+func GetSSHClient(sshUsername, sshIP, sshPort, sshKey string) (*ssh.Client, error) {
+	sshAuth, err := GetSSHKeyAuth(sshKey)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting ssh key auth: %v", err)

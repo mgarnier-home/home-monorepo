@@ -25,16 +25,16 @@ type MailConfig struct {
 }
 
 type RemoteDestConfig struct {
-	SSHHost    string `yaml:"sshHost"`
-	SSHPort    int    `yaml:"sshPort"`
-	SSHUser    string `yaml:"sshUser"`
-	SSHKeyPath string `yaml:"sshKey"`
-	SSHPath    string `yaml:"sshPath"`
+	SSHHost string `yaml:"sshHost"`
+	SSHPort int    `yaml:"sshPort"`
+	SSHUser string `yaml:"sshUser"`
+	SSHPath string `yaml:"sshPath"`
 }
 
 type AppEnvConfig struct {
 	ServerPort     int
 	ConfigFilePath string
+	SSHPrivateKey  string
 
 	AppConfig *AppConfigFile
 }
@@ -45,6 +45,7 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 	appEnvConfig = &AppEnvConfig{
 		ServerPort:     utils.GetEnv("SERVER_PORT", 8080),
 		ConfigFilePath: utils.GetEnv("CONFIG_FILE_PATH", "./data/config.yaml"),
+		SSHPrivateKey:  utils.GetEnv("SSH_PRIVATE_KEY", ""),
 	}
 
 	var err error

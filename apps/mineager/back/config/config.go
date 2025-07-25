@@ -28,7 +28,7 @@ type DockerHostConfig struct {
 type AppEnvConfig struct {
 	ServerPort        int
 	ConfigFilePath    string
-	SSHKeyPath        string
+	SSHPrivateKey     string
 	FrontendPath      string
 	DataFolderPath    string
 	MapsFolderPath    string
@@ -45,7 +45,7 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 	appEnvConfig = &AppEnvConfig{
 		ServerPort:     utils.GetEnv("SERVER_PORT", 8080),
 		ConfigFilePath: utils.GetEnv("CONFIG_FILE_PATH", "./data/config.yaml"),
-		SSHKeyPath:     utils.GetEnv("SSH_KEY_PATH", ""),
+		SSHPrivateKey:  utils.GetEnv("SSH_PRIVATE_KEY", ""),
 		FrontendPath:   utils.GetEnv("FRONTEND_PATH", "./front"),
 		DataFolderPath: utils.GetEnv("DATA_FOLDER_PATH", "./data"),
 		ApiToken:       utils.GetEnv("API_TOKEN", ""),

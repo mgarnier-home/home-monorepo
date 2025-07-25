@@ -40,7 +40,7 @@ func getMapPath(mapName string) string {
 }
 
 func sendServerMapToHost(serverName string, host *bo.HostBo) error {
-	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
+	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHPrivateKey)
 	if err != nil {
 		return fmt.Errorf("error connecting to ssh: %v", err)
 	}
@@ -54,7 +54,7 @@ func sendServerMapToHost(serverName string, host *bo.HostBo) error {
 }
 
 func getServerMapFromHost(serverName string, host *bo.HostBo) error {
-	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
+	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHPrivateKey)
 	if err != nil {
 		return fmt.Errorf("error connecting to ssh: %v", err)
 	}
@@ -68,7 +68,7 @@ func getServerMapFromHost(serverName string, host *bo.HostBo) error {
 }
 
 func deleteHostDirectory(serverName string, host *bo.HostBo) error {
-	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHKeyPath)
+	sshClient, err := sshutils.GetSSHClient(host.SSHUsername, host.Ip, host.SSHPort, config.Config.SSHPrivateKey)
 	if err != nil {
 		return fmt.Errorf("error connecting to ssh: %v", err)
 	}

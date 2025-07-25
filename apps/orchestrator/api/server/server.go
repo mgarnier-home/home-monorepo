@@ -39,10 +39,11 @@ func (s *Server) Start() error {
 	Logger.Infof("Starting server on port %d", s.port)
 
 	router.HandleFunc("/cli", s.getCli).Methods("GET")
-
 	router.HandleFunc("/compose", s.getComposeFiles).Methods("GET")
 	router.HandleFunc("/commands", s.getCommands).Methods("GET")
-	router.HandleFunc("/exec-command/{command}", s.streamExecCommand).Methods("GET")
+	router.HandleFunc("/{command}/exec", s.streamExecCommand).Methods("GET")
+	router.HandleFunc("/{command}/configs", s.getCommandsConfigs).Methods("GET")
+	router.HandleFunc("/stacks", s.getStacks).Methods("GET")
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
 }
@@ -142,4 +143,52 @@ func (s *Server) getCli(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	http.ServeFile(w, r, binPath)
 	Logger.Infof("Served CLI binary from %s", binPath)
+}
+
+func (s *Server) getStacks(w http.ResponseWriter, r *http.Request) {
+	stacks, err := compose.GetComposeFiles()
+
+	if err != nil {
+		Logger.Errorf("Error getting stacks: %v", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	Logger.Infof("Found %d stacks", len(stacks))
+
+	httputils.WriteYamlResponse(w, stacks)
+
+}
+
+func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	command := vars["command"]
+
+	if command == "" {
+		Logger.Errorf("No command provided in request")
+		http.Error(w, "Bad Request: No command provided", http.StatusBadRequest)
+		return
+	}
+
+	Logger.Debugf("Received command: %s", command)
+
+	commandsToExecute, err := compose.GetCommandsToExecute(command)
+	if err != nil {
+		Logger.Errorf("Error getting commands to execute: %v", err)
+		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
+
+	composeConfigs, err := compose.GetComposeConfigs(commandsToExecute)
+	if err != nil {
+		Logger.Errorf("Error getting compose configs: %v", err)
+		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	Logger.Debugf("Found %d compose configs", len(composeConfigs))
+
+	httputils.WriteYamlResponse(w, composeConfigs)
 }

@@ -66,7 +66,7 @@ func (config *AppConfigFile) Save() {
 type AppEnvConfig struct {
 	ServerPort     int
 	ConfigFilePath string
-	SSHKeyPath     string
+	SSHPrivateKey  string
 }
 
 func readFile(filePath string) []byte {
@@ -124,7 +124,7 @@ func getAppConfig() (appConfig *AppEnvConfig) {
 	appConfig = &AppEnvConfig{
 		ServerPort:     utils.GetEnv("SERVER_PORT", 8080),
 		ConfigFilePath: utils.GetEnv("CONFIG_FILE_PATH", "config.yaml"),
-		SSHKeyPath:     utils.GetEnv("SSH_KEY_PATH", ""),
+		SSHPrivateKey:  utils.GetEnv("SSH_PRIVATE_KEY", ""),
 	}
 
 	return appConfig

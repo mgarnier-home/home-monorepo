@@ -15,7 +15,7 @@ import (
 )
 
 func sendSSHCommand(ctx context.Context, hostConfig *config.HostConfig, command string) error {
-	authMethod, err := sshutils.GetSSHKeyAuth(config.Config.SSHKeyPath)
+	authMethod, err := sshutils.GetSSHKeyAuth(config.Config.SSHPrivateKey)
 
 	if err != nil {
 		return fmt.Errorf("failed to get ssh key auth: %v", err)

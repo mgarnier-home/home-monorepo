@@ -24,6 +24,12 @@ type Command struct {
 	Action      string       `yaml:"action"`
 }
 
+type ComposeConfig struct {
+	Host   string `yaml:"host"`
+	Action string `yaml:"action"`
+	Config string `yaml:"config"`
+}
+
 var ActionList = []string{"up", "down", "restart"}
 
 func GetCommandsToExecute(commandString string) ([]*Command, error) {
@@ -73,6 +79,40 @@ func GetCommandsToExecute(commandString string) ([]*Command, error) {
 	})
 
 	return commands, nil
+}
+
+func GetComposeConfigs(commands []*Command) ([]*ComposeConfig, error) {
+	composeConfigs := []*ComposeConfig{}
+
+	for _, command := range commands {
+		if command.ComposeFile == nil {
+			Logger.Errorf("Command %s has no compose file", command.Command)
+			continue
+		}
+
+		osCommand := &osUtils.OsCommand{
+			OsCommand:     "docker",
+			OsCommandArgs: getComposeCommandArgs(command.ComposeFile, "config"),
+			Dir:           config.Env.ComposeDir,
+		}
+
+		configOutput, err := osUtils.ExecOsCommandOutput(osCommand, command.Command)
+		if err != nil {
+			Logger.Errorf("Error executing command %s %s %s: %v", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action, err)
+			continue
+		}
+
+		composeConfigs = append(composeConfigs, &ComposeConfig{
+			Host:   command.ComposeFile.Host,
+			Action: command.Action,
+			Config: configOutput,
+		})
+
+		Logger.Debugf("Compose config for command %s: %s", command.Command, configOutput)
+	}
+
+	return composeConfigs, nil
+
 }
 
 func ExecCommandsStream(commands []*Command, writer io.Writer) {
@@ -171,6 +211,8 @@ func getComposeCommandArgs(command *ComposeFile, action string) []string {
 	)
 
 	switch action {
+	case "config":
+		args = append(args, "config")
 	case "up":
 		args = append(args, "up", "-d", "--pull", "always")
 	case "down":

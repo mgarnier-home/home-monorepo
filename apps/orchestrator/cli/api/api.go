@@ -12,6 +12,12 @@ import (
 	"mgarnier11.fr/go/orchestrator-cli/config"
 )
 
+type ComposeConfig struct {
+	Host   string `yaml:"host"`
+	Action string `yaml:"action"`
+	Config string `yaml:"config"`
+}
+
 func GetCommands() ([]string, error) {
 	// Make a request to the orchestrator API to get the commands
 	resp, err := http.Get(config.Env.OrchestratorApiUrl + "/commands")
@@ -34,7 +40,7 @@ func GetCommands() ([]string, error) {
 }
 
 func ExecCommandStream(command string) error {
-	url := fmt.Sprintf("%s/exec-command/%s", config.Env.OrchestratorApiUrl, command)
+	url := fmt.Sprintf("%s/%s/exec", config.Env.OrchestratorApiUrl, command)
 	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error executing command: %w", err)
@@ -85,4 +91,23 @@ func DownloadCliBinary(arch, osName string) (string, error) {
 	}
 
 	return filePath, nil
+}
+
+func GetComposeConfigs(command string) ([]*ComposeConfig, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/%s/configs", config.Env.OrchestratorApiUrl, command))
+	if err != nil {
+		return nil, fmt.Errorf("error getting compose configs: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting compose configs: %s", resp.Status)
+	}
+
+	var configs []*ComposeConfig
+	if err := yaml.NewDecoder(resp.Body).Decode(&configs); err != nil {
+		return nil, fmt.Errorf("error decoding compose configs response: %w", err)
+	}
+
+	return configs, nil
 }

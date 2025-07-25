@@ -12,7 +12,7 @@ func getEnv() (env *EnvConfig) {
 	utils.InitEnvFromFile()
 
 	env = &EnvConfig{
-		OrchestratorApiUrl: utils.GetEnv("ORCHESTRATOR_API_URL", "http://localhost:3000"),
+		OrchestratorApiUrl: utils.GetEnv("API_ORCHESTRATOR_URL", "http://localhost:3000"),
 	}
 
 	return env

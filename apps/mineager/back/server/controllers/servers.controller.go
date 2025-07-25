@@ -75,7 +75,7 @@ func (controller *ServersController) WithHost(hostBo *bo.HostBo) (*ServersContro
 	*controller2 = *controller
 	controller2.host = hostBo
 
-	if dockerClient, err := dockerssh.GetDockerClient(hostBo.SSHUsername, hostBo.Ip, hostBo.SSHPort, config.Config.SSHKeyPath); err != nil {
+	if dockerClient, err := dockerssh.GetDockerClient(hostBo.SSHUsername, hostBo.Ip, hostBo.SSHPort, config.Config.SSHPrivateKey); err != nil {
 		return nil, fmt.Errorf("error getting docker client: %v", err)
 	} else {
 		controller2.dockerClient = dockerClient

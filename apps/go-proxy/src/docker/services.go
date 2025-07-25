@@ -46,7 +46,7 @@ func checkPortAndAddService(containerName string, traefikConfPort string) (*conf
 }
 
 func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Client, error) {
-	authMethod, err := sshutils.GetSSHKeyAuth(config.Config.SSHKeyPath)
+	authMethod, err := sshutils.GetSSHKeyAuth(config.Config.SSHPrivateKey)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ssh key auth: %v", err)
@@ -92,7 +92,7 @@ func GetDockerClient(sshUsername string, hostIp string, sshPort int) (*client.Cl
 
 func GetProxiesFromDocker(sshUsername string, hostIp string, sshPort string, logger *logger.Logger) ([]*config.ProxyConfig, error) {
 
-	dockerClient, err := dockerssh.GetDockerClient(sshUsername, hostIp, sshPort, config.Config.SSHKeyPath)
+	dockerClient, err := dockerssh.GetDockerClient(sshUsername, hostIp, sshPort, config.Config.SSHPrivateKey)
 
 	if err != nil {
 		return nil, err

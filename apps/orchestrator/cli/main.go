@@ -54,11 +54,22 @@ func getCobraCommand(command *Command, parentCmd *cobra.Command) *cobra.Command 
 		Run: func(cmd *cobra.Command, args []string) {
 			logger.Infof("Running command: %s with args: %v", getCliCommand(cmd), args)
 
-			err := api.ExecCommandStream(getCliCommand(cmd))
+			// err := api.ExecCommandStream(getCliCommand(cmd))
+
+			// if err != nil {
+			// 	logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
+			// 	return
+			// }
+
+			configs, err := api.GetComposeConfigs(getCliCommand(cmd))
 
 			if err != nil {
-				logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
+				logger.Errorf("Error getting compose configs for command %s: %v", getCliCommand(cmd), err)
 				return
+			}
+
+			for _, config := range configs {
+				logger.Infof("Got compose config for host %s, action %s\n%s", config.Host, config.Action, config.Config)
 			}
 		},
 	}

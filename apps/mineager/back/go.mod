@@ -8,7 +8,6 @@ require (
 	github.com/docker/go-connections v0.5.0
 	github.com/gorilla/mux v1.8.1
 	github.com/mattn/go-sqlite3 v1.14.24
-	gopkg.in/yaml.v3 v3.0.1
 	mgarnier11.fr/go/libs v0.0.0-00010101000000-000000000000
 )
 
@@ -58,6 +57,7 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	google.golang.org/grpc v1.69.2 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 replace mgarnier11.fr/go/libs => ../../../libs/go

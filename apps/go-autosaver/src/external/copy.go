@@ -106,7 +106,7 @@ func CopyToRemote(remoteDest *config.RemoteDestConfig, srcFile string) error {
 		remoteDest.SSHUser,
 		remoteDest.SSHHost,
 		strconv.Itoa(remoteDest.SSHPort),
-		remoteDest.SSHKeyPath,
+		config.Config.SSHPrivateKey,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get SSH client: %w", err)
