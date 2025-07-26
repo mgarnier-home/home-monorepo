@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os/exec"
+	"os"
 
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-api/config"
@@ -11,9 +11,14 @@ import (
 func main() {
 	logger.InitAppLogger("dashboard")
 
-	if config.Env.SshKeyPath != "" {
-		err := exec.Command("chmod", "600", config.Env.SshKeyPath).Run()
-
+	if config.Env.SSHPrivateKey != "" {
+		// Create ~/.ssh directory if it doesn't exist
+		err := os.MkdirAll(os.ExpandEnv("~/.ssh"), 0700)
+		if err != nil {
+			panic(err)
+		}
+		// Create the id_rsa file with the content of SSH_PRIVATE_KEY
+		err = os.WriteFile("~/.ssh/id_rsa", []byte(config.Env.SSHPrivateKey), 0600)
 		if err != nil {
 			panic(err)
 		}
