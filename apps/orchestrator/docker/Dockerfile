@@ -33,3 +33,6 @@ RUN mkdir -p /root/.ssh; \
   chmod 600 /root/.ssh/config
 
 ENTRYPOINT ["/orchestrator/orchestrator-api"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/version || exit 1
