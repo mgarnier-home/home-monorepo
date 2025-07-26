@@ -25,9 +25,11 @@ type Command struct {
 }
 
 type ComposeConfig struct {
-	Host   string `yaml:"host"`
-	Action string `yaml:"action"`
-	Config string `yaml:"config"`
+	Host       string `yaml:"host"`
+	Stack      string `yaml:"stack"`
+	Action     string `yaml:"action"`
+	Config     string `yaml:"config"`
+	HostConfig string `yaml:"host_config"`
 }
 
 var ActionList = []string{"up", "down", "restart"}
@@ -103,9 +105,11 @@ func GetComposeConfigs(commands []*Command) ([]*ComposeConfig, error) {
 		}
 
 		composeConfigs = append(composeConfigs, &ComposeConfig{
-			Host:   command.ComposeFile.Host,
-			Action: command.Action,
-			Config: configOutput,
+			Host:       command.ComposeFile.Host,
+			Stack:      command.ComposeFile.Stack,
+			Action:     command.Action,
+			Config:     configOutput,
+			HostConfig: getHostConfig(command.ComposeFile.Host),
 		})
 
 		Logger.Debugf("Compose config for command %s: %s", command.Command, configOutput)
@@ -167,10 +171,14 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 	}
 }
 
+func getHostConfig(host string) string {
+	return utils.GetEnv(strings.ToUpper(host)+"_HOST", "")
+}
+
 func setContext(host string, writer io.Writer) error {
 	dockerContextCreateCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
-		OsCommandArgs: []string{"context", "create", host, "--docker", "host=" + utils.GetEnv(strings.ToUpper(host)+"_HOST", "")},
+		OsCommandArgs: []string{"context", "create", host, "--docker", "host=" + getHostConfig(host)},
 		Dir:           config.Env.ComposeDir,
 	}
 

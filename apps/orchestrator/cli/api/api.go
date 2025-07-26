@@ -13,9 +13,11 @@ import (
 )
 
 type ComposeConfig struct {
-	Host   string `yaml:"host"`
-	Action string `yaml:"action"`
-	Config string `yaml:"config"`
+	Host       string `yaml:"host"`
+	Stack      string `yaml:"stack"`
+	Action     string `yaml:"action"`
+	Config     string `yaml:"config"`
+	HostConfig string `yaml:"host_config"`
 }
 
 func GetCommands() ([]string, error) {
