@@ -14,10 +14,13 @@ services:
       - GIT_EMAIL=mgarnier11@gmail.com
       - GIT_NAME=mgarnier11
       - ORCHESTRATOR_API_URL=https://orchestrator.int.mgarnier11.fr
+      - DEVCONTAINER_TESTAZE=patate
     secrets: 
       - SSH_PRIVATE_KEY
     volumes:
       - mnt-dev:/mnt/dev
+# - ~/.ssh/id_rsa:/tmp/SSH_PRIVATE_KEY:ro
+
 
 volumes:
   mnt-dev:
