@@ -29,7 +29,7 @@ EXPOSE 3000
 RUN mkdir -p /root/.ssh; \
   { echo "Host *"; \
   echo "    StrictHostKeyChecking no"; \
-  echo "    IdentityFile /ssh/ssh_private_key"; } >> /root/.ssh/config; \
+  echo "    IdentityFile /orchestrator/ssh/ssh_private_key"; } >> /root/.ssh/config; \
   chmod 600 /root/.ssh/config
 
 ENTRYPOINT ["/orchestrator/orchestrator-api"]
