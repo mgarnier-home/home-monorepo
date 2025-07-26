@@ -12,13 +12,13 @@ func main() {
 	logger.InitAppLogger("dashboard")
 
 	if config.Env.SSHPrivateKey != "" {
-		// Create /root/.ssh directory if it doesn't exist
-		err := os.MkdirAll("/root/.ssh", 0700)
+		// Create /ssh directory if it doesn't exist
+		err := os.MkdirAll("/ssh", 0700)
 		if err != nil {
 			panic(err)
 		}
 		// Create the id_rsa file with the content of SSH_PRIVATE_KEY
-		err = os.WriteFile("/root/.ssh/id_rsa", []byte(config.Env.SSHPrivateKey), 0600)
+		err = os.WriteFile("/ssh/ssh_private_key", []byte(config.Env.SSHPrivateKey), 0600)
 		if err != nil {
 			panic(err)
 		}
