@@ -65,7 +65,12 @@ const main = async () => {
     res.status(200).send('OK');
   });
 
-  app.get('/dynamic-config', async (req, res) => {
+  app.get('/dynamic-config/:subDomain', async (req, res) => {
+    const subDomain = req.params.subDomain;
+    if (!/^[a-zA-Z0-9-]+$/.test(subDomain)) {
+      return res.status(400).send('Invalid subDomain');
+    }
+
     appData = await loadData();
 
     const traefikConf: any = { http: { services: {}, routers: {} } };
@@ -89,7 +94,7 @@ const main = async () => {
 
       if (containers) {
         for (const container of containers) {
-          const result = parseTraefikLabels(host, container.Labels, appData);
+          const result = parseTraefikLabels(host, container.Labels, appData, subDomain);
 
           if (result.services) {
             traefikConf.http.services = { ...traefikConf.http.services, ...result.services };

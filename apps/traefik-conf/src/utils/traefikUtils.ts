@@ -5,7 +5,8 @@ import { AppData, Host } from './interfaces';
 export const parseTraefikLabels = (
   host: Host,
   labels: { [key: string]: string },
-  data: AppData
+  data: AppData,
+  subDomain?: string
 ): { services: any; routers: any } => {
   const proxy = data.proxies.find((proxy) => proxy.sourceIP === host.ip);
   const serverIp = proxy?.activated ? proxy.destIP : host.ip;
@@ -70,7 +71,8 @@ export const parseTraefikLabels = (
 
       if (trimmedKey === 'traefik-conf.port') {
         const serviceName = labels['traefik-conf.name'] || labels['com.docker.compose.service'] || '';
-        const rule = `Host(\`${serviceName}.${data.domainName}\`)`;
+        const serviceNameWithSubDomain = subDomain ? `${serviceName}.${subDomain}` : serviceName;
+        const rule = `Host(\`${serviceNameWithSubDomain}.${data.domainName}\`)`;
         const entrypoints = data.defaultEntrypoints;
         const middlewares = data.defaultMiddlewares;
         const tls = data.defaultTls
