@@ -47,6 +47,46 @@ const loadData = async (): Promise<AppData> => {
   };
 };
 
+const getTraefikConf = async (subDomain: string): Promise<any> => {
+  const appData = await loadData();
+
+  const traefikConf: any = { http: { services: {}, routers: {} } };
+
+  for (const host of appData.hosts) {
+    try {
+      const docker = new Dockerode({
+        protocol: 'ssh',
+        host: host.ip,
+        port: host.sshPort,
+        username: config.sshUser,
+        sshOptions: { privateKey: config.sshPrivateKey },
+      });
+
+      containersMap.set(host.ip, await docker.listContainers());
+    } catch (error) {
+      logger.error('Error while getting containers : ', error);
+    }
+
+    const containers = containersMap.get(host.ip);
+
+    if (containers) {
+      for (const container of containers) {
+        const result = parseTraefikLabels(host, container.Labels, appData, subDomain);
+
+        if (result.services) {
+          traefikConf.http.services = { ...traefikConf.http.services, ...result.services };
+        }
+
+        if (result.routers) {
+          traefikConf.http.routers = { ...traefikConf.http.routers, ...result.routers };
+        }
+      }
+    }
+  }
+
+  return traefikConf;
+};
+
 const main = async () => {
   let appData = await loadData();
 
@@ -71,41 +111,13 @@ const main = async () => {
       return res.status(400).send('Invalid subDomain');
     }
 
-    appData = await loadData();
+    const traefikConf = await getTraefikConf(subDomain);
 
-    const traefikConf: any = { http: { services: {}, routers: {} } };
+    res.status(200).send(YAML.stringify(traefikConf, { indent: 2 }));
+  });
 
-    for (const host of appData.hosts) {
-      try {
-        const docker = new Dockerode({
-          protocol: 'ssh',
-          host: host.ip,
-          port: host.sshPort,
-          username: config.sshUser,
-          sshOptions: { privateKey: config.sshPrivateKey },
-        });
-
-        containersMap.set(host.ip, await docker.listContainers());
-      } catch (error) {
-        logger.error('Error while getting containers : ', error);
-      }
-
-      const containers = containersMap.get(host.ip);
-
-      if (containers) {
-        for (const container of containers) {
-          const result = parseTraefikLabels(host, container.Labels, appData, subDomain);
-
-          if (result.services) {
-            traefikConf.http.services = { ...traefikConf.http.services, ...result.services };
-          }
-
-          if (result.routers) {
-            traefikConf.http.routers = { ...traefikConf.http.routers, ...result.routers };
-          }
-        }
-      }
-    }
+  app.get('/dynamic-config', async (req, res) => {
+    const traefikConf = await getTraefikConf("");
 
     res.status(200).send(YAML.stringify(traefikConf, { indent: 2 }));
   });
