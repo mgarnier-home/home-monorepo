@@ -10,4 +10,4 @@ tasks:
   start:
     cmds:
       - task build
-      - ENV_FILE_PATH=../../.env ./dist/dashboard-back
+      - ENV_FILE_PATH=../.env ./dist/dashboard-back

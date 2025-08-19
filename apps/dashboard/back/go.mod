@@ -2,8 +2,6 @@ module mgarnier11.fr/go/dashboard
 
 go 1.24.5
 
-toolchain go1.24.5
-
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/gorilla/mux v1.8.1

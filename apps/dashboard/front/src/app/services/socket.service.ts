@@ -29,7 +29,7 @@ export class SocketService {
 
   public connect() {
     this.socket = connect(environment.apiUrl, {
-      transports: ['websocket'],
+      // transports: ['websocket'],
     });
     console.log('SocketService connected to', environment.apiUrl);
 

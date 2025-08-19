@@ -11,5 +11,9 @@ func main() {
 
 	api := server.NewServer(config.Config.ServerPort)
 
-	api.Start()
+	err := api.Start()
+
+	if err != nil {
+		logger.Errorf("Error starting API server: %v", err)
+	}
 }

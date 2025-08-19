@@ -37,6 +37,9 @@ func (s *Server) Start() error {
 
 	s.logger.Infof("Starting server on port %d", s.port)
 
+	s.logger.Infof("App dist path: %s", config.Config.AppDistPath)
+	s.logger.Infof("Icons path: %s", config.Config.IconsPath)
+
 	fs := http.FileServer(http.Dir(config.Config.AppDistPath))
 	io := socket.NewServer(nil, nil)
 
@@ -58,16 +61,7 @@ func (s *Server) Start() error {
 			state.ClientDisconnect()
 		})
 
-		dashboardConfig, err := config.Config.GetDashboardConfig()
-
-		if err != nil {
-			logger.Errorf("Error loading dashboardConfig: %v", err)
-			return
-		}
-
-		client.Emit("dashboardConfig", dashboardConfig)
-
-		state.ClientConnect(s.logger, io, client, dashboardConfig)
+		state.ClientConnect(s.logger, io, client)
 	})
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)

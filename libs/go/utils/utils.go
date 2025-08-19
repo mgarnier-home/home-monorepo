@@ -200,3 +200,21 @@ func RunPeriodic(ctx context.Context, interval time.Duration, fn func()) {
 		}
 	}
 }
+
+func GetAbsolutePath(path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	}
+
+	executablePath, err := os.Executable()
+
+	if err != nil {
+		return ""
+	}
+
+	absolutePath := filepath.Join(filepath.Dir(executablePath), path)
+	if !filepath.IsAbs(absolutePath) {
+		return ""
+	}
+	return absolutePath
+}
