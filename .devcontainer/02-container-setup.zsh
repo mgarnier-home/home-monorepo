@@ -2,6 +2,8 @@
 
 . ~/.zshrc
 
+set -euxo pipefail
+
 
 setupHomeMonorepo() {
     home_monorepo_dir=/mnt/dev/home-monorepo
@@ -15,6 +17,9 @@ setupHomeMonorepo() {
     cd $home_monorepo_dir
 
     git config --global --add safe.directory $home_monorepo_dir
+    git pull
+
+    asdf install
 
     # Install pnpm and install dependencies
     npm install pnpm -g
