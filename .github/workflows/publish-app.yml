@@ -64,7 +64,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Build application
         shell: bash
-        run: bash build-app.sh --name ${{ inputs.app }} --version ${{ needs.get-version.outputs.new-app-version }} --tag ${{ matrix.platform }}
+        run: |
+          whoami
+          bash build-app.sh --name ${{ inputs.app }} --version ${{ needs.get-version.outputs.new-app-version }} --tag ${{ matrix.platform }}
       - name: Push application runtime
         shell: bash
         run: docker push mgarnier11/${{ inputs.app }}:${{ matrix.platform }}

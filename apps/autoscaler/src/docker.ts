@@ -54,6 +54,16 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
     await removeContainer(oldContainer);
   }
 
+  // Check if image exists, pull if not
+	try {
+		await dockerApi.getImage(config.runnerImage).inspect();
+		console.log(`Image ${ config.runnerImage } already exists`);
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	} catch (error) {
+		console.log(`Image ${ config.runnerImage } not found locally, pulling...`);
+		await pullImage(dockerApi, config.runnerImage);
+	}
+
   const newContainer = await dockerApi.createContainer({
     Image: config.runnerImage,
     name: `runner-${jobId}`,
@@ -89,4 +99,36 @@ export const stopRunner = async (host: DockerHost, jobId: number): Promise<void>
   if (container) {
     await removeContainer(container);
   }
+};
+
+
+
+const pullImage = async (dockerApi: Dockerode, imageName: string): Promise<void> => {
+	try {
+		console.log(`Pulling image: ${ imageName }`);
+
+		const stream = await dockerApi.pull(imageName,
+			{
+				authconfig: {
+					username: config.dockerRegistryUsername,
+					password: config.dockerRegistryPassword,
+					serveraddress: config.dockerRegistryUrl,
+				},
+			},
+		);
+
+		await new Promise<void>((resolve, reject) => {
+			dockerApi.modem.followProgress(stream, (err, _) => {
+				if (err) {
+					reject(err);
+				} else {
+					console.log(`Successfully pulled image: ${ imageName }`);
+					resolve();
+				}
+			});
+		});
+	} catch (error) {
+		console.error(`Failed to pull image ${ imageName }:`, error);
+		throw error;
+	}
 };
