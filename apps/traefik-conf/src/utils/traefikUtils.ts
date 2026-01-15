@@ -74,7 +74,7 @@ export const parseTraefikLabels = (
         const serviceNameWithSubDomain = subDomain ? `${serviceName}.${subDomain}` : serviceName;
         const rule = `Host(\`${serviceNameWithSubDomain}.${data.domainName}\`)`;
         const entrypoints = data.defaultEntrypoints;
-        const middlewares = data.defaultMiddlewares;
+        const middlewares = labels['traefik-conf.middlewares'] || data.defaultMiddlewares;
         const tls = data.defaultTls
           ? {
               certResolver: data.defaultTls.defaultCertResolver ?? undefined,
