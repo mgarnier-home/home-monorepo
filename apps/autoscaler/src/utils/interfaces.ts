@@ -10,6 +10,9 @@ export interface Config {
   runnerAccessToken: string;
   sshUser: string;
   sshPrivateKey: string;
+  dockerRegistryUrl: string;
+  dockerRegistryUsername: string;
+  dockerRegistryPassword: string;
 }
 
 export interface DockerHost {

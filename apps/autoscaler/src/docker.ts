@@ -66,6 +66,9 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
       `LABELS=${host.label}`,
       `EPHEMERAL=true`,
       `RUNNER_WORKDIR=/tmp`,
+      `DOCKER_REGISTRY_URL=${ config.dockerRegistryUrl }`,
+			`DOCKER_REGISTRY_USERNAME=${ config.dockerRegistryUsername }`,
+			`DOCKER_REGISTRY_PASSWORD=${ config.dockerRegistryPassword }`,
     ],
     HostConfig: {
       Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
