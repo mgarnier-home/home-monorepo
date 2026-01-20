@@ -29,11 +29,10 @@ type Service struct {
 }
 
 type Host struct {
-	Name      string     `yaml:"name" json:"name"`
-	Ip        string     `yaml:"ip" json:"ip"`
-	Nodesight string     `yaml:"nodesight" json:"nodesight"`
-	Icon      string     `yaml:"icon" json:"icon"`
-	Services  []*Service `yaml:"services" json:"services"`
+	Name     string     `yaml:"name" json:"name"`
+	Ip       string     `yaml:"ip" json:"ip"`
+	Icon     string     `yaml:"icon" json:"icon"`
+	Services []*Service `yaml:"services" json:"services"`
 }
 
 type DashboardConfig struct {

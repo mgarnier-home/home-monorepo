@@ -4,6 +4,7 @@ import { Utils } from '@libs/utils';
 
 import { config } from './utils/config';
 import { DockerHost } from './utils/interfaces';
+import { logger } from '@libs/logger';
 
 interface DockerContainer {
   container: Dockerode.Container;
@@ -54,15 +55,9 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
     await removeContainer(oldContainer);
   }
 
-  // Check if image exists, pull if not
-	try {
-		await dockerApi.getImage(config.runnerImage).inspect();
-		console.log(`Image ${ config.runnerImage } already exists`);
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	} catch (error) {
-		console.log(`Image ${ config.runnerImage } not found locally, pulling...`);
-		await pullImage(dockerApi, config.runnerImage);
-	}
+  await pullImage(dockerApi, config.runnerImage);
+
+  await dockerApi.createVolume({Name: 'github-runner-docker-cache'})
 
   const newContainer = await dockerApi.createContainer({
     Image: config.runnerImage,
@@ -76,12 +71,24 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
       `LABELS=${host.label}`,
       `EPHEMERAL=true`,
       `RUNNER_WORKDIR=/tmp`,
-      `DOCKER_REGISTRY_URL=${ config.dockerRegistryUrl }`,
-			`DOCKER_REGISTRY_USERNAME=${ config.dockerRegistryUsername }`,
-			`DOCKER_REGISTRY_PASSWORD=${ config.dockerRegistryPassword }`,
+      `DOCKER_REGISTRY_URL=${config.dockerRegistryUrl}`,
+      `DOCKER_REGISTRY_USERNAME=${config.dockerRegistryUsername}`,
+      `DOCKER_REGISTRY_PASSWORD=${config.dockerRegistryPassword}`,
+      'START_DOCKER_SERVICE=true',
     ],
     HostConfig: {
-      Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
+      // Quand on est en mode production (sur le serveur), on utilise sysbox-runc pour gérer les conteneurs imbriqués
+      // afin qu'on ne puisse pas accéder aux autres conteneurs du host
+      Runtime: config.runtime !== '' ? config.runtime : undefined,
+      // Quand on est en mode développement, on bind le socket docker de l'hôte pour permettre au runner d'utiliser docker sans avoir besoin d'installer sysbox-runc
+      Binds: config.runtime === '' ? ['/var/run/docker.sock:/var/run/docker.sock'] : [],
+      Mounts: config.runtime !== '' ? [
+        {
+          Target: '/var/lib/docker',
+          Source: 'github-runner-docker-cache',
+          Type: 'volume',
+        },
+      ] : [],
     },
     Labels: {
       'autoscaler.runner': jobId.toString(),
@@ -89,6 +96,7 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
   });
 
   await newContainer.start();
+  logger.info(`Started new runner container for job ${jobId} on host ${host.label}`);
 };
 
 export const stopRunner = async (host: DockerHost, jobId: number): Promise<void> => {
@@ -101,34 +109,30 @@ export const stopRunner = async (host: DockerHost, jobId: number): Promise<void>
   }
 };
 
-
-
 const pullImage = async (dockerApi: Dockerode, imageName: string): Promise<void> => {
-	try {
-		console.log(`Pulling image: ${ imageName }`);
+  try {
+    logger.info(`Pulling image: ${imageName}`);
 
-		const stream = await dockerApi.pull(imageName,
-			{
-				authconfig: {
-					username: config.dockerRegistryUsername,
-					password: config.dockerRegistryPassword,
-					serveraddress: config.dockerRegistryUrl,
-				},
-			},
-		);
+    const stream = await dockerApi.pull(imageName, {
+      authconfig: {
+        username: config.dockerRegistryUsername,
+        password: config.dockerRegistryPassword,
+        serveraddress: config.dockerRegistryUrl,
+      },
+    });
 
-		await new Promise<void>((resolve, reject) => {
-			dockerApi.modem.followProgress(stream, (err, _) => {
-				if (err) {
-					reject(err);
-				} else {
-					console.log(`Successfully pulled image: ${ imageName }`);
-					resolve();
-				}
-			});
-		});
-	} catch (error) {
-		console.error(`Failed to pull image ${ imageName }:`, error);
-		throw error;
-	}
+    await new Promise<void>((resolve, reject) => {
+      dockerApi.modem.followProgress(stream, (err, _) => {
+        if (err) {
+          reject(err);
+        } else {
+          logger.info(`Successfully pulled image: ${imageName}`);
+          resolve();
+        }
+      });
+    });
+  } catch (error) {
+    logger.error(`Failed to pull image ${imageName}:`, error);
+    throw error;
+  }
 };

@@ -27,6 +27,7 @@ const loadConfig = (): Config => {
 		dockerRegistryPassword: getEnvVariable("DOCKER_REGISTRY_PASSWORD", false, ""),
     sshUser: getEnvVariable('SSH_USER', true),
     sshPrivateKey: getEnvVariable('SSH_PRIVATE_KEY', true),
+    runtime: getEnvVariable('RUNTIME', false, ''),
     autoscalerConfigPath: fullAutoscalerConfigPath,
   };
 

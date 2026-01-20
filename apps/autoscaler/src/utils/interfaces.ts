@@ -13,6 +13,7 @@ export interface Config {
   dockerRegistryUrl: string;
   dockerRegistryUsername: string;
   dockerRegistryPassword: string;
+  runtime: string;
 }
 
 export interface DockerHost {
