@@ -22,6 +22,9 @@ export interface AppData {
   proxies: Proxy[];
   hosts: Host[];
   domainName: string;
+  sablierUrl: string;
+  sablierTheme?: string;
+  sablierSessionDuration?: string;
   defaultEntrypoints: string;
   defaultMiddlewares: string;
   defaultTls?: {

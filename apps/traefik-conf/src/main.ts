@@ -40,6 +40,7 @@ const loadData = async (): Promise<AppData> => {
   return {
     proxies: [],
     hosts: [],
+    sablierUrl: '',
     domainName: '',
     defaultEntrypoints: '',
     defaultTls: undefined,
@@ -62,7 +63,7 @@ const getTraefikConf = async (subDomain: string): Promise<any> => {
         sshOptions: { privateKey: config.sshPrivateKey },
       });
 
-      containersMap.set(host.ip, await docker.listContainers());
+      containersMap.set(host.ip, await docker.listContainers({ all: true }));
     } catch (error) {
       logger.error('Error while getting containers : ', error);
     }
@@ -79,6 +80,10 @@ const getTraefikConf = async (subDomain: string): Promise<any> => {
 
         if (result.routers) {
           traefikConf.http.routers = { ...traefikConf.http.routers, ...result.routers };
+        }
+
+        if (result.middlewares) {
+          traefikConf.http.middlewares = { ...traefikConf.http.middlewares, ...result.middlewares };
         }
       }
     }
@@ -117,7 +122,7 @@ const main = async () => {
   });
 
   app.get('/dynamic-config', async (req, res) => {
-    const traefikConf = await getTraefikConf("");
+    const traefikConf = await getTraefikConf('');
 
     res.status(200).send(YAML.stringify(traefikConf, { indent: 2 }));
   });
