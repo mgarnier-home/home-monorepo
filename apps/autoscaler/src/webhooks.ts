@@ -9,7 +9,7 @@ const webhooks = new Webhooks({
   secret: config.webhookSecret,
 });
 
-webhooks.on('workflow_job', (event) => {
+webhooks.on('workflow_job', async (event) => {
   logger.debug('===============================');
   logger.debug('workflow job event');
   logger.debug('workflow_job.name : ', event.payload.workflow_job.name);
@@ -34,7 +34,7 @@ webhooks.on('workflow_job', (event) => {
   if (event.payload.workflow_job.status === 'queued') {
     try {
       logger.info(`Should add a runner to ${targetHost.label}`);
-      startRunner(targetHost, event.payload.workflow_job.id);
+      await startRunner(targetHost, event.payload.workflow_job.id);
     } catch (error) {
       logger.error('Error while starting runner', error);
       NtfyUtils.sendNotification('Autoscaler error', `Error while starting runner\n${error}`, '');
@@ -42,7 +42,7 @@ webhooks.on('workflow_job', (event) => {
   } else if (event.payload.workflow_job.status === 'completed') {
     try {
       logger.info(`Should remove a runner from ${targetHost.label}`);
-      stopRunner(targetHost, event.payload.workflow_job.id);
+      await stopRunner(targetHost, event.payload.workflow_job.id);
     } catch (error) {
       logger.error('Error while stopping runner', error);
       NtfyUtils.sendNotification('Autoscaler error', `Error while stopping runner\n${error}`, '');

@@ -1,4 +1,4 @@
-import Dockerode from 'dockerode';
+import Dockerode, { MountSettings } from 'dockerode';
 
 import { Utils } from '@libs/utils';
 
@@ -57,7 +57,23 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
 
   await pullImage(dockerApi, config.runnerImage);
 
-  await dockerApi.createVolume({Name: 'github-runner-docker-cache'})
+  await dockerApi.createVolume({ Name: 'github-runner-docker-cache' });
+  await dockerApi.createVolume({ Name: 'github-actions-runner-files' });
+  const mounts: MountSettings[] = [];
+
+  if (config.runtime !== '') {
+    mounts.push({
+      Target: '/var/lib/docker',
+      Source: 'github-runner-docker-cache',
+      Type: 'volume',
+    });
+  }
+
+  mounts.push({
+    Target: '/actions-runner',
+    Source: 'github-actions-runner-files',
+    Type: 'volume',
+  });
 
   const newContainer = await dockerApi.createContainer({
     Image: config.runnerImage,
@@ -75,6 +91,8 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
       `DOCKER_REGISTRY_USERNAME=${config.dockerRegistryUsername}`,
       `DOCKER_REGISTRY_PASSWORD=${config.dockerRegistryPassword}`,
       'START_DOCKER_SERVICE=true',
+      'CONFIGURED_ACTIONS_RUNNER_FILES_DIR=/actions-runner',
+      'DISABLE_AUTOMATIC_DEREGISTRATION=true',
     ],
     HostConfig: {
       // Quand on est en mode production (sur le serveur), on utilise sysbox-runc pour gérer les conteneurs imbriqués
@@ -82,13 +100,7 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
       Runtime: config.runtime !== '' ? config.runtime : undefined,
       // Quand on est en mode développement, on bind le socket docker de l'hôte pour permettre au runner d'utiliser docker sans avoir besoin d'installer sysbox-runc
       Binds: config.runtime === '' ? ['/var/run/docker.sock:/var/run/docker.sock'] : [],
-      Mounts: config.runtime !== '' ? [
-        {
-          Target: '/var/lib/docker',
-          Source: 'github-runner-docker-cache',
-          Type: 'volume',
-        },
-      ] : [],
+      Mounts: mounts,
     },
     Labels: {
       'autoscaler.runner': jobId.toString(),
