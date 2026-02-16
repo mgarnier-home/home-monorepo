@@ -4,10 +4,13 @@ go 1.24.5
 
 replace mgarnier11.fr/go/libs => ../../../libs/go
 
+replace mgarnier11.fr/go/orchestrator-common => ../common
+
 require (
 	github.com/spf13/cobra v1.8.0
 	gopkg.in/yaml.v3 v3.0.1
 	mgarnier11.fr/go/libs v0.0.0-00010101000000-000000000000
+	mgarnier11.fr/go/orchestrator-common v0.0.0-00010101000000-000000000000
 )
 
 require (

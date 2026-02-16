@@ -11,20 +11,38 @@ import (
 
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-cli/api"
+	"mgarnier11.fr/go/orchestrator-cli/config"
+	compose "mgarnier11.fr/go/orchestrator-common"
 )
 
 var Logger = logger.NewLogger("[EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func ExecCommand(command string) error {
-	Logger.Infof("Running command: %s", command)
+func ExecCommand(command string, local bool) error {
+	Logger.Infof("Running command: %s, local: %v", command, local)
 
-	configs, err := api.GetComposeConfigs(command)
+	var configs []*compose.ComposeConfig = make([]*compose.ComposeConfig, 0)
+	var err error
 
-	if err != nil {
-		return fmt.Errorf("error getting compose configs: %w", err)
+	if local {
+		commands, err := compose.GetCommandsToExecute(config.Env.ComposeDir, command)
+
+		if err != nil {
+			return fmt.Errorf("error getting commands to execute from local: %w", err)
+		}
+
+		configs, err = compose.GetComposeConfigs(config.Env.ComposeDir, commands)
+		if err != nil {
+			return fmt.Errorf("error getting compose configs from local: %w", err)
+		}
+	} else {
+		configs, err = api.GetComposeConfigs(command)
+
+		if err != nil {
+			return fmt.Errorf("error getting compose configs from api: %w", err)
+		}
 	}
 
-	results := make(map[*api.ComposeConfig]error)
+	results := make(map[*compose.ComposeConfig]error)
 
 	for _, config := range configs {
 		results[config] = execComposeConfig(config)
@@ -52,7 +70,7 @@ func ExecCommand(command string) error {
 
 }
 
-func execComposeConfig(config *api.ComposeConfig) error {
+func execComposeConfig(config *compose.ComposeConfig) error {
 	Logger.Infof("Executing %s %s %s", config.Action, config.Host, config.Stack)
 
 	// Write the config to a file
@@ -94,7 +112,7 @@ func writeComposeConfigToFile(config string) (string, error) {
 	return file.Name(), nil
 }
 
-func setConfigContext(config *api.ComposeConfig, writer io.Writer) error {
+func setConfigContext(config *compose.ComposeConfig, writer io.Writer) error {
 	dockerContextCreateCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "create", config.Host, "--docker", "host=" + config.HostConfig},
@@ -121,7 +139,7 @@ func setConfigContext(config *api.ComposeConfig, writer io.Writer) error {
 	return nil
 }
 
-func execComposeCommand(config *api.ComposeConfig, composeFileName string) error {
+func execComposeCommand(config *compose.ComposeConfig, composeFileName string) error {
 	args := []string{
 		"compose",
 		"-f", composeFileName,

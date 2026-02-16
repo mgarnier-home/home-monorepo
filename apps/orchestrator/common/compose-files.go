@@ -6,8 +6,6 @@ import (
 	"path"
 	"slices"
 	"strings"
-
-	"mgarnier11.fr/go/orchestrator-api/config"
 )
 
 type ComposeFile struct {
@@ -17,8 +15,8 @@ type ComposeFile struct {
 	Stack string `yaml:"stack"`
 }
 
-func composeFile(stackName, hostName string) *ComposeFile {
-	stackPath := path.Join(config.Env.ComposeDir, stackName)
+func composeFile(composeDir, stackName, hostName string) *ComposeFile {
+	stackPath := path.Join(composeDir, stackName)
 
 	return &ComposeFile{
 		Name:  hostName + "-" + stackName,
@@ -29,10 +27,10 @@ func composeFile(stackName, hostName string) *ComposeFile {
 
 }
 
-func GetComposeFiles() ([]*ComposeFile, error) {
-	Logger.Infof("Getting compose files from directory: %s", config.Env.ComposeDir)
+func GetComposeFiles(composeDir string) ([]*ComposeFile, error) {
+	Logger.Infof("Getting compose files from directory: %s", composeDir)
 
-	stacks, err := os.ReadDir(config.Env.ComposeDir)
+	stacks, err := os.ReadDir(composeDir)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +47,7 @@ func GetComposeFiles() ([]*ComposeFile, error) {
 
 		Logger.Verbosef("Found stack: %s", stackName)
 
-		stackPath := path.Join(config.Env.ComposeDir, stackName)
+		stackPath := path.Join(composeDir, stackName)
 		hostsFiles, err := os.ReadDir(stackPath)
 
 		if err != nil {
@@ -70,7 +68,7 @@ func GetComposeFiles() ([]*ComposeFile, error) {
 
 			Logger.Verbosef("Found compose file: %s for host: %s for stack: %s", hostFileName, hostName, stackName)
 
-			composeFiles = append(composeFiles, composeFile(stackName, hostName))
+			composeFiles = append(composeFiles, composeFile(composeDir, stackName, hostName))
 		}
 	}
 

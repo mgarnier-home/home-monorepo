@@ -1,17 +1,13 @@
-module mgarnier11.fr/go/orchestrator-api
+module mgarnier11.fr/go/orchestrator-common
 
 go 1.24.5
 
 replace mgarnier11.fr/go/libs => ../../../libs/go
 
-replace mgarnier11.fr/go/orchestrator-common => ../common
-
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/fatih/color v1.18.0
-	github.com/gorilla/mux v1.8.1
 	mgarnier11.fr/go/libs v0.0.0-00010101000000-000000000000
-	mgarnier11.fr/go/orchestrator-common v0.0.0-00010101000000-000000000000
 )
 
 require (

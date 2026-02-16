@@ -10,15 +10,8 @@ import (
 
 	"gopkg.in/yaml.v3"
 	"mgarnier11.fr/go/orchestrator-cli/config"
+	compose "mgarnier11.fr/go/orchestrator-common"
 )
-
-type ComposeConfig struct {
-	Host       string `yaml:"host"`
-	Stack      string `yaml:"stack"`
-	Action     string `yaml:"action"`
-	Config     string `yaml:"config"`
-	HostConfig string `yaml:"host_config"`
-}
 
 func GetCommands() ([]string, error) {
 	// Make a request to the orchestrator API to get the commands
@@ -95,7 +88,7 @@ func DownloadCliBinary(arch, osName string) (string, error) {
 	return filePath, nil
 }
 
-func GetComposeConfigs(command string) ([]*ComposeConfig, error) {
+func GetComposeConfigs(command string) ([]*compose.ComposeConfig, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/%s/configs", config.Env.OrchestratorApiUrl, command))
 	if err != nil {
 		return nil, fmt.Errorf("error getting compose configs: %w", err)
@@ -106,7 +99,7 @@ func GetComposeConfigs(command string) ([]*ComposeConfig, error) {
 		return nil, fmt.Errorf("error getting compose configs: %s", resp.Status)
 	}
 
-	var configs []*ComposeConfig
+	var configs []*compose.ComposeConfig
 	if err := yaml.NewDecoder(resp.Body).Decode(&configs); err != nil {
 		return nil, fmt.Errorf("error decoding compose configs response: %w", err)
 	}

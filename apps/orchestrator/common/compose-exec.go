@@ -13,7 +13,6 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/osutils"
 	"mgarnier11.fr/go/libs/utils"
-	"mgarnier11.fr/go/orchestrator-api/config"
 )
 
 var Logger = logger.NewLogger("[COMPOSE]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
@@ -34,9 +33,9 @@ type ComposeConfig struct {
 
 var ActionList = []string{"up", "down", "restart"}
 
-func GetCommandsToExecute(commandString string) ([]*Command, error) {
+func GetCommandsToExecute(composeDir, commandString string) ([]*Command, error) {
 
-	composeFiles, err := GetComposeFiles()
+	composeFiles, err := GetComposeFiles(composeDir)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting compose files: %w", err)
@@ -83,7 +82,7 @@ func GetCommandsToExecute(commandString string) ([]*Command, error) {
 	return commands, nil
 }
 
-func GetComposeConfigs(commands []*Command) ([]*ComposeConfig, error) {
+func GetComposeConfigs(composeDir string, commands []*Command) ([]*ComposeConfig, error) {
 	composeConfigs := []*ComposeConfig{}
 
 	for _, command := range commands {
@@ -94,8 +93,8 @@ func GetComposeConfigs(commands []*Command) ([]*ComposeConfig, error) {
 
 		osCommand := &osutils.OsCommand{
 			OsCommand:     "docker",
-			OsCommandArgs: getComposeCommandArgs(command.ComposeFile, "config"),
-			Dir:           config.Env.ComposeDir,
+			OsCommandArgs: getComposeCommandArgs(composeDir, command.ComposeFile, "config"),
+			Dir:           composeDir,
 		}
 
 		configOutput, err := osutils.ExecOsCommandOutput(osCommand, command.Command)
@@ -119,7 +118,7 @@ func GetComposeConfigs(commands []*Command) ([]*ComposeConfig, error) {
 
 }
 
-func ExecCommandsStream(commands []*Command, writer io.Writer) {
+func ExecCommandsStream(composeDir string, commands []*Command, writer io.Writer) {
 	exec := func(command *Command) error {
 		Logger.Infof("Executing command: %s %s %s", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action)
 
@@ -131,8 +130,8 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 
 		osCommand := &osutils.OsCommand{
 			OsCommand:     "docker",
-			OsCommandArgs: getComposeCommandArgs(command.ComposeFile, command.Action),
-			Dir:           config.Env.ComposeDir,
+			OsCommandArgs: getComposeCommandArgs(composeDir, command.ComposeFile, command.Action),
+			Dir:           composeDir,
 		}
 
 		err = osutils.ExecOsCommandStream(osCommand, writer, command.Command)
@@ -153,7 +152,7 @@ func ExecCommandsStream(commands []*Command, writer io.Writer) {
 	results[&Command{Command: "docker context use default"}] = osutils.ExecOsCommandStream(&osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "use", "default"},
-		Dir:           config.Env.ComposeDir,
+		Dir:           composeDir,
 	}, writer, "docker context use default")
 
 	for cmd, err := range results {
@@ -179,7 +178,6 @@ func setContext(host string, writer io.Writer) error {
 	dockerContextCreateCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "create", host, "--docker", "host=" + getHostConfig(host)},
-		Dir:           config.Env.ComposeDir,
 	}
 
 	err := osutils.ExecOsCommandStream(dockerContextCreateCommand, writer, "docker context create "+host)
@@ -190,7 +188,6 @@ func setContext(host string, writer io.Writer) error {
 	dockerContextUseCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "use", host},
-		Dir:           config.Env.ComposeDir,
 	}
 
 	err = osutils.ExecOsCommandStream(dockerContextUseCommand, writer, "docker context use "+host)
@@ -202,12 +199,12 @@ func setContext(host string, writer io.Writer) error {
 	return nil
 }
 
-func getComposeCommandArgs(command *ComposeFile, action string) []string {
+func getComposeCommandArgs(composeDir string, command *ComposeFile, action string) []string {
 	args := []string{
 		"compose",
 	}
 
-	envFiles := getEnvFiles(command.Stack)
+	envFiles := getEnvFiles(composeDir, command.Stack)
 
 	for _, envFile := range envFiles {
 		args = append(args, "--env-file", envFile)
@@ -232,8 +229,7 @@ func getComposeCommandArgs(command *ComposeFile, action string) []string {
 	return args
 }
 
-func getEnvFiles(stack string) []string {
-	composeDir := config.Env.ComposeDir
+func getEnvFiles(composeDir string, stack string) []string {
 	globalEnvFiles := getEnvFilesPaths(composeDir, "")
 	stackEnvFiles := getEnvFilesPaths(composeDir, stack)
 
