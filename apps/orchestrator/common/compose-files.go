@@ -28,7 +28,7 @@ func composeFile(composeDir, stackName, hostName string) *ComposeFile {
 }
 
 func GetComposeFiles(composeDir string) ([]*ComposeFile, error) {
-	Logger.Infof("Getting compose files from directory: %s", composeDir)
+	Logger.Debugf("Getting compose files from directory: %s", composeDir)
 
 	stacks, err := os.ReadDir(composeDir)
 	if err != nil {

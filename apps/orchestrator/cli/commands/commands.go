@@ -54,8 +54,9 @@ func GetCobraCommand(command *Command, parentCmd *cobra.Command) *cobra.Command 
 		Use: command.Command,
 		Run: func(cmd *cobra.Command, args []string) {
 			local := cmd.Flag("local").Value.String() == "true"
+			service := cmd.Flag("service").Value.String()
 
-			err := exec.ExecCommand(getCliCommand(cmd), local)
+			err := exec.ExecCommand(getCliCommand(cmd), local, service)
 
 			if err != nil {
 				logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)

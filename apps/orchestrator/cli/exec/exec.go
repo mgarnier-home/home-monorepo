@@ -17,8 +17,8 @@ import (
 
 var Logger = logger.NewLogger("[EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func ExecCommand(command string, local bool) error {
-	Logger.Infof("Running command: %s, local: %v", command, local)
+func ExecCommand(command string, local bool, service string) error {
+	Logger.Infof("Running command: %s, local: %v, service: %s", command, local, service)
 
 	var configs []*compose.ComposeConfig = make([]*compose.ComposeConfig, 0)
 	var err error
@@ -45,7 +45,12 @@ func ExecCommand(command string, local bool) error {
 	results := make(map[*compose.ComposeConfig]error)
 
 	for _, config := range configs {
-		results[config] = execComposeConfig(config)
+		if service != "" && config.Services[service] == nil {
+			Logger.Infof("Skipping config %s %s %s as it does not contain service %s", config.Host, config.Stack, config.Action, service)
+			continue
+		}
+
+		results[config] = execComposeConfig(config, service)
 	}
 
 	err = osutils.ExecOsCommand(&osutils.OsCommand{
@@ -70,7 +75,7 @@ func ExecCommand(command string, local bool) error {
 
 }
 
-func execComposeConfig(config *compose.ComposeConfig) error {
+func execComposeConfig(config *compose.ComposeConfig, service string) error {
 	Logger.Infof("Executing %s %s %s", config.Action, config.Host, config.Stack)
 
 	// Write the config to a file
@@ -90,7 +95,7 @@ func execComposeConfig(config *compose.ComposeConfig) error {
 	}
 
 	// Execute the compose command using the file and context
-	if err := execComposeCommand(config, filePath); err != nil {
+	if err := execComposeCommand(config, filePath, service); err != nil {
 		return fmt.Errorf("error executing compose command for host %s: %w", config.Host, err)
 	}
 
@@ -139,7 +144,7 @@ func setConfigContext(config *compose.ComposeConfig, writer io.Writer) error {
 	return nil
 }
 
-func execComposeCommand(config *compose.ComposeConfig, composeFileName string) error {
+func execComposeCommand(config *compose.ComposeConfig, composeFileName string, service string) error {
 	args := []string{
 		"compose",
 		"-f", composeFileName,
@@ -147,13 +152,17 @@ func execComposeCommand(config *compose.ComposeConfig, composeFileName string) e
 
 	switch config.Action {
 	case "up":
-		args = append(args, "up", "-d", "--pull", "always")
+		args = append(args, "up", "--remove-orphans", "-d", "--pull", "always")
 	case "down":
-		args = append(args, "down", "-v")
+		args = append(args, "down", "--remove-orphans", "-v")
 	case "restart":
-		args = append(args, "up", "-d", "--pull", "always", "--force-recreate")
+		args = append(args, "up", "--remove-orphans", "-d", "--pull", "always", "--force-recreate")
 	default:
 		return fmt.Errorf("unknown action: %s", config.Action)
+	}
+
+	if service != "" {
+		args = append(args, service)
 	}
 
 	osCommand := &osutils.OsCommand{

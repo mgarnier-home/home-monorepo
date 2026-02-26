@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/fatih/color"
+	"gopkg.in/yaml.v3"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/osutils"
 	"mgarnier11.fr/go/libs/utils"
@@ -24,11 +25,16 @@ type Command struct {
 }
 
 type ComposeConfig struct {
-	Host       string `yaml:"host"`
-	Stack      string `yaml:"stack"`
-	Action     string `yaml:"action"`
-	Config     string `yaml:"config"`
-	HostConfig string `yaml:"host_config"`
+	Host       string                 `yaml:"host"`
+	Stack      string                 `yaml:"stack"`
+	Action     string                 `yaml:"action"`
+	Config     string                 `yaml:"config"`
+	HostConfig string                 `yaml:"host_config"`
+	Services   map[string]interface{} `yaml:"services"`
+}
+
+type ComposeFileConfig struct {
+	Services map[string]interface{} `yaml:"services"`
 }
 
 var ActionList = []string{"up", "down", "restart"}
@@ -103,12 +109,18 @@ func GetComposeConfigs(composeDir string, commands []*Command) ([]*ComposeConfig
 			continue
 		}
 
+		var composeConfig ComposeFileConfig
+		if err := yaml.Unmarshal([]byte(configOutput), &composeConfig); err != nil {
+			return nil, fmt.Errorf("error parsing compose config: %w", err)
+		}
+
 		composeConfigs = append(composeConfigs, &ComposeConfig{
 			Host:       command.ComposeFile.Host,
 			Stack:      command.ComposeFile.Stack,
 			Action:     command.Action,
 			Config:     configOutput,
 			HostConfig: getHostConfig(command.ComposeFile.Host),
+			Services:   composeConfig.Services,
 		})
 
 		Logger.Debugf("Compose config for command %s: %s", command.Command, configOutput)

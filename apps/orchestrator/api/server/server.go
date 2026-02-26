@@ -38,6 +38,7 @@ func (s *Server) Start() error {
 
 	Logger.Infof("Starting server on port %d", s.port)
 
+	router.HandleFunc("/", s.get).Methods("GET")
 	router.HandleFunc("/cli", s.getCli).Methods("GET")
 	router.HandleFunc("/compose", s.getComposeFiles).Methods("GET")
 	router.HandleFunc("/commands", s.getCommands).Methods("GET")
@@ -74,6 +75,8 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request: No command provided", http.StatusBadRequest)
 		return
 	}
+
+	// service := r.URL.Query().Get("service")
 
 	Logger.Debugf("Received command: %s", command)
 
@@ -116,6 +119,12 @@ func (s *Server) getCommands(w http.ResponseWriter, r *http.Request) {
 	Logger.Infof("Found %d commands", len(commandsStr))
 
 	httputils.WriteYamlResponse(w, commandsStr)
+}
+
+func (s *Server) get(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Orchestrator API is running"))
+	Logger.Infof("Handled GET request to /")
 }
 
 func (s *Server) getCli(w http.ResponseWriter, r *http.Request) {

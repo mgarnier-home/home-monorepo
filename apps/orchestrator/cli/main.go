@@ -44,6 +44,7 @@ func main() {
 
 	rootCobraCommand := commands.GetCobraCommand(rootCommand, nil)
 	rootCobraCommand.PersistentFlags().BoolVar(&local, "local", config.Env.Local, "Execute command locally")
+	rootCobraCommand.PersistentFlags().String("service", "", "Execute command for a specific service")
 
 	rootCobraCommand.AddCommand(commands.CompletionCommand())
 	rootCobraCommand.AddCommand(commands.UpdateCommand())
