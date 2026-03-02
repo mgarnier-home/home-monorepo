@@ -96,7 +96,6 @@ func DownloadCliBinary(arch, osName string) (string, error) {
 }
 
 func GetComposeConfigs(command string) ([]*compose.ComposeConfig, error) {
-	Logger.Infof("Getting compose configs for command: %s on API %s", command, config.Env.ApiUrl)
 	resp, err := http.Get(fmt.Sprintf("%s/%s/configs", config.Env.ApiUrl, command))
 	if err != nil {
 		return nil, fmt.Errorf("error getting compose configs: %w", err)

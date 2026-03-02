@@ -38,11 +38,6 @@ func getEnv() (env *EnvConfig) {
 		fmt.Printf("Error parsing flags: %v\n", err)
 	}
 
-	// show os.Args
-	fmt.Printf("os.Args: %v\n", os.Args)
-
-	fmt.Printf("Mode : %s\n", mode)
-
 	if mode == "" {
 		mode = utils.GetEnv("ORCHESTRATOR_MODE", string(ModeHybrid))
 	}
