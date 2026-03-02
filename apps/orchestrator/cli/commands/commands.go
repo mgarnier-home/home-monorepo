@@ -1,20 +1,27 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-cli/api"
+	"mgarnier11.fr/go/orchestrator-cli/config"
 	"mgarnier11.fr/go/orchestrator-cli/exec"
+
+	composefiles "mgarnier11.fr/go/orchestrator-common/files"
 )
 
 type Command struct {
 	Command     string
 	SubCommands map[string]*Command
 }
+
+var Logger = logger.NewLogger("[CLI-COMMANDS]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 func SetSubCommands(commandString string, command *Command) {
 	parts := strings.Split(commandString, " ")
@@ -53,13 +60,12 @@ func GetCobraCommand(command *Command, parentCmd *cobra.Command) *cobra.Command 
 	cmd := &cobra.Command{
 		Use: command.Command,
 		Run: func(cmd *cobra.Command, args []string) {
-			local := cmd.Flag("local").Value.String() == "true"
 			service := cmd.Flag("service").Value.String()
 
-			err := exec.ExecCommand(getCliCommand(cmd), local, service)
+			err := exec.ExecCommand(getCliCommand(cmd), service)
 
 			if err != nil {
-				logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
+				Logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
 				return
 			}
 		},
@@ -104,33 +110,68 @@ func UpdateCommand() *cobra.Command {
 		Use:   "update",
 		Short: "Update the orchestrator-cli",
 		Run: func(cmd *cobra.Command, args []string) {
-			logger.Infof("Updating orchestrator-cli...")
+			Logger.Infof("Updating orchestrator-cli...")
 
 			oldFilePath, err := os.Executable()
 			if err != nil {
-				logger.Errorf("Error getting current executable path: %v", err)
+				Logger.Errorf("Error getting current executable path: %v", err)
 				return
 			}
 
 			filePath, err := api.DownloadCliBinary(runtime.GOARCH, runtime.GOOS)
 			if err != nil {
-				logger.Errorf("Error downloading CLI binary: %v", err)
+				Logger.Errorf("Error downloading CLI binary: %v", err)
 				return
 			}
 
 			err = os.Rename(oldFilePath, oldFilePath+".old")
 			if err != nil {
-				logger.Errorf("Error renaming old file: %v", err)
+				Logger.Errorf("Error renaming old file: %v", err)
 				return
 			}
 
 			err = os.Rename(filePath, oldFilePath)
 			if err != nil {
-				logger.Errorf("Error renaming new file to old file path: %v", err)
+				Logger.Errorf("Error renaming new file to old file path: %v", err)
 				return
 			}
 
-			logger.Infof("Update completed successfully.")
+			Logger.Infof("Update completed successfully.")
 		},
 	}
+}
+
+func GetCommands() ([]string, error) {
+	switch config.Env.Mode {
+	case config.ModeFullLocal:
+		composeFiles, err := composefiles.GetComposeFiles(config.Env.ComposeDir)
+
+		if err != nil {
+			return nil, fmt.Errorf("error getting compose files from local: %w", err)
+		}
+
+		commands, err := composefiles.GetCommands(composeFiles)
+
+		if err != nil {
+			return nil, fmt.Errorf("error getting commands from local: %w", err)
+		}
+
+		commandsString := make([]string, len(commands))
+
+		for i, command := range commands {
+			commandsString[i] = command.Command
+		}
+
+		return commandsString, nil
+	case config.ModeHybrid, config.ModeFullApi:
+		commandsString, err := api.GetCommands()
+
+		if err != nil {
+			return nil, fmt.Errorf("error getting commands from api: %w", err)
+		}
+
+		return commandsString, nil
+	}
+
+	return nil, fmt.Errorf("invalid mode: %s", config.Env.Mode)
 }

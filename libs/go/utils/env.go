@@ -23,7 +23,7 @@ func InitEnvFromFile() {
 		envFilePath = path.Join(exPath, envFilePath)
 	}
 
-	godotenv.Load(envFilePath)
+	godotenv.Overload(envFilePath)
 }
 
 func GetEnv[T bool | string | int](key string, defaultValue T) T {

@@ -12,7 +12,9 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
 	"mgarnier11.fr/go/orchestrator-api/config"
-	compose "mgarnier11.fr/go/orchestrator-common"
+	compose_config "mgarnier11.fr/go/orchestrator-common/config"
+	compose_exec "mgarnier11.fr/go/orchestrator-common/exec"
+	compose_files "mgarnier11.fr/go/orchestrator-common/files"
 )
 
 type Server struct {
@@ -50,7 +52,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) getComposeFiles(w http.ResponseWriter, r *http.Request) {
-	composeFiles, err := compose.GetComposeFiles(config.Env.ComposeDir)
+	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDir)
 
 	if err != nil {
 		Logger.Errorf("Error getting compose files: %v", err)
@@ -76,11 +78,9 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// service := r.URL.Query().Get("service")
-
 	Logger.Debugf("Received command: %s", command)
 
-	commandsToExecute, err := compose.GetCommandsToExecute(config.Env.ComposeDir, command)
+	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDir, command)
 	if err != nil {
 		Logger.Errorf("Error getting commands to execute: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
@@ -89,13 +89,25 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
 
+	configs, err := compose_config.GetComposeConfigs(config.Env.ComposeDir, commandsToExecute)
+
+	if err != nil {
+		Logger.Errorf("Error getting compose configs: %v", err)
+		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	Logger.Debugf("Found %d compose configs", len(configs))
+
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-	compose.ExecCommandsStream(config.Env.ComposeDir, commandsToExecute, w)
+
+	service := r.URL.Query().Get("service")
+	compose_exec.ExecCommandsStream(configs, service, w)
 }
 
 func (s *Server) getCommands(w http.ResponseWriter, r *http.Request) {
-	composeFiles, err := compose.GetComposeFiles(config.Env.ComposeDir)
+	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDir)
 
 	if err != nil {
 		Logger.Errorf("Error getting compose files: %v", err)
@@ -103,7 +115,7 @@ func (s *Server) getCommands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commands, err := compose.GetCommands(composeFiles)
+	commands, err := compose_files.GetCommands(composeFiles)
 
 	if err != nil {
 		Logger.Errorf("Error getting commands: %v", err)
@@ -155,7 +167,7 @@ func (s *Server) getCli(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getStacks(w http.ResponseWriter, r *http.Request) {
-	stacks, err := compose.GetComposeFiles(config.Env.ComposeDir)
+	stacks, err := compose_files.GetComposeFiles(config.Env.ComposeDir)
 
 	if err != nil {
 		Logger.Errorf("Error getting stacks: %v", err)
@@ -181,7 +193,7 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Received command: %s", command)
 
-	commandsToExecute, err := compose.GetCommandsToExecute(config.Env.ComposeDir, command)
+	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDir, command)
 	if err != nil {
 		Logger.Errorf("Error getting commands to execute: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
@@ -190,7 +202,7 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
 
-	composeConfigs, err := compose.GetComposeConfigs(config.Env.ComposeDir, commandsToExecute)
+	composeConfigs, err := compose_config.GetComposeConfigs(config.Env.ComposeDir, commandsToExecute)
 	if err != nil {
 		Logger.Errorf("Error getting compose configs: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)

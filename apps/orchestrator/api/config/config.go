@@ -15,10 +15,10 @@ func getEnv() (env *EnvConfig) {
 	utils.InitEnvFromFile()
 
 	env = &EnvConfig{
-		ComposeDir:    utils.GetEnv("COMPOSE_DIRECTORY", "/workspaces/home-config/compose"),
-		ServerPort:    utils.GetEnv("SERVER_PORT", 3000),
-		SSHPrivateKey: utils.GetEnv("SSH_PRIVATE_KEY", ""),
-		BinariesPath:  utils.GetEnv("BINARIES_PATH", "/dist"),
+		ComposeDir:    utils.GetEnv("ORCHESTRATOR_COMPOSE_DIRECTORY", "/workspaces/home-config/compose"),
+		ServerPort:    utils.GetEnv("ORCHESTRATOR_SERVER_PORT", 3000),
+		SSHPrivateKey: utils.GetEnv("ORCHESTRATOR_SSH_PRIVATE_KEY", ""),
+		BinariesPath:  utils.GetEnv("ORCHESTRATOR_BINARIES_PATH", "/dist"),
 	}
 
 	println("Using compose directory:", env.ComposeDir)

@@ -78,9 +78,11 @@ func streamWithPrefix(reader io.Reader, writer io.Writer, prefix string, wg *syn
 		mu.Lock()
 		str := color.YellowString("%s - %s", prefix, line)
 		Logger.Infof("%s", str)
-		fmt.Fprintf(writer, "%s\n", str)
-		if f, ok := writer.(interface{ Flush() }); ok {
-			f.Flush()
+		if writer != nil {
+			fmt.Fprintf(writer, "%s\n", str)
+			if f, ok := writer.(interface{ Flush() }); ok {
+				f.Flush()
+			}
 		}
 		mu.Unlock()
 	}

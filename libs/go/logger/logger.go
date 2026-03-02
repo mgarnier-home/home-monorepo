@@ -16,23 +16,23 @@ type Logger struct {
 }
 
 func (logger *Logger) Debug(msg string) {
-	logger.logf(log.DebugLevel, msg, nil)
+	logger.logf(log.DebugLevel, msg)
 }
 
 func (logger *Logger) Info(msg string) {
-	logger.logf(log.InfoLevel, msg, nil)
+	logger.logf(log.InfoLevel, msg)
 }
 
 func (logger *Logger) Warn(msg string) {
-	logger.logf(log.WarnLevel, msg, nil)
+	logger.logf(log.WarnLevel, msg)
 }
 
 func (logger *Logger) Error(msg string) {
-	logger.logf(log.ErrorLevel, msg, nil)
+	logger.logf(log.ErrorLevel, msg)
 }
 
 func (logger *Logger) Verbose(msg string) {
-	logger.logf(VerboseLevel, msg, nil)
+	logger.logf(VerboseLevel, msg)
 }
 
 func (logger *Logger) Debugf(format string, args ...interface{}) {

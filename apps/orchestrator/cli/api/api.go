@@ -8,14 +8,18 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/charmbracelet/lipgloss"
 	"gopkg.in/yaml.v3"
+	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-cli/config"
 	compose "mgarnier11.fr/go/orchestrator-common"
 )
 
+var Logger = logger.NewLogger("[CLI-API]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
+
 func GetCommands() ([]string, error) {
 	// Make a request to the orchestrator API to get the commands
-	resp, err := http.Get(config.Env.OrchestratorApiUrl + "/commands")
+	resp, err := http.Get(config.Env.ApiUrl + "/commands")
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting commands from orchestrator API: %w", err)
@@ -34,8 +38,11 @@ func GetCommands() ([]string, error) {
 	return commands, nil
 }
 
-func ExecCommandStream(command string) error {
-	url := fmt.Sprintf("%s/%s/exec", config.Env.OrchestratorApiUrl, command)
+func ExecCommandStream(command, service string) error {
+	url := fmt.Sprintf("%s/%s/exec", config.Env.ApiUrl, command)
+	if service != "" {
+		url = fmt.Sprintf("%s?service=%s", url, service)
+	}
 	resp, err := http.Get(url)
 	if err != nil {
 		return fmt.Errorf("error executing command: %w", err)
@@ -52,7 +59,7 @@ func ExecCommandStream(command string) error {
 }
 
 func DownloadCliBinary(arch, osName string) (string, error) {
-	url := fmt.Sprintf("%s/cli?arch=%s&os=%s", config.Env.OrchestratorApiUrl, arch, osName)
+	url := fmt.Sprintf("%s/cli?arch=%s&os=%s", config.Env.ApiUrl, arch, osName)
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("error downloading CLI binary: %w", err)
@@ -89,7 +96,8 @@ func DownloadCliBinary(arch, osName string) (string, error) {
 }
 
 func GetComposeConfigs(command string) ([]*compose.ComposeConfig, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/%s/configs", config.Env.OrchestratorApiUrl, command))
+	Logger.Infof("Getting compose configs for command: %s on API %s", command, config.Env.ApiUrl)
+	resp, err := http.Get(fmt.Sprintf("%s/%s/configs", config.Env.ApiUrl, command))
 	if err != nil {
 		return nil, fmt.Errorf("error getting compose configs: %w", err)
 	}
