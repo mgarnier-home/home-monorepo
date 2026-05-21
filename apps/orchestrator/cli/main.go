@@ -31,7 +31,7 @@ func main() {
 	rootCobraCommand.PersistentFlags().String("service", "", "Execute command for a specific service")
 
 	rootCobraCommand.AddCommand(commands.CompletionCommand())
-	rootCobraCommand.AddCommand(commands.UpdateCommand())
+	rootCobraCommand.AddCommand(commands.UpdateCliCommand())
 
 	err = rootCobraCommand.Execute()
 	if err != nil {

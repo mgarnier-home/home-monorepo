@@ -14,17 +14,21 @@ import (
 
 var Logger = logger.NewLogger("[COMPOSE-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func ExecCommandsStream(configs []*common.ComposeConfig, service string, writer io.Writer) map[*common.ComposeConfig]error {
+func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, versionFilePath string, writer io.Writer) map[*common.ComposeConfig]error {
 
 	results := make(map[*common.ComposeConfig]error)
 
-	for _, config := range configs {
-		if service != "" && config.Services[service] == nil {
-			Logger.Infof("Skipping config %s %s %s as it does not contain service %s", config.Host, config.Stack, config.Action, service)
+	for _, composeConfig := range composeConfigs {
+		if service != "" && composeConfig.Services[service] == nil {
+			Logger.Infof("Skipping config %s %s %s as it does not contain service %s", composeConfig.Host, composeConfig.Stack, composeConfig.Action, service)
 			continue
 		}
 
-		results[config] = execComposeConfigStream(config, service, writer)
+		if composeConfig.Action == "update" {
+			results[composeConfig] = updateVersion(versionFilePath, composeConfig, service)
+		} else {
+			results[composeConfig] = execComposeConfigStream(composeConfig, service, writer)
+		}
 	}
 
 	// Reset to default context

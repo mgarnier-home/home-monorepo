@@ -52,7 +52,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) getComposeFiles(w http.ResponseWriter, r *http.Request) {
-	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDir)
+	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDirPath)
 
 	if err != nil {
 		Logger.Errorf("Error getting compose files: %v", err)
@@ -80,7 +80,7 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Received command: %s", command)
 
-	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDir, command)
+	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDirPath, command)
 	if err != nil {
 		Logger.Errorf("Error getting commands to execute: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
@@ -89,7 +89,7 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
 
-	configs, err := compose_config.GetComposeConfigs(config.Env.ComposeDir, commandsToExecute)
+	configs, err := compose_config.GetComposeConfigs(config.Env.ComposeDirPath, commandsToExecute)
 
 	if err != nil {
 		Logger.Errorf("Error getting compose configs: %v", err)
@@ -107,7 +107,7 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getCommands(w http.ResponseWriter, r *http.Request) {
-	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDir)
+	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDirPath)
 
 	if err != nil {
 		Logger.Errorf("Error getting compose files: %v", err)
@@ -167,7 +167,7 @@ func (s *Server) getCli(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getStacks(w http.ResponseWriter, r *http.Request) {
-	stacks, err := compose_files.GetComposeFiles(config.Env.ComposeDir)
+	stacks, err := compose_files.GetComposeFiles(config.Env.ComposeDirPath)
 
 	if err != nil {
 		Logger.Errorf("Error getting stacks: %v", err)
@@ -193,7 +193,7 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Received command: %s", command)
 
-	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDir, command)
+	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDirPath, command)
 	if err != nil {
 		Logger.Errorf("Error getting commands to execute: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
@@ -202,7 +202,7 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
 
-	composeConfigs, err := compose_config.GetComposeConfigs(config.Env.ComposeDir, commandsToExecute)
+	composeConfigs, err := compose_config.GetComposeConfigs(config.Env.ComposeDirPath, commandsToExecute)
 	if err != nil {
 		Logger.Errorf("Error getting compose configs: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)

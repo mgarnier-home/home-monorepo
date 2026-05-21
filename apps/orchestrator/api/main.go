@@ -6,6 +6,7 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-api/config"
 	"mgarnier11.fr/go/orchestrator-api/server"
+	"mgarnier11.fr/go/orchestrator-api/watcher"
 )
 
 func main() {
@@ -25,6 +26,8 @@ func main() {
 	}
 
 	api := server.NewServer(config.Env.ServerPort)
+
+	watcher.Start(config.Env.ComposeDirPath)
 
 	api.Start()
 }

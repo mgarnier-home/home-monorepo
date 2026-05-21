@@ -22,7 +22,7 @@ type OsCommand struct {
 }
 
 func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error) {
-	Logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
+	Logger.Debugf("Executing OS command: \"%s %s\" in directory: \"%s\"", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
@@ -30,14 +30,14 @@ func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
-		return "", fmt.Errorf("error executing command %s %s: %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
+		return "", fmt.Errorf("error executing command \"%s %s\": %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
 	}
 
 	return string(output), nil
 }
 
 func ExecOsCommand(osCommand *OsCommand, commandLog string) error {
-	Logger.Debugf("Executing OS command: %s %s in directory: %s", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
+	Logger.Debugf("Executing OS command: \"%s %s\" in directory: \"%s\"", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
@@ -104,11 +104,11 @@ func ExecOsCommandStream(osCommand *OsCommand, writer io.Writer, prefix string) 
 	go streamWithPrefix(stderr, writer, prefix, &wg)
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("error starting command %s %s: %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
+		return fmt.Errorf("error starting command \"%s %s\": %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("error waiting for command %s %s to finish: %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
+		return fmt.Errorf("error waiting for command \"%s %s\" to finish: %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
 	}
 
 	wg.Wait()

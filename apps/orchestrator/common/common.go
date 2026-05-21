@@ -1,6 +1,6 @@
 package common
 
-var ActionList = []string{"up", "down", "restart"}
+var ActionList = []string{"up", "down", "restart", "update"}
 
 type Command struct {
 	Command     string       `yaml:"command"`
@@ -15,15 +15,20 @@ type ComposeFile struct {
 	Stack string `yaml:"stack"`
 }
 
+type ComposeService struct {
+	ContainerName string `yaml:"container_name"`
+	Image         string `yaml:"image"`
+}
+
 type ComposeConfig struct {
-	Host       string                 `yaml:"host"`
-	Stack      string                 `yaml:"stack"`
-	Action     string                 `yaml:"action"`
-	Config     string                 `yaml:"config"`
-	HostConfig string                 `yaml:"host_config"`
-	Services   map[string]interface{} `yaml:"services"`
+	Host       string                     `yaml:"host"`
+	Stack      string                     `yaml:"stack"`
+	Action     string                     `yaml:"action"`
+	Config     string                     `yaml:"config"`
+	HostConfig string                     `yaml:"host_config"`
+	Services   map[string]*ComposeService `yaml:"services"`
 }
 
 type ComposeFileSource struct {
-	Services map[string]interface{} `yaml:"services"`
+	Services map[string]*ComposeService `yaml:"services"`
 }

@@ -39,6 +39,25 @@ func GetComposeConfigs(composeDir string, commands []*common.Command) ([]*common
 			return nil, fmt.Errorf("error parsing compose config: %w", err)
 		}
 
+		osCommand.OsCommandArgs = append(osCommand.OsCommandArgs, "--no-interpolate")
+		configOutputNoInterpolation, err := osutils.ExecOsCommandOutput(osCommand, command.Command)
+		if err != nil {
+			Logger.Errorf("Error executing command with no interpolation %s %s %s: %v", command.ComposeFile.Stack, command.ComposeFile.Host, command.Action, err)
+			continue
+		}
+
+		var composeConfigNoInterpolation common.ComposeFileSource
+		if err := yaml.Unmarshal([]byte(configOutputNoInterpolation), &composeConfigNoInterpolation); err != nil {
+			return nil, fmt.Errorf("error parsing compose config with no interpolation: %w", err)
+		}
+
+		for serviceName, service := range composeConfig.Services {
+			service.Image = composeConfigNoInterpolation.Services[serviceName].Image
+
+			Logger.Debugf("Found service %s in config %s %s %s", serviceName, command.ComposeFile.Stack, command.ComposeFile.Host, command.Action)
+			Logger.Debugf("Service %s config: container_name=%s image=%s", serviceName, service.ContainerName, service.Image)
+		}
+
 		composeConfigs = append(composeConfigs, &common.ComposeConfig{
 			Host:       command.ComposeFile.Host,
 			Stack:      command.ComposeFile.Stack,

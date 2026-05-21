@@ -105,9 +105,9 @@ func CompletionCommand() *cobra.Command {
 	}
 }
 
-func UpdateCommand() *cobra.Command {
+func UpdateCliCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:   "update",
+		Use:   "update-cli",
 		Short: "Update the orchestrator-cli",
 		Run: func(cmd *cobra.Command, args []string) {
 			Logger.Infof("Updating orchestrator-cli...")
