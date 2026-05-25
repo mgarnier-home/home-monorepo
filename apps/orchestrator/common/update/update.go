@@ -1,21 +1,21 @@
-package exec
+package update
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	"regexp"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/joho/godotenv"
 
-	"github.com/regclient/regclient"
-	"github.com/regclient/regclient/types/ref"
-
+	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
 	common "mgarnier11.fr/go/orchestrator-common"
 )
+
+var Logger = logger.NewLogger("[UPDATE]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 var envVarRegexp = regexp.MustCompile(`\$\{([^}]+)\}`)
 
@@ -25,7 +25,7 @@ type ImageTag struct {
 	Version   version.SemVer
 }
 
-func updateVersion(versionFilePath string, composeConfig *common.ComposeConfig, service string) error {
+func UpdateVersion(versionFilePath string, composeConfig *common.ComposeConfig, service string) error {
 	/*
 		The image tag can be either : mgarnier11/autoscaler:${AUTOSCALER_VERSION}
 		or mgarnier11/autoscaler:1.3.0
@@ -34,23 +34,28 @@ func updateVersion(versionFilePath string, composeConfig *common.ComposeConfig, 
 			retrieve the env variable value using the versions.env file
 	*/
 
-	if service == "" {
-		for serviceName, serviceConfig := range composeConfig.Services {
-			updateServiceVersion(versionFilePath, serviceName, serviceConfig)
-		}
-	} else {
-		if composeConfig.Services[service] == nil {
-			return fmt.Errorf("service %s not found in compose config %s %s %s", service, composeConfig.Host, composeConfig.Stack, composeConfig.Action)
-		}
-
-		return updateServiceVersion(versionFilePath, service, composeConfig.Services[service])
+	versions, err := godotenv.Read(versionFilePath)
+	if err != nil {
+		return fmt.Errorf("error reading versions.env: %v", err)
 	}
 
-	return nil
+	if service == "" {
+		for serviceName, serviceConfig := range composeConfig.Services {
+			if err := updateServiceVersion(versions, versionFilePath, serviceName, serviceConfig); err != nil {
+				Logger.Errorf("error updating service %s: %v", serviceName, err)
+			}
+		}
+		return nil
+	}
 
+	if composeConfig.Services[service] == nil {
+		return fmt.Errorf("service %s not found in compose config %s %s %s", service, composeConfig.Host, composeConfig.Stack, composeConfig.Action)
+	}
+
+	return updateServiceVersion(versions, versionFilePath, service, composeConfig.Services[service])
 }
 
-func updateServiceVersion(versionFilePath string, service string, serviceConfig *common.ComposeService) error {
+func updateServiceVersion(versions map[string]string, versionFilePath string, service string, serviceConfig *common.ComposeService) error {
 	Logger.Debugf("Updating image %s version", serviceConfig.Image)
 
 	parts := strings.Split(serviceConfig.Image, ":")
@@ -65,14 +70,14 @@ func updateServiceVersion(versionFilePath string, service string, serviceConfig 
 		// If the image tag is an env variable
 		envVarName := envVarMatch[1]
 
-		semver, err := getEnvVarValue(envVarName, versionFilePath)
-		if err != nil {
-			return fmt.Errorf("error getting current version for env variable %s: %v", envVarName, err)
+		semver, ok := versions[envVarName]
+		if !ok {
+			return fmt.Errorf("env variable %s not found in versions.env", envVarName)
 		}
 
 		currentVersion, ok := version.ParseSemver(semver)
 		if !ok {
-			return fmt.Errorf("current version %s for env variable %s is not a valid semver", currentVersion.Raw, envVarName)
+			return fmt.Errorf("current version %s for env variable %s is not a valid semver", semver, envVarName)
 		}
 
 		latestCompatibleVersion, mostRecentVersion, err := getNewImageVersions(imageName, currentVersion)
@@ -80,7 +85,7 @@ func updateServiceVersion(versionFilePath string, service string, serviceConfig 
 			return fmt.Errorf("error getting new image versions for %s: %v", imageName, err)
 		}
 
-		Logger.Infof("Service %s is at version %s, latest compatible version is %s, most recent version is %s", service, currentVersion.Raw, latestCompatibleVersion.Raw, mostRecentVersion.Raw)
+		Logger.Debugf("Service %s is at version %s, latest compatible version is %s, most recent version is %s", service, currentVersion.Raw, latestCompatibleVersion.Raw, mostRecentVersion.Raw)
 
 		if latestCompatibleVersion.NewerThan(currentVersion) {
 			comment := ""
@@ -103,39 +108,13 @@ func updateServiceVersion(versionFilePath string, service string, serviceConfig 
 	return nil
 }
 
-func getEnvVarValue(envVarName, versionFilePath string) (string, error) {
-	versions, err := godotenv.Read(versionFilePath)
-	if err != nil {
-		return "", fmt.Errorf("error reading versions.env: %v", err)
-	}
-
-	value, ok := versions[envVarName]
-	if !ok {
-		return "", fmt.Errorf("env variable %s not found in versions.env", envVarName)
-	}
-
-	return value, nil
-}
-
 func getNewImageVersions(imageName string, currentVersion version.SemVer) (latestCompatibleVersion version.SemVer, mostRecentVersion version.SemVer, err error) {
-	ctx := context.Background()
+	tags, err := getImageTags(imageName)
 
-	rc := regclient.New()
+	latestCompatibleVersion = currentVersion
+	mostRecentVersion = currentVersion
 
-	r, err := ref.New(imageName)
-	if err != nil {
-		Logger.Errorf("%v", err)
-	}
-
-	tags, err := rc.TagList(ctx, r)
-	if err != nil {
-		Logger.Errorf("%v", err)
-	}
-
-	latestCompatibleVersion = version.SemVer{Major: currentVersion.Major, Minor: currentVersion.Minor, Patch: currentVersion.Patch, Raw: currentVersion.Raw}
-	mostRecentVersion = version.SemVer{Major: currentVersion.Major, Minor: currentVersion.Minor, Patch: currentVersion.Patch, Raw: currentVersion.Raw}
-
-	for _, tag := range tags.Tags {
+	for _, tag := range tags {
 		semver, ok := version.ParseSemver(tag)
 		if !ok {
 			continue
@@ -180,4 +159,9 @@ func updateEnvVarValue(envVarName, newValue, commentValue, versionFilePath strin
 	}
 
 	return nil
+}
+
+func getImageTags(imageName string) ([]string, error) {
+	// TODO : implement function to retrieve image tags from docker registry
+	return []string{}, nil
 }

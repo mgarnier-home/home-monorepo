@@ -80,11 +80,11 @@ func deleteOldFolders(
 					return fmt.Errorf("failed to parse directory name %s as date: %w", dirName, err)
 				}
 
-				_14days := 14 * 24 * time.Hour
+				daysToKeep := time.Duration(config.Config.AppConfig.KeepDuration) * 24 * time.Hour
 				_1year := 365 * 24 * time.Hour
 
 				// delete the directory if it is older than 14 days and not the first day of the month, delete if it is older than 1 year
-				if time.Since(dirDate) > _14days && dirDate.Day() != 1 || time.Since(dirDate) > _1year {
+				if time.Since(dirDate) > daysToKeep && dirDate.Day() != 1 || time.Since(dirDate) > _1year {
 					// delete the directory
 					err = removeAll(filepath.Join(dirPath, dirName))
 					logger.Infof("Deleting directory %s", dirName)

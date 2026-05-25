@@ -10,6 +10,7 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/osutils"
 	common "mgarnier11.fr/go/orchestrator-common"
+	"mgarnier11.fr/go/orchestrator-common/update"
 )
 
 var Logger = logger.NewLogger("[COMPOSE-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
@@ -25,7 +26,7 @@ func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, 
 		}
 
 		if composeConfig.Action == "update" {
-			results[composeConfig] = updateVersion(versionFilePath, composeConfig, service)
+			results[composeConfig] = update.UpdateVersion(versionFilePath, composeConfig, service)
 		} else {
 			results[composeConfig] = execComposeConfigStream(composeConfig, service, writer)
 		}

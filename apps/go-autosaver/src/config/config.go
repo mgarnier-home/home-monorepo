@@ -13,6 +13,7 @@ type AppConfigFile struct {
 	BackupSrc    string            `yaml:"backupSrc"`
 	LocalDest    string            `yaml:"localDest"`
 	RemoteDest   *RemoteDestConfig `yaml:"remoteDest"`
+	KeepDuration int               `yaml:"keepDuration"` // in days
 }
 
 type MailConfig struct {
