@@ -2,20 +2,17 @@ import path from 'path';
 import { RunScriptWebpackPlugin } from 'run-script-webpack-plugin';
 import { TsconfigPathsPlugin } from 'tsconfig-paths-webpack-plugin';
 import webpack from 'webpack';
-import webpackCli from 'webpack-cli';
-import nodeExternals from 'webpack-node-externals';
 
-export type Env = webpackCli.WebpackRunOptions['env'] & {};
-
-export type Args = webpackCli.WebpackRunOptions & {
-  env: Env;
+export type Args = {
+  mode?: 'development' | 'production' | 'none';
+  watch?: boolean;
 };
 
 const tsConfigFile = 'tsconfig.json';
 
 const getAppPath = (app: string) => path.join(__dirname, 'apps', app);
 
-export const getConfig = (env: Env, args: Args, app: string): webpack.Configuration => {
+export const getConfig = (args: Args, app: string): webpack.Configuration => {
   const defaultConfig: webpack.Configuration = {
     mode: args.mode || 'development',
     output: {

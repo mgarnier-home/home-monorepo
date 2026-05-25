@@ -1,6 +1,6 @@
 FROM build-node-app AS build
 
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 WORKDIR /app
 

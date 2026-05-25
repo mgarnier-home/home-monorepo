@@ -1,10 +1,10 @@
 import path from 'path';
 import webpack from 'webpack';
 
-import { Args, Env, getConfig } from '../../default.webpack.config';
+import { Args, getConfig } from '../../default.webpack.config';
 
-const nodeProxyConfig = (env: Env, args: Args): webpack.Configuration => {
-  const config = getConfig(env, args, 'cron-runner');
+const nodeProxyConfig = (env: any, args: Args): webpack.Configuration => {
+  const config = getConfig(args, 'cron-runner');
 
   config.entry = {
     main: './src/main.ts',

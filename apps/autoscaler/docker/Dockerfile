@@ -1,7 +1,7 @@
 FROM build-node-app AS build
 
 # Use a multi-stage build to create a lean production image
-FROM node:20-alpine AS app
+FROM node:24-alpine AS app
 
 # Set the working directory
 WORKDIR /app
