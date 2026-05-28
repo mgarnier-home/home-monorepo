@@ -46,6 +46,45 @@ const removeContainer = async (container: DockerContainer): Promise<void> => {
   await container.container.remove({ force: true });
 };
 
+const startingSlots = new Map<string, Set<number>>();
+
+const markSlotStarting = (hostLabel: string, slot: number) => {
+  if (!startingSlots.has(hostLabel)) {
+    startingSlots.set(hostLabel, new Set());
+  }
+  startingSlots.get(hostLabel)!.add(slot);
+};
+
+const unmarkSlotStarting = (hostLabel: string, slot: number) => {
+  startingSlots.get(hostLabel)?.delete(slot);
+};
+
+const isSlotStarting = (hostLabel: string, slot: number): boolean => {
+  return startingSlots.get(hostLabel)?.has(slot) || false;
+};
+
+const getAvailableSlot = async (dockerApi: Dockerode, host: DockerHost): Promise<number> => {
+  const containers = await dockerApi.listContainers({
+    all: true,
+    filters: {
+      label: ['autoscaler.slot'],
+    },
+  });
+
+  const activeSlots = containers
+    .map((c) => {
+      const slotStr = c.Labels ? c.Labels['autoscaler.slot'] : undefined;
+      return slotStr ? parseInt(slotStr, 10) : NaN;
+    })
+    .filter((slot) => !isNaN(slot));
+
+  let slot = 1;
+  while (activeSlots.includes(slot) || isSlotStarting(host.label, slot)) {
+    slot++;
+  }
+  return slot;
+};
+
 export const startRunner = async (host: DockerHost, jobId: number): Promise<void> => {
   const dockerApi = getDockerApi(host);
 
@@ -57,58 +96,68 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
 
   await pullImage(dockerApi, config.runnerImage);
 
-  await dockerApi.createVolume({ Name: 'github-runner-docker-cache' });
-  // await dockerApi.createVolume({ Name: 'github-actions-runner-files' });
-  const mounts: MountSettings[] = [];
+  const slot = await getAvailableSlot(dockerApi, host);
+  markSlotStarting(host.label, slot);
 
-  if (config.runtime !== '') {
+  try {
+    await dockerApi.createVolume({ Name: 'github-runner-docker-cache' });
+    const volumeName = `github-actions-runner-files-${slot}`;
+    await dockerApi.createVolume({ Name: volumeName });
+
+    const mounts: MountSettings[] = [];
+
+    if (config.runtime !== '') {
+      mounts.push({
+        Target: '/var/lib/docker',
+        Source: 'github-runner-docker-cache',
+        Type: 'volume',
+      });
+    }
+
     mounts.push({
-      Target: '/var/lib/docker',
-      Source: 'github-runner-docker-cache',
+      Target: '/actions-runner',
+      Source: volumeName,
       Type: 'volume',
     });
+
+    const newContainer = await dockerApi.createContainer({
+      Image: config.runnerImage,
+      name: `runner-${jobId}`,
+      Env: [
+        `ACCESS_TOKEN=${config.runnerAccessToken}`,
+        `RUNNER_SCOPE=org`,
+        `ORG_NAME=${config.runnerOrgName}`,
+        `REPO_URL=${config.runnerRepoUrl}`,
+        `RUNNER_NAME=runner-${host.label.replace('/', '-')}-${slot}`,
+        `LABELS=${host.label}`,
+        `EPHEMERAL=true`,
+        `RUNNER_WORKDIR=/tmp`,
+        `DOCKER_REGISTRY_URL=${config.dockerRegistryUrl}`,
+        `DOCKER_REGISTRY_USERNAME=${config.dockerRegistryUsername}`,
+        `DOCKER_REGISTRY_PASSWORD=${config.dockerRegistryPassword}`,
+        'START_DOCKER_SERVICE=true',
+        'CONFIGURED_ACTIONS_RUNNER_FILES_DIR=/actions-runner',
+        'DISABLE_AUTOMATIC_DEREGISTRATION=true',
+      ],
+      HostConfig: {
+        // Quand on est en mode production (sur le serveur), on utilise sysbox-runc pour gérer les conteneurs imbriqués
+        // afin qu'on ne puisse pas accéder aux autres conteneurs du host
+        Runtime: config.runtime !== '' ? config.runtime : undefined,
+        // Quand on est en mode développement, on bind le socket docker de l'hôte pour permettre au runner d'utiliser docker sans avoir besoin d'installer sysbox-runc
+        Binds: config.runtime === '' ? ['/var/run/docker.sock:/var/run/docker.sock'] : [],
+        Mounts: mounts,
+      },
+      Labels: {
+        'autoscaler.runner': jobId.toString(),
+        'autoscaler.slot': slot.toString(),
+      },
+    });
+
+    await newContainer.start();
+    logger.info(`Started new runner container for job ${jobId} on host ${host.label} using slot ${slot}`);
+  } finally {
+    unmarkSlotStarting(host.label, slot);
   }
-
-  // mounts.push({
-  //   Target: '/actions-runner',
-  //   Source: 'github-actions-runner-files',
-  //   Type: 'volume',
-  // });
-
-  const newContainer = await dockerApi.createContainer({
-    Image: config.runnerImage,
-    name: `runner-${jobId}`,
-    Env: [
-      `ACCESS_TOKEN=${config.runnerAccessToken}`,
-      `RUNNER_SCOPE=org`,
-      `ORG_NAME=${config.runnerOrgName}`,
-      `REPO_URL=${config.runnerRepoUrl}`,
-      `RUNNER_NAME=runner-${host.label.replace('/', '-')}-${jobId}`,
-      `LABELS=${host.label}`,
-      `EPHEMERAL=true`,
-      `RUNNER_WORKDIR=/tmp`,
-      `DOCKER_REGISTRY_URL=${config.dockerRegistryUrl}`,
-      `DOCKER_REGISTRY_USERNAME=${config.dockerRegistryUsername}`,
-      `DOCKER_REGISTRY_PASSWORD=${config.dockerRegistryPassword}`,
-      'START_DOCKER_SERVICE=true',
-      'CONFIGURED_ACTIONS_RUNNER_FILES_DIR=/actions-runner',
-      'DISABLE_AUTOMATIC_DEREGISTRATION=true',
-    ],
-    HostConfig: {
-      // Quand on est en mode production (sur le serveur), on utilise sysbox-runc pour gérer les conteneurs imbriqués
-      // afin qu'on ne puisse pas accéder aux autres conteneurs du host
-      Runtime: config.runtime !== '' ? config.runtime : undefined,
-      // Quand on est en mode développement, on bind le socket docker de l'hôte pour permettre au runner d'utiliser docker sans avoir besoin d'installer sysbox-runc
-      Binds: config.runtime === '' ? ['/var/run/docker.sock:/var/run/docker.sock'] : [],
-      Mounts: mounts,
-    },
-    Labels: {
-      'autoscaler.runner': jobId.toString(),
-    },
-  });
-
-  await newContainer.start();
-  logger.info(`Started new runner container for job ${jobId} on host ${host.label}`);
 };
 
 export const stopRunner = async (host: DockerHost, jobId: number): Promise<void> => {
