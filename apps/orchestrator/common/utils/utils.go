@@ -65,6 +65,15 @@ func UpdateRepo(writer io.Writer, folder string, token string) error {
 
 	err := osutils.ExecOsCommandStream(&osutils.OsCommand{
 		OsCommand:     "git",
+		OsCommandArgs: []string{"config", "--global", "--add", "safe.directory", "/compose"},
+		Dir:           folder,
+	}, writer, "git config")
+	if err != nil {
+		return fmt.Errorf("git config safe.directory failed: %w", err)
+	}
+
+	err = osutils.ExecOsCommandStream(&osutils.OsCommand{
+		OsCommand:     "git",
 		OsCommandArgs: []string{"pull"},
 		Dir:           folder,
 		Env:           gitEnv,
