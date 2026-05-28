@@ -58,7 +58,7 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
   await pullImage(dockerApi, config.runnerImage);
 
   await dockerApi.createVolume({ Name: 'github-runner-docker-cache' });
-  await dockerApi.createVolume({ Name: 'github-actions-runner-files' });
+  // await dockerApi.createVolume({ Name: 'github-actions-runner-files' });
   const mounts: MountSettings[] = [];
 
   if (config.runtime !== '') {
@@ -69,11 +69,11 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
     });
   }
 
-  mounts.push({
-    Target: '/actions-runner',
-    Source: 'github-actions-runner-files',
-    Type: 'volume',
-  });
+  // mounts.push({
+  //   Target: '/actions-runner',
+  //   Source: 'github-actions-runner-files',
+  //   Type: 'volume',
+  // });
 
   const newContainer = await dockerApi.createContainer({
     Image: config.runnerImage,
