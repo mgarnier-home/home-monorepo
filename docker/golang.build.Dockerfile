@@ -1,4 +1,4 @@
-FROM golang:1.24.5-alpine
+FROM golang:1.26.0-alpine
 
 ARG APP=none
 ARG VERSION=none

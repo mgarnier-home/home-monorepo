@@ -9,6 +9,7 @@ type EnvConfig struct {
 	ServerPort     int
 	SSHPrivateKey  string
 	BinariesPath   string
+	GitToken       string
 }
 
 func getEnv() (env *EnvConfig) {
@@ -19,6 +20,7 @@ func getEnv() (env *EnvConfig) {
 		ServerPort:     utils.GetEnv("ORCHESTRATOR_SERVER_PORT", 3000),
 		SSHPrivateKey:  utils.GetEnv("ORCHESTRATOR_SSH_PRIVATE_KEY", ""),
 		BinariesPath:   utils.GetEnv("ORCHESTRATOR_BINARIES_PATH", "/dist"),
+		GitToken:       utils.GetEnv("ORCHESTRATOR_GIT_TOKEN", ""),
 	}
 
 	println("Using compose directory:", env.ComposeDirPath)

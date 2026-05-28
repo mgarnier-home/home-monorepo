@@ -1,6 +1,6 @@
 package common
 
-var ActionList = []string{"up", "down", "restart", "update"}
+var ActionList = []string{"up", "down", "restart"}
 
 type Command struct {
 	Command     string       `yaml:"command"`

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -19,6 +20,7 @@ type OsCommand struct {
 	OsCommand     string
 	OsCommandArgs []string
 	Dir           string
+	Env           []string
 }
 
 func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error) {
@@ -26,6 +28,9 @@ func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
+	if len(osCommand.Env) > 0 {
+		cmd.Env = append(os.Environ(), osCommand.Env...)
+	}
 
 	output, err := cmd.CombinedOutput()
 
@@ -41,6 +46,9 @@ func ExecOsCommand(osCommand *OsCommand, commandLog string) error {
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
+	if len(osCommand.Env) > 0 {
+		cmd.Env = append(os.Environ(), osCommand.Env...)
+	}
 
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -94,6 +102,9 @@ func ExecOsCommandStream(osCommand *OsCommand, writer io.Writer, prefix string) 
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
 	cmd.Dir = osCommand.Dir
+	if len(osCommand.Env) > 0 {
+		cmd.Env = append(os.Environ(), osCommand.Env...)
+	}
 
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()

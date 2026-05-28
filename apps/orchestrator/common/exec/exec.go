@@ -10,12 +10,11 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/osutils"
 	common "mgarnier11.fr/go/orchestrator-common"
-	"mgarnier11.fr/go/orchestrator-common/update"
 )
 
 var Logger = logger.NewLogger("[COMPOSE-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, versionFilePath string, writer io.Writer) map[*common.ComposeConfig]error {
+func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, writer io.Writer) map[*common.ComposeConfig]error {
 
 	results := make(map[*common.ComposeConfig]error)
 
@@ -24,12 +23,7 @@ func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, 
 			Logger.Infof("Skipping config %s %s %s as it does not contain service %s", composeConfig.Host, composeConfig.Stack, composeConfig.Action, service)
 			continue
 		}
-
-		if composeConfig.Action == "update" {
-			results[composeConfig] = update.UpdateVersion(versionFilePath, composeConfig, service)
-		} else {
-			results[composeConfig] = execComposeConfigStream(composeConfig, service, writer)
-		}
+		results[composeConfig] = execComposeConfigStream(composeConfig, service, writer)
 	}
 
 	// Reset to default context

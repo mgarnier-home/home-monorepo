@@ -15,6 +15,7 @@ import (
 	compose_config "mgarnier11.fr/go/orchestrator-common/config"
 	compose_exec "mgarnier11.fr/go/orchestrator-common/exec"
 	compose_files "mgarnier11.fr/go/orchestrator-common/files"
+	common_utils "mgarnier11.fr/go/orchestrator-common/utils"
 )
 
 type Server struct {
@@ -47,6 +48,7 @@ func (s *Server) Start() error {
 	router.HandleFunc("/{command}/exec", s.streamExecCommand).Methods("GET")
 	router.HandleFunc("/{command}/configs", s.getCommandsConfigs).Methods("GET")
 	router.HandleFunc("/stacks", s.getStacks).Methods("GET")
+	router.HandleFunc("/update-repo", s.updateRepo).Methods("GET")
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
 }
@@ -212,4 +214,17 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 	Logger.Debugf("Found %d compose configs", len(composeConfigs))
 
 	httputils.WriteYamlResponse(w, composeConfigs)
+}
+
+func (s *Server) updateRepo(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+	err := common_utils.UpdateRepo(w, config.Env.ComposeDirPath, config.Env.GitToken)
+	if err != nil {
+		Logger.Errorf("Error updating git repo: %v", err)
+		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	Logger.Infof("Successfully updated git repo at %s", config.Env.ComposeDirPath)
 }

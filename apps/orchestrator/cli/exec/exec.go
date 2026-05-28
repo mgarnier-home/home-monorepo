@@ -19,7 +19,6 @@ var Logger = logger.NewLogger("[CLI-EXEC]", "%-10s ", lipgloss.NewStyle().Foregr
 func ExecCommand(command string, service string) error {
 	var configs []*compose_common.ComposeConfig = make([]*compose_common.ComposeConfig, 0)
 	var err error
-	versionFilePath := config.Env.ComposeDir + "/versions.env"
 
 	switch config.Env.Mode {
 	case config.ModeFullLocal:
@@ -37,7 +36,7 @@ func ExecCommand(command string, service string) error {
 		}
 
 		Logger.Infof("Executing command on local... %s", config.Env.ComposeDir)
-		compose_exec.ExecCommandsStream(configs, service, versionFilePath, nil)
+		compose_exec.ExecCommandsStream(configs, service, nil)
 	case config.ModeHybrid:
 		Logger.Infof("Getting commands to execute from api... %s", config.Env.ApiUrl)
 
@@ -48,7 +47,7 @@ func ExecCommand(command string, service string) error {
 		}
 
 		Logger.Infof("Executing command on local... %s", config.Env.ComposeDir)
-		compose_exec.ExecCommandsStream(configs, service, versionFilePath, nil)
+		compose_exec.ExecCommandsStream(configs, service, nil)
 	case config.ModeFullApi:
 		Logger.Infof("Executing command on api... %s", config.Env.ApiUrl)
 		api.ExecCommandStream(command, service)
