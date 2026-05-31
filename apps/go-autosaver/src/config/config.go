@@ -56,6 +56,10 @@ func getAppEnvConfig() (appEnvConfig *AppEnvConfig) {
 		panic(err)
 	}
 
+	if appEnvConfig.AppConfig.KeepDuration == 0 {
+		appEnvConfig.AppConfig.KeepDuration = 14 // default: 30 days
+	}
+
 	return appEnvConfig
 }
 
