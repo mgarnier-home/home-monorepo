@@ -4,12 +4,24 @@ import (
 	"os"
 
 	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/s3"
 	"mgarnier11.fr/go/orchestrator-api/config"
 	"mgarnier11.fr/go/orchestrator-api/server"
+	common "mgarnier11.fr/go/orchestrator-common"
 )
 
 func main() {
 	logger.InitAppLogger("dashboard")
+
+	commonLib := common.NewCommonLib(
+		config.Env.ComposeDirPath,
+		&s3.Config{
+			Endpoint:        config.Env.S3Endpoint,
+			AccessKeyID:     config.Env.S3AccessKey,
+			SecretAccessKey: config.Env.S3SecretKey,
+			Bucket:          config.Env.S3Bucket,
+		},
+	)
 
 	if config.Env.SSHPrivateKey != "" {
 		// Create /ssh directory if it doesn't exist
@@ -24,7 +36,7 @@ func main() {
 		}
 	}
 
-	api := server.NewServer(config.Env.ServerPort)
+	api := server.NewServer(config.Env.ServerPort, commonLib)
 
 	err := api.Start()
 	if err != nil {

@@ -9,25 +9,33 @@ import (
 	"github.com/fatih/color"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/osutils"
-	common "mgarnier11.fr/go/orchestrator-common"
+	"mgarnier11.fr/go/orchestrator-common/types"
 )
 
-var Logger = logger.NewLogger("[COMPOSE-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
+type Exec struct {
+	logger *logger.Logger
+}
 
-func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, writer io.Writer) map[*common.ComposeConfig]error {
+func NewExec() *Exec {
+	return &Exec{
+		logger: logger.NewLogger("[COMPOSE-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil),
+	}
+}
 
-	results := make(map[*common.ComposeConfig]error)
+func (e *Exec) ExecCommandsStream(composeConfigs []*types.ComposeConfig, service string, writer io.Writer) map[*types.ComposeConfig]error {
+
+	results := make(map[*types.ComposeConfig]error)
 
 	for _, composeConfig := range composeConfigs {
 		if service != "" && composeConfig.Services[service] == nil {
-			Logger.Infof("Skipping config %s %s %s as it does not contain service %s", composeConfig.Host, composeConfig.Stack, composeConfig.Action, service)
+			e.logger.Infof("Skipping config %s %s %s as it does not contain service %s", composeConfig.Host, composeConfig.Stack, composeConfig.Action, service)
 			continue
 		}
-		results[composeConfig] = execComposeConfigStream(composeConfig, service, writer)
+		results[composeConfig] = e.execComposeConfigStream(composeConfig, service, writer)
 	}
 
 	// Reset to default context
-	results[&common.ComposeConfig{Host: "default", Stack: "", Action: "context reset"}] = osutils.ExecOsCommandStream(&osutils.OsCommand{
+	results[&types.ComposeConfig{Host: "default", Stack: "", Action: "context reset"}] = osutils.ExecOsCommandStream(&osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "use", "default"},
 		Dir:           os.TempDir(),
@@ -36,13 +44,13 @@ func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, 
 	for config, err := range results {
 		if err != nil {
 			log := color.RedString("%s %s %s - Error : %v", config.Action, config.Host, config.Stack, err)
-			Logger.Errorf("%s", log)
+			e.logger.Errorf("%s", log)
 			if writer != nil {
 				writer.Write([]byte(fmt.Sprintf("%s\n", log)))
 			}
 		} else {
 			log := color.GreenString("%s %s %s - Success", config.Action, config.Host, config.Stack)
-			Logger.Infof("%s", log)
+			e.logger.Infof("%s", log)
 			if writer != nil {
 				writer.Write([]byte(fmt.Sprintf("%s\n", log)))
 			}
@@ -52,34 +60,34 @@ func ExecCommandsStream(composeConfigs []*common.ComposeConfig, service string, 
 	return results
 }
 
-func execComposeConfigStream(config *common.ComposeConfig, service string, writer io.Writer) error {
-	Logger.Infof("Executing %s %s %s %s", config.Action, config.Host, config.Stack, service)
+func (e *Exec) execComposeConfigStream(config *types.ComposeConfig, service string, writer io.Writer) error {
+	e.logger.Infof("Executing %s %s %s %s", config.Action, config.Host, config.Stack, service)
 
 	// Write the config to a file
-	filePath, err := writeComposeConfigToTempFile(config.Config)
+	filePath, err := e.writeComposeConfigToTempFile(config.Config)
 	if err != nil {
 		return fmt.Errorf("error writing compose config to file for host %s: %w", config.Host, err)
 	}
 
-	Logger.Debugf("Compose config written to file: %s", filePath)
+	e.logger.Debugf("Compose config written to file: %s", filePath)
 
 	// Delete the file after execution
 	defer os.Remove(filePath)
 
 	// Create a context for the host
-	if err := setContextStream(config, writer); err != nil {
+	if err := e.setContextStream(config, writer); err != nil {
 		return fmt.Errorf("error setting context for host %s: %w", config.Host, err)
 	}
 
 	// Execute the compose command using the file and context
-	if err := execComposeCommandStream(config, filePath, service, writer); err != nil {
+	if err := e.execComposeCommandStream(config, filePath, service, writer); err != nil {
 		return fmt.Errorf("error executing compose command for host %s: %w", config.Host, err)
 	}
 
 	return nil
 }
 
-func writeComposeConfigToTempFile(config string) (string, error) {
+func (e *Exec) writeComposeConfigToTempFile(config string) (string, error) {
 	file, err := os.CreateTemp("", "compose-*.yml")
 	if err != nil {
 		return "", fmt.Errorf("error creating temp file: %w", err)
@@ -94,7 +102,7 @@ func writeComposeConfigToTempFile(config string) (string, error) {
 	return file.Name(), nil
 }
 
-func setContextStream(config *common.ComposeConfig, writer io.Writer) error {
+func (e *Exec) setContextStream(config *types.ComposeConfig, writer io.Writer) error {
 	dockerContextCreateCommand := &osutils.OsCommand{
 		OsCommand:     "docker",
 		OsCommandArgs: []string{"context", "create", config.Host, "--docker", "host=" + config.HostConfig},
@@ -102,7 +110,7 @@ func setContextStream(config *common.ComposeConfig, writer io.Writer) error {
 
 	err := osutils.ExecOsCommandStream(dockerContextCreateCommand, writer, "docker context create "+config.Host)
 	if err != nil {
-		Logger.Debugf("Context %s already exists, skipping creation", config.Host)
+		e.logger.Debugf("Context %s already exists, skipping creation", config.Host)
 	}
 
 	dockerContextUseCommand := &osutils.OsCommand{
@@ -119,7 +127,12 @@ func setContextStream(config *common.ComposeConfig, writer io.Writer) error {
 	return nil
 }
 
-func execComposeCommandStream(config *common.ComposeConfig, composeFileName string, service string, writer io.Writer) error {
+func (e *Exec) execComposeCommandStream(
+	config *types.ComposeConfig,
+	composeFileName string,
+	service string,
+	writer io.Writer,
+) error {
 	args := []string{
 		"compose",
 		"-f", composeFileName,

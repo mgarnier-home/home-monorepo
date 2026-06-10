@@ -12,8 +12,7 @@ import (
 	"mgarnier11.fr/go/orchestrator-cli/api"
 	"mgarnier11.fr/go/orchestrator-cli/config"
 	"mgarnier11.fr/go/orchestrator-cli/exec"
-
-	composefiles "mgarnier11.fr/go/orchestrator-common/files"
+	common "mgarnier11.fr/go/orchestrator-common"
 )
 
 type Command struct {
@@ -56,13 +55,13 @@ func getCliCommand(cobraCmd *cobra.Command) string {
 	return strings.Join(parts[1:], " ")
 }
 
-func GetCobraCommand(command *Command, parentCmd *cobra.Command) *cobra.Command {
+func GetCobraCommand(commonLib *common.CommonLib, command *Command, parentCmd *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: command.Command,
 		Run: func(cmd *cobra.Command, args []string) {
 			service := cmd.Flag("service").Value.String()
 
-			err := exec.ExecCommand(getCliCommand(cmd), service)
+			err := exec.ExecCommand(commonLib, getCliCommand(cmd), service)
 
 			if err != nil {
 				Logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
@@ -76,7 +75,7 @@ func GetCobraCommand(command *Command, parentCmd *cobra.Command) *cobra.Command 
 	}
 
 	for _, subCommand := range command.SubCommands {
-		cmd.AddCommand(GetCobraCommand(subCommand, cmd))
+		cmd.AddCommand(GetCobraCommand(commonLib, subCommand, cmd))
 	}
 
 	return cmd
@@ -141,16 +140,16 @@ func UpdateCliCommand() *cobra.Command {
 	}
 }
 
-func GetCommands() ([]string, error) {
+func GetCommands(commonLib *common.CommonLib) ([]string, error) {
 	switch config.Env.Mode {
 	case config.ModeFullLocal:
-		composeFiles, err := composefiles.GetComposeFiles(config.Env.ComposeDir)
+		composeFiles, err := commonLib.Files.GetComposeFiles()
 
 		if err != nil {
 			return nil, fmt.Errorf("error getting compose files from local: %w", err)
 		}
 
-		commands, err := composefiles.GetCommands(composeFiles)
+		commands, err := commonLib.Files.GetCommands(composeFiles)
 
 		if err != nil {
 			return nil, fmt.Errorf("error getting commands from local: %w", err)

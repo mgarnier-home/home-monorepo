@@ -1,4 +1,4 @@
-package compose
+package files
 
 import (
 	"fmt"
@@ -10,15 +10,25 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"mgarnier11.fr/go/libs/logger"
-	common "mgarnier11.fr/go/orchestrator-common"
+	"mgarnier11.fr/go/orchestrator-common/types"
 )
 
-var Logger = logger.NewLogger("[COMPOSE-FILES]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
+type Files struct {
+	composeDir string
+	logger     *logger.Logger
+}
 
-func composeFile(composeDir, stackName, hostName string) *common.ComposeFile {
-	stackPath := path.Join(composeDir, stackName)
+func NewFiles(composeDir string) *Files {
+	return &Files{
+		composeDir: composeDir,
+		logger:     logger.NewLogger("[COMPOSE-FILES]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil),
+	}
+}
 
-	return &common.ComposeFile{
+func (f *Files) composeFile(stackName, hostName string) *types.ComposeFile {
+	stackPath := path.Join(f.composeDir, stackName)
+
+	return &types.ComposeFile{
 		Name:  hostName + "-" + stackName,
 		Stack: stackName,
 		Host:  hostName,
@@ -27,15 +37,15 @@ func composeFile(composeDir, stackName, hostName string) *common.ComposeFile {
 
 }
 
-func GetComposeFiles(composeDir string) ([]*common.ComposeFile, error) {
-	Logger.Debugf("Getting compose files from directory: %s", composeDir)
+func (f *Files) GetComposeFiles() ([]*types.ComposeFile, error) {
+	f.logger.Debugf("Getting compose files from directory: %s", f.composeDir)
 
-	stacks, err := os.ReadDir(composeDir)
+	stacks, err := os.ReadDir(f.composeDir)
 	if err != nil {
 		return nil, err
 	}
 
-	composeFiles := []*common.ComposeFile{}
+	composeFiles := []*types.ComposeFile{}
 
 	for _, stack := range stacks {
 
@@ -45,13 +55,13 @@ func GetComposeFiles(composeDir string) ([]*common.ComposeFile, error) {
 
 		stackName := stack.Name()
 
-		Logger.Verbosef("Found stack: %s", stackName)
+		f.logger.Verbosef("Found stack: %s", stackName)
 
-		stackPath := path.Join(composeDir, stackName)
+		stackPath := path.Join(f.composeDir, stackName)
 		hostsFiles, err := os.ReadDir(stackPath)
 
 		if err != nil {
-			Logger.Errorf("Error reading directory %s: %v", stackPath, err)
+			f.logger.Errorf("Error reading directory %s: %v", stackPath, err)
 			continue
 		}
 
@@ -66,16 +76,16 @@ func GetComposeFiles(composeDir string) ([]*common.ComposeFile, error) {
 
 			hostName := parts[0]
 
-			Logger.Verbosef("Found compose file: %s for host: %s for stack: %s", hostFileName, hostName, stackName)
+			f.logger.Verbosef("Found compose file: %s for host: %s for stack: %s", hostFileName, hostName, stackName)
 
-			composeFiles = append(composeFiles, composeFile(composeDir, stackName, hostName))
+			composeFiles = append(composeFiles, f.composeFile(stackName, hostName))
 		}
 	}
 
 	return composeFiles, nil
 }
 
-func GetCommands(composeFiles []*common.ComposeFile) ([]*common.Command, error) {
+func (f *Files) GetCommands(composeFiles []*types.ComposeFile) ([]*types.Command, error) {
 	hosts := []string{}
 	for _, composeFile := range composeFiles {
 		if slices.Contains(hosts, composeFile.Host) {
@@ -85,14 +95,14 @@ func GetCommands(composeFiles []*common.ComposeFile) ([]*common.Command, error) 
 	}
 
 	// Foreach stack, generate commands ${stack} ${host} ${action} and ${stack} ${action} ${host} and ${stack} ${action}
-	commands := []*common.Command{}
+	commands := []*types.Command{}
 	for _, composeFile := range composeFiles {
-		for _, action := range common.ActionList {
+		for _, action := range types.ActionList {
 			// Command for specific host
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s %s", composeFile.Stack, composeFile.Host, action), ComposeFile: composeFile, Action: action})
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s %s", composeFile.Stack, action, composeFile.Host), ComposeFile: composeFile, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s %s", composeFile.Stack, composeFile.Host, action), ComposeFile: composeFile, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s %s", composeFile.Stack, action, composeFile.Host), ComposeFile: composeFile, Action: action})
 			// Command for all hosts in stack
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s", composeFile.Stack, action), ComposeFile: &common.ComposeFile{Stack: composeFile.Stack, Host: "all", Name: "all-" + composeFile.Stack}, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s", composeFile.Stack, action), ComposeFile: &types.ComposeFile{Stack: composeFile.Stack, Host: "all", Name: "all-" + composeFile.Stack}, Action: action})
 		}
 	}
 
@@ -102,51 +112,51 @@ func GetCommands(composeFiles []*common.ComposeFile) ([]*common.Command, error) 
 			if composeFile.Host != host {
 				continue
 			}
-			for _, action := range common.ActionList {
+			for _, action := range types.ActionList {
 				// Command for specific stack
-				commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s %s", host, action, composeFile.Stack), ComposeFile: composeFile, Action: action})
-				commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s %s", host, composeFile.Stack, action), ComposeFile: composeFile, Action: action})
+				commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s %s", host, action, composeFile.Stack), ComposeFile: composeFile, Action: action})
+				commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s %s", host, composeFile.Stack, action), ComposeFile: composeFile, Action: action})
 				// Command for all stacks
-				commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s", host, action), ComposeFile: &common.ComposeFile{Host: host, Name: host + "-all", Stack: "all"}, Action: action})
+				commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s", host, action), ComposeFile: &types.ComposeFile{Host: host, Name: host + "-all", Stack: "all"}, Action: action})
 			}
 		}
 	}
 
 	// Foreach action, generate commands ${action} ${stack} ${host} and ${action} ${host} ${stack} and ${action} ${stack} and ${action} ${host}
-	for _, action := range common.ActionList {
+	for _, action := range types.ActionList {
 		for _, composeFile := range composeFiles {
 			// Command for specific stack and host
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s %s", action, composeFile.Stack, composeFile.Host), ComposeFile: composeFile, Action: action})
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s %s", action, composeFile.Host, composeFile.Stack), ComposeFile: composeFile, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s %s", action, composeFile.Stack, composeFile.Host), ComposeFile: composeFile, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s %s", action, composeFile.Host, composeFile.Stack), ComposeFile: composeFile, Action: action})
 			// Command for all stacks and hosts
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s", action, composeFile.Stack), ComposeFile: &common.ComposeFile{Stack: composeFile.Stack, Name: "all-" + composeFile.Stack, Host: "all"}, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s", action, composeFile.Stack), ComposeFile: &types.ComposeFile{Stack: composeFile.Stack, Name: "all-" + composeFile.Stack, Host: "all"}, Action: action})
 		}
 
 		for _, host := range hosts {
 			// Command for specific host
-			commands = append(commands, &common.Command{Command: fmt.Sprintf("%s %s", action, host), ComposeFile: &common.ComposeFile{Host: host, Name: host + "-all", Stack: "all"}, Action: action})
+			commands = append(commands, &types.Command{Command: fmt.Sprintf("%s %s", action, host), ComposeFile: &types.ComposeFile{Host: host, Name: host + "-all", Stack: "all"}, Action: action})
 		}
 
-		commands = append(commands, &common.Command{Command: action, ComposeFile: &common.ComposeFile{Host: "all", Name: "all-all", Stack: "all"}, Action: action}) // Command for all actions
+		commands = append(commands, &types.Command{Command: action, ComposeFile: &types.ComposeFile{Host: "all", Name: "all-all", Stack: "all"}, Action: action}) // Command for all actions
 	}
 
 	return commands, nil
 }
 
-func GetCommandsToExecute(composeDir, commandString string) ([]*common.Command, error) {
-	composeFiles, err := GetComposeFiles(composeDir)
+func (f *Files) GetCommandsToExecute(commandString string) ([]*types.Command, error) {
+	composeFiles, err := f.GetComposeFiles()
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting compose files: %w", err)
 	}
 
-	allCommands, err := GetCommands(composeFiles)
+	allCommands, err := f.GetCommands(composeFiles)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting commands: %w", err)
 	}
 
-	commandIndex := slices.IndexFunc(allCommands, func(c *common.Command) bool {
+	commandIndex := slices.IndexFunc(allCommands, func(c *types.Command) bool {
 		return c.Command == commandString
 	})
 
@@ -156,14 +166,14 @@ func GetCommandsToExecute(composeDir, commandString string) ([]*common.Command, 
 
 	command := allCommands[commandIndex]
 
-	commands := []*common.Command{}
+	commands := []*types.Command{}
 
 	for _, composeFile := range composeFiles {
 		if (command.ComposeFile.Host == "all" && command.ComposeFile.Stack == "all") ||
 			(command.ComposeFile.Host == "all" && command.ComposeFile.Stack == composeFile.Stack) ||
 			(command.ComposeFile.Host == composeFile.Host && command.ComposeFile.Stack == "all") ||
 			(command.ComposeFile.Host == composeFile.Host && command.ComposeFile.Stack == composeFile.Stack) {
-			commands = append(commands, &common.Command{
+			commands = append(commands, &types.Command{
 				Command:     fmt.Sprintf("%s %s %s", composeFile.Stack, composeFile.Host, command.Action),
 				ComposeFile: composeFile,
 				Action:      command.Action,

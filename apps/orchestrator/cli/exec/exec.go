@@ -8,35 +8,33 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-cli/api"
 	"mgarnier11.fr/go/orchestrator-cli/config"
-	compose_common "mgarnier11.fr/go/orchestrator-common"
-	compose_config "mgarnier11.fr/go/orchestrator-common/config"
-	compose_exec "mgarnier11.fr/go/orchestrator-common/exec"
-	compose_files "mgarnier11.fr/go/orchestrator-common/files"
+	common "mgarnier11.fr/go/orchestrator-common"
+	"mgarnier11.fr/go/orchestrator-common/types"
 )
 
 var Logger = logger.NewLogger("[CLI-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func ExecCommand(command string, service string) error {
-	var configs []*compose_common.ComposeConfig = make([]*compose_common.ComposeConfig, 0)
+func ExecCommand(commonLib *common.CommonLib, command string, service string) error {
+	var configs []*types.ComposeConfig = make([]*types.ComposeConfig, 0)
 	var err error
 
 	switch config.Env.Mode {
 	case config.ModeFullLocal:
-		Logger.Infof("Getting commands to execute from local... %s", config.Env.ComposeDir)
+		Logger.Infof("Getting commands to execute from local... %s", config.Env.ComposeDirPath)
 
-		commands, err := compose_files.GetCommandsToExecute(config.Env.ComposeDir, command)
+		commands, err := commonLib.Files.GetCommandsToExecute(command)
 
 		if err != nil {
 			return fmt.Errorf("error getting commands to execute from local: %w", err)
 		}
 
-		configs, err = compose_config.GetComposeConfigs(config.Env.ComposeDir, commands)
+		configs, err = commonLib.Config.GetComposeConfigs(commands)
 		if err != nil {
 			return fmt.Errorf("error getting compose configs from local: %w", err)
 		}
 
-		Logger.Infof("Executing command on local... %s", config.Env.ComposeDir)
-		compose_exec.ExecCommandsStream(configs, service, nil)
+		Logger.Infof("Executing command on local... %s", config.Env.ComposeDirPath)
+		commonLib.Exec.ExecCommandsStream(configs, service, nil)
 	case config.ModeHybrid:
 		Logger.Infof("Getting commands to execute from api... %s", config.Env.ApiUrl)
 
@@ -46,8 +44,8 @@ func ExecCommand(command string, service string) error {
 			return fmt.Errorf("error getting compose configs from api: %w", err)
 		}
 
-		Logger.Infof("Executing command on local... %s", config.Env.ComposeDir)
-		compose_exec.ExecCommandsStream(configs, service, nil)
+		Logger.Infof("Executing command on local... %s", config.Env.ComposeDirPath)
+		commonLib.Exec.ExecCommandsStream(configs, service, nil)
 	case config.ModeFullApi:
 		Logger.Infof("Executing command on api... %s", config.Env.ApiUrl)
 		api.ExecCommandStream(command, service)

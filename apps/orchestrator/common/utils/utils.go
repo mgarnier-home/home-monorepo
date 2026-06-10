@@ -7,9 +7,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
+	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/osutils"
 	"mgarnier11.fr/go/libs/utils"
 )
+
+var _logger = logger.NewLogger("[COMMON-UTILS]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 func GetHostConfig(host string) string {
 	return utils.GetEnv(strings.ToUpper(host)+"_HOST", "")
@@ -29,6 +33,8 @@ func getEnvFilesPaths(composeDir string, stack string) []string {
 	} else {
 		dir = composeDir
 	}
+
+	_logger.Debugf("Getting env files from directory: %s", dir)
 
 	files, err := os.ReadDir(dir)
 	if err != nil {

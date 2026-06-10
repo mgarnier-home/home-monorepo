@@ -12,21 +12,21 @@ import (
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
 	"mgarnier11.fr/go/orchestrator-api/config"
-	compose_config "mgarnier11.fr/go/orchestrator-common/config"
-	compose_exec "mgarnier11.fr/go/orchestrator-common/exec"
-	compose_files "mgarnier11.fr/go/orchestrator-common/files"
+	common "mgarnier11.fr/go/orchestrator-common"
 	common_utils "mgarnier11.fr/go/orchestrator-common/utils"
 )
 
 type Server struct {
-	port int
+	commonLib *common.CommonLib
+	port      int
 }
 
 var Logger = logger.NewLogger("[SERVER]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func NewServer(port int) *Server {
+func NewServer(port int, commonLib *common.CommonLib) *Server {
 	return &Server{
-		port: port,
+		port:      port,
+		commonLib: commonLib,
 	}
 }
 
@@ -54,7 +54,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) getComposeFiles(w http.ResponseWriter, r *http.Request) {
-	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDirPath)
+	composeFiles, err := s.commonLib.Files.GetComposeFiles()
 
 	if err != nil {
 		Logger.Errorf("Error getting compose files: %v", err)
@@ -82,7 +82,7 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Received command: %s", command)
 
-	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDirPath, command)
+	commandsToExecute, err := s.commonLib.Files.GetCommandsToExecute(command)
 	if err != nil {
 		Logger.Errorf("Error getting commands to execute: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
@@ -91,7 +91,7 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
 
-	configs, err := compose_config.GetComposeConfigs(config.Env.ComposeDirPath, commandsToExecute)
+	configs, err := s.commonLib.Config.GetComposeConfigs(commandsToExecute)
 
 	if err != nil {
 		Logger.Errorf("Error getting compose configs: %v", err)
@@ -105,11 +105,11 @@ func (s *Server) streamExecCommand(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	service := r.URL.Query().Get("service")
-	compose_exec.ExecCommandsStream(configs, service, w)
+	s.commonLib.Exec.ExecCommandsStream(configs, service, w)
 }
 
 func (s *Server) getCommands(w http.ResponseWriter, r *http.Request) {
-	composeFiles, err := compose_files.GetComposeFiles(config.Env.ComposeDirPath)
+	composeFiles, err := s.commonLib.Files.GetComposeFiles()
 
 	if err != nil {
 		Logger.Errorf("Error getting compose files: %v", err)
@@ -117,7 +117,7 @@ func (s *Server) getCommands(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commands, err := compose_files.GetCommands(composeFiles)
+	commands, err := s.commonLib.Files.GetCommands(composeFiles)
 
 	if err != nil {
 		Logger.Errorf("Error getting commands: %v", err)
@@ -169,7 +169,7 @@ func (s *Server) getCli(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getStacks(w http.ResponseWriter, r *http.Request) {
-	stacks, err := compose_files.GetComposeFiles(config.Env.ComposeDirPath)
+	stacks, err := s.commonLib.Files.GetComposeFiles()
 
 	if err != nil {
 		Logger.Errorf("Error getting stacks: %v", err)
@@ -195,7 +195,7 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Received command: %s", command)
 
-	commandsToExecute, err := compose_files.GetCommandsToExecute(config.Env.ComposeDirPath, command)
+	commandsToExecute, err := s.commonLib.Files.GetCommandsToExecute(command)
 	if err != nil {
 		Logger.Errorf("Error getting commands to execute: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
@@ -204,7 +204,7 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 
 	Logger.Debugf("Found %d commands to execute", len(commandsToExecute))
 
-	composeConfigs, err := compose_config.GetComposeConfigs(config.Env.ComposeDirPath, commandsToExecute)
+	composeConfigs, err := s.commonLib.Config.GetComposeConfigs(commandsToExecute)
 	if err != nil {
 		Logger.Errorf("Error getting compose configs: %v", err)
 		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)

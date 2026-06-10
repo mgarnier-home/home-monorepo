@@ -18,9 +18,13 @@ const (
 )
 
 type EnvConfig struct {
-	ApiUrl     string
-	ComposeDir string
-	Mode       Mode
+	ApiUrl         string
+	ComposeDirPath string
+	Mode           Mode
+	S3AccessKey    string
+	S3SecretKey    string
+	S3Endpoint     string
+	S3Bucket       string
 }
 
 func getEnv() (env *EnvConfig) {
@@ -43,9 +47,13 @@ func getEnv() (env *EnvConfig) {
 	}
 
 	env = &EnvConfig{
-		ApiUrl:     utils.GetEnv("ORCHESTRATOR_API_URL", "http://localhost:3000"),
-		ComposeDir: utils.GetEnv("ORCHESTRATOR_COMPOSE_DIRECTORY", ""),
-		Mode:       Mode(mode),
+		ApiUrl:         utils.GetEnv("ORCHESTRATOR_API_URL", "http://localhost:3000"),
+		ComposeDirPath: utils.GetEnv("ORCHESTRATOR_COMPOSE_DIRECTORY_PATH", "/workspaces/home-config/compose"),
+		Mode:           Mode(mode),
+		S3AccessKey:    utils.GetEnv("ORCHESTRATOR_S3_ACCESS_KEY", ""),
+		S3SecretKey:    utils.GetEnv("ORCHESTRATOR_S3_SECRET_KEY", ""),
+		S3Endpoint:     utils.GetEnv("ORCHESTRATOR_S3_ENDPOINT", ""),
+		S3Bucket:       utils.GetEnv("ORCHESTRATOR_S3_BUCKET", ""),
 	}
 
 	return env

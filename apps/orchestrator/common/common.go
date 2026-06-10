@@ -1,34 +1,37 @@
 package common
 
-var ActionList = []string{"up", "down", "restart"}
+import (
+	"github.com/charmbracelet/lipgloss"
+	"mgarnier11.fr/go/libs/logger"
+	"mgarnier11.fr/go/libs/s3"
+	"mgarnier11.fr/go/orchestrator-common/config"
+	"mgarnier11.fr/go/orchestrator-common/exec"
+	"mgarnier11.fr/go/orchestrator-common/files"
+)
 
-type Command struct {
-	Command     string       `yaml:"command"`
-	ComposeFile *ComposeFile `yaml:"compose_file"`
-	Action      string       `yaml:"action"`
+type CommonLib struct {
+	composeDir string
+	s3Config   *s3.Config
+	Exec       *exec.Exec
+	Files      *files.Files
+	Config     *config.Config
+	logger     *logger.Logger
 }
 
-type ComposeFile struct {
-	Name  string `yaml:"name"`
-	Path  string `yaml:"path"`
-	Host  string `yaml:"host"`
-	Stack string `yaml:"stack"`
-}
+func NewCommonLib(composeDir string, s3Config *s3.Config) *CommonLib {
+	logger := logger.NewLogger("[COMMON-LIB]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
+	files := files.NewFiles(composeDir)
+	config := config.NewConfig(composeDir, s3Config)
+	exec := exec.NewExec()
 
-type ComposeService struct {
-	ContainerName string `yaml:"container_name"`
-	Image         string `yaml:"image"`
-}
+	logger.Infof("CommonLib initialized with composeDir: %s", composeDir)
 
-type ComposeConfig struct {
-	Host       string                     `yaml:"host"`
-	Stack      string                     `yaml:"stack"`
-	Action     string                     `yaml:"action"`
-	Config     string                     `yaml:"config"`
-	HostConfig string                     `yaml:"host_config"`
-	Services   map[string]*ComposeService `yaml:"services"`
-}
-
-type ComposeFileSource struct {
-	Services map[string]*ComposeService `yaml:"services"`
+	return &CommonLib{
+		composeDir: composeDir,
+		s3Config:   s3Config,
+		Exec:       exec,
+		Files:      files,
+		Config:     config,
+		logger:     logger,
+	}
 }

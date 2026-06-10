@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/orchestrator-cli/config"
-	compose "mgarnier11.fr/go/orchestrator-common"
+	"mgarnier11.fr/go/orchestrator-common/types"
 )
 
 var Logger = logger.NewLogger("[CLI-API]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
@@ -95,7 +95,7 @@ func DownloadCliBinary(arch, osName string) (string, error) {
 	return filePath, nil
 }
 
-func GetComposeConfigs(command string) ([]*compose.ComposeConfig, error) {
+func GetComposeConfigs(command string) ([]*types.ComposeConfig, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/%s/configs", config.Env.ApiUrl, command))
 	if err != nil {
 		return nil, fmt.Errorf("error getting compose configs: %w", err)
@@ -106,7 +106,7 @@ func GetComposeConfigs(command string) ([]*compose.ComposeConfig, error) {
 		return nil, fmt.Errorf("error getting compose configs: %s", resp.Status)
 	}
 
-	var configs []*compose.ComposeConfig
+	var configs []*types.ComposeConfig
 	if err := yaml.NewDecoder(resp.Body).Decode(&configs); err != nil {
 		return nil, fmt.Errorf("error decoding compose configs response: %w", err)
 	}
