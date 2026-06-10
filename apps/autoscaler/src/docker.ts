@@ -146,6 +146,7 @@ export const startRunner = async (host: DockerHost, jobId: number): Promise<void
         // Quand on est en mode développement, on bind le socket docker de l'hôte pour permettre au runner d'utiliser docker sans avoir besoin d'installer sysbox-runc
         Binds: config.runtime === '' ? ['/var/run/docker.sock:/var/run/docker.sock'] : [],
         Mounts: mounts,
+        AutoRemove: true,
       },
       Labels: {
         'autoscaler.runner': jobId.toString(),
