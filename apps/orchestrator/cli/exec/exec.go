@@ -14,6 +14,20 @@ import (
 
 var Logger = logger.NewLogger("[CLI-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
+func formatErrors(errors map[*types.ComposeConfig]error) string {
+	if len(errors) == 0 {
+		return ""
+	}
+
+	errorString := "Errors:\n"
+
+	for config, err := range errors {
+		errorString += fmt.Sprintf("%s %s %s - Error : %v\n", config.Action, config.Host, config.Stack, err)
+	}
+
+	return errorString
+}
+
 func ExecCommand(commonLib *common.CommonLib, command string, service string) error {
 	var configs []*types.ComposeConfig = make([]*types.ComposeConfig, 0)
 	var err error
@@ -34,7 +48,10 @@ func ExecCommand(commonLib *common.CommonLib, command string, service string) er
 		}
 
 		Logger.Infof("Executing command on local... %s", config.Env.ComposeDirPath)
-		commonLib.Exec.ExecCommandsStream(configs, service, nil)
+		errors := commonLib.Exec.ExecCommandsStream(configs, service, nil)
+		if len(errors) > 0 {
+			return fmt.Errorf("error executing command on local: %v", formatErrors(errors))
+		}
 	case config.ModeHybrid:
 		Logger.Infof("Getting commands to execute from api... %s", config.Env.ApiUrl)
 
@@ -45,10 +62,16 @@ func ExecCommand(commonLib *common.CommonLib, command string, service string) er
 		}
 
 		Logger.Infof("Executing command on local... %s", config.Env.ComposeDirPath)
-		commonLib.Exec.ExecCommandsStream(configs, service, nil)
+		errors := commonLib.Exec.ExecCommandsStream(configs, service, nil)
+		if len(errors) > 0 {
+			return fmt.Errorf("error executing command on local: %v", formatErrors(errors))
+		}
 	case config.ModeFullApi:
 		Logger.Infof("Executing command on api... %s", config.Env.ApiUrl)
-		api.ExecCommandStream(command, service)
+		err = api.ExecCommandStream(command, service)
+		if err != nil {
+			return fmt.Errorf("error executing command on api: %v", err)
+		}
 	}
 
 	return nil
