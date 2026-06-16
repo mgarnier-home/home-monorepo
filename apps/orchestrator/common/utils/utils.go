@@ -16,7 +16,12 @@ import (
 var _logger = logger.NewLogger("[COMMON-UTILS]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
 func GetHostConfig(host string) string {
-	return utils.GetEnv(strings.ToUpper(host)+"_HOST", "")
+	hostConfig := utils.GetEnv(strings.ToUpper(host)+"_HOST", "")
+
+	if hostConfig == "" {
+		panic(fmt.Sprintf("Host config for %s not found in environment variables", host))
+	}
+	return hostConfig
 }
 
 func GetEnvFiles(composeDir string, stack string) []string {

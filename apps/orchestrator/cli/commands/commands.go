@@ -58,15 +58,17 @@ func getCliCommand(cobraCmd *cobra.Command) string {
 func GetCobraCommand(commonLib *common.CommonLib, command *Command, parentCmd *cobra.Command) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: command.Command,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			service := cmd.Flag("service").Value.String()
 
 			err := exec.ExecCommand(commonLib, getCliCommand(cmd), service)
 
 			if err != nil {
 				Logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
-				return
+				return err
 			}
+
+			return nil
 		},
 	}
 
@@ -108,34 +110,36 @@ func UpdateCliCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "update-cli",
 		Short: "Update the orchestrator-cli",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			Logger.Infof("Updating orchestrator-cli...")
 
 			oldFilePath, err := os.Executable()
 			if err != nil {
 				Logger.Errorf("Error getting current executable path: %v", err)
-				return
+				return err
 			}
 
 			filePath, err := api.DownloadCliBinary(runtime.GOARCH, runtime.GOOS)
 			if err != nil {
 				Logger.Errorf("Error downloading CLI binary: %v", err)
-				return
+				return err
 			}
 
 			err = os.Rename(oldFilePath, oldFilePath+".old")
 			if err != nil {
 				Logger.Errorf("Error renaming old file: %v", err)
-				return
+				return err
 			}
 
 			err = os.Rename(filePath, oldFilePath)
 			if err != nil {
 				Logger.Errorf("Error renaming new file to old file path: %v", err)
-				return
+				return err
 			}
 
 			Logger.Infof("Update completed successfully.")
+
+			return nil
 		},
 	}
 }
