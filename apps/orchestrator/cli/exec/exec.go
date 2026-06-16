@@ -14,23 +14,24 @@ import (
 
 var Logger = logger.NewLogger("[CLI-EXEC]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func formatErrors(errors map[*types.ComposeConfig]error) string {
-	if len(errors) == 0 {
+func formatResults(results map[*types.ComposeConfig]error) string {
+	if len(results) == 0 {
 		return ""
 	}
 
-	errorString := "Errors:\n"
+	resultString := "Results:\n"
 
-	for config, err := range errors {
-		errorString += fmt.Sprintf("%s %s %s - Error : %v\n", config.Action, config.Host, config.Stack, err)
+	for config, err := range results {
+		resultString += fmt.Sprintf("%s %s %s - Error : %v\n", config.Action, config.Host, config.Stack, err)
 	}
 
-	return errorString
+	return resultString
 }
 
 func ExecCommand(commonLib *common.CommonLib, command string, service string) error {
 	var configs []*types.ComposeConfig = make([]*types.ComposeConfig, 0)
 	var err error
+	var results map[*types.ComposeConfig]error
 
 	switch config.Env.Mode {
 	case config.ModeFullLocal:
@@ -48,10 +49,7 @@ func ExecCommand(commonLib *common.CommonLib, command string, service string) er
 		}
 
 		Logger.Infof("Executing command on local... %s", config.Env.ComposeDirPath)
-		errors := commonLib.Exec.ExecCommandsStream(configs, service, nil)
-		if len(errors) > 0 {
-			return fmt.Errorf("error executing command on local: %v", formatErrors(errors))
-		}
+		results = commonLib.Exec.ExecCommandsStream(configs, service, nil)
 	case config.ModeHybrid:
 		Logger.Infof("Getting commands to execute from api... %s", config.Env.ApiUrl)
 
@@ -62,16 +60,25 @@ func ExecCommand(commonLib *common.CommonLib, command string, service string) er
 		}
 
 		Logger.Infof("Executing command on local... %s", config.Env.ComposeDirPath)
-		errors := commonLib.Exec.ExecCommandsStream(configs, service, nil)
-		if len(errors) > 0 {
-			return fmt.Errorf("error executing command on local: %v", formatErrors(errors))
-		}
+		results = commonLib.Exec.ExecCommandsStream(configs, service, nil)
 	case config.ModeFullApi:
 		Logger.Infof("Executing command on api... %s", config.Env.ApiUrl)
 		err = api.ExecCommandStream(command, service)
 		if err != nil {
 			return fmt.Errorf("error executing command on api: %v", err)
 		}
+	}
+
+	hasError := false
+
+	for _, err := range results {
+		if err != nil {
+			hasError = true
+		}
+	}
+
+	if hasError {
+		return fmt.Errorf("error executing command: %s", formatResults(results))
 	}
 
 	return nil
