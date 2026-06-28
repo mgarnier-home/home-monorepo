@@ -30,7 +30,7 @@ func GetEnv[T bool | string | int](key string, defaultValue T) T {
 	value := os.Getenv(key)
 
 	if value == "" {
-		if _, err := os.Stat("/run/secrets/" + key); err == nil {
+		if _, err := os.Stat("/run/secrets/" + strings.ToLower(key)); err == nil {
 			fileContent, err := os.ReadFile("/run/secrets/" + strings.ToLower(key))
 
 			if err != nil {

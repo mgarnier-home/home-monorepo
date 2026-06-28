@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 
@@ -38,9 +39,16 @@ func (c *Config) GetComposeConfigs(commands []*types.Command) ([]*types.ComposeC
 			continue
 		}
 
+		commandArgs, tempEnvFilesDir, err := c.getConfigArgs(command.ComposeFile)
+		if err != nil {
+			c.logger.Errorf("Error getting config args for command %s: %v", command.Command, err)
+			continue
+		}
+		defer os.RemoveAll(tempEnvFilesDir)
+
 		osCommand := &osutils.OsCommand{
 			OsCommand:     "docker",
-			OsCommandArgs: c.getConfigArgs(command.ComposeFile),
+			OsCommandArgs: commandArgs,
 			Dir:           c.composeDir,
 		}
 
@@ -88,17 +96,22 @@ func (c *Config) GetComposeConfigs(commands []*types.Command) ([]*types.ComposeC
 
 }
 
-func (c *Config) getConfigArgs(command *types.ComposeFile) []string {
+func (c *Config) getConfigArgs(command *types.ComposeFile) ([]string, string, error) {
 	args := []string{
 		"compose",
 	}
 
-	// err := c.DownloadEnvFiles(context.Background(), c.composeDir, command.Stack)
-	// if err != nil {
-	// 	c.logger.Errorf("Error downloading env files: %v", err)
-	// }
+	tempEnvFilesDir, err := os.MkdirTemp("", "env_files")
+	if err != nil {
+		return nil, "", fmt.Errorf("error creating temporary directory for env files: %w", err)
+	}
 
-	envFiles := utils.GetEnvFiles(c.composeDir, command.Stack)
+	err = c.DownloadEnvFiles(context.Background(), tempEnvFilesDir, command.Stack)
+	if err != nil {
+		return nil, "", fmt.Errorf("error downloading env files: %w", err)
+	}
+
+	envFiles := utils.GetEnvFiles(tempEnvFilesDir, command.Stack)
 
 	for _, envFile := range envFiles {
 		args = append(args, "--env-file", envFile)
@@ -110,7 +123,9 @@ func (c *Config) getConfigArgs(command *types.ComposeFile) []string {
 		"config",
 	)
 
-	return args
+	c.logger.Debugf("Generated docker compose command args: %v", args)
+
+	return args, tempEnvFilesDir, nil
 }
 
 func (c *Config) DownloadEnvFiles(
@@ -119,19 +134,38 @@ func (c *Config) DownloadEnvFiles(
 	stack string,
 ) error {
 	client, err := s3.NewClient(ctx, *c.s3Config)
-
 	if err != nil {
 		return fmt.Errorf("error creating S3 client: %w", err)
 	}
+
+	// 1. List all objects in the bucket
 	objects, err := client.ListObjects(ctx, "")
 	if err != nil {
 		return fmt.Errorf("error listing objects in bucket: %w", err)
 	}
 
 	for _, object := range objects {
-		c.logger.Debugf("Object : %s", object.Key)
-		if strings.HasPrefix(object.Key, "") && strings.HasSuffix(object.Key, ".env") {
+		c.logger.Debugf("Checking object: %s", object.Key)
+
+		// 2. Ensure it's a .env file
+		if !strings.HasSuffix(object.Key, ".env") {
+			continue
+		}
+
+		// 3. Check if the file is in the ROOT or the specified STACK folder
+		isAtRoot := !strings.Contains(object.Key, "/")
+		isInStack := strings.HasPrefix(object.Key, stack+"/")
+
+		if isAtRoot || isInStack {
 			localPath := path.Join(targetDir, object.Key)
+
+			// 4. Ensure local subdirectories exist (e.g., targetDir/stack_1/)
+			if err := os.MkdirAll(path.Dir(localPath), 0755); err != nil {
+				c.logger.Errorf("Error creating local directory for %s: %v", localPath, err)
+				continue
+			}
+
+			// 5. Download the file
 			err := client.DownloadToFile(ctx, object.Key, localPath)
 			if err != nil {
 				c.logger.Errorf("Error downloading file %s: %v", object.Key, err)
