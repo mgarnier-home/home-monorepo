@@ -35,6 +35,7 @@ func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
+		fmt.Printf("Error : %v\n", err)
 		return "", fmt.Errorf("error executing command \"%s %s\": %w", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), err)
 	}
 

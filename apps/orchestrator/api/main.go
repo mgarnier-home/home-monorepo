@@ -13,16 +13,6 @@ import (
 func main() {
 	logger.InitAppLogger("dashboard")
 
-	commonLib := common.NewCommonLib(
-		config.Env.ComposeDirPath,
-		&s3.Config{
-			Endpoint:        config.Env.S3Endpoint,
-			AccessKeyID:     config.Env.S3AccessKey,
-			SecretAccessKey: config.Env.S3SecretKey,
-			Bucket:          config.Env.S3Bucket,
-		},
-	)
-
 	if config.Env.SSHPrivateKey != "" {
 		// Create /ssh directory if it doesn't exist
 		err := os.MkdirAll("ssh", 0700)
@@ -36,9 +26,23 @@ func main() {
 		}
 	}
 
-	api := server.NewServer(config.Env.ServerPort, commonLib)
+	commonLib := common.NewCommonLib(
+		config.Env.ComposeDirPath,
+		&s3.Config{
+			Endpoint:        config.Env.S3Endpoint,
+			AccessKeyID:     config.Env.S3AccessKey,
+			SecretAccessKey: config.Env.S3SecretKey,
+			Bucket:          config.Env.S3Bucket,
+		},
+	)
 
-	err := api.Start()
+	api, err := server.NewServer(config.Env.ServerPort, commonLib)
+
+	if err != nil {
+		panic(err)
+	}
+
+	err = api.Start()
 	if err != nil {
 		panic(err)
 	}

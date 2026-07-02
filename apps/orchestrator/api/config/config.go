@@ -6,6 +6,7 @@ import (
 
 type EnvConfig struct {
 	ComposeDirPath string
+	GitRepo        string
 	ServerPort     int
 	SSHPrivateKey  string
 	BinariesPath   string
@@ -26,6 +27,7 @@ func getEnv() (env *EnvConfig) {
 		SSHPrivateKey:  utils.GetEnv("ORCHESTRATOR_SSH_PRIVATE_KEY", ""),
 		BinariesPath:   utils.GetEnv("ORCHESTRATOR_BINARIES_PATH", "/dist"),
 		GitToken:       utils.GetEnv("ORCHESTRATOR_GIT_TOKEN", ""),
+		GitRepo:        utils.GetEnv("ORCHESTRATOR_GIT_REPO", ""),
 		S3AccessKey:    utils.GetEnv("ORCHESTRATOR_S3_ACCESS_KEY", ""),
 		S3SecretKey:    utils.GetEnv("ORCHESTRATOR_S3_SECRET_KEY", ""),
 		S3Endpoint:     utils.GetEnv("ORCHESTRATOR_S3_ENDPOINT", ""),

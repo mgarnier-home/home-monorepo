@@ -46,6 +46,8 @@ func getEnv() (env *EnvConfig) {
 		mode = utils.GetEnv("ORCHESTRATOR_MODE", string(ModeHybrid))
 	}
 
+	fmt.Printf("Using execution mode: %s\n", mode)
+
 	env = &EnvConfig{
 		ApiUrl:         utils.GetEnv("ORCHESTRATOR_API_URL", "http://localhost:3000"),
 		ComposeDirPath: utils.GetEnv("ORCHESTRATOR_COMPOSE_DIRECTORY_PATH", "/workspaces/home-config/compose"),

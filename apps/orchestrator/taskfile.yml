@@ -14,7 +14,7 @@ tasks:
   start-api:
     dir: ./api
     env:
-      ENV_FILE_PATH: /mnt/dev/home-monorepo/.env
+      ENV_FILE_PATH: /mnt/dev/home-monorepo/apps/orchestrator/.env
     cmds:
       - task: build-api
       - ../dist/orchestrator-api {{.CLI_ARGS}}
@@ -31,7 +31,7 @@ tasks:
   start-cli:
     dir: ./cli
     env:
-      ENV_FILE_PATH: /mnt/dev/home-monorepo/.env
+      ENV_FILE_PATH: /mnt/dev/home-monorepo/apps/orchestrator/.env
     cmds:
       - task: build-cli
       - ../dist/orchestrator-cli {{.CLI_ARGS}}

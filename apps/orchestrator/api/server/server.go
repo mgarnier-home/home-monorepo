@@ -7,27 +7,61 @@ import (
 	"path"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/go-git/go-git/v5"
+	gitHttp "github.com/go-git/go-git/v5/plumbing/transport/http"
+
 	"github.com/gorilla/mux"
 	"mgarnier11.fr/go/libs/httputils"
 	"mgarnier11.fr/go/libs/logger"
 	"mgarnier11.fr/go/libs/version"
 	"mgarnier11.fr/go/orchestrator-api/config"
 	common "mgarnier11.fr/go/orchestrator-common"
-	common_utils "mgarnier11.fr/go/orchestrator-common/utils"
 )
 
 type Server struct {
 	commonLib *common.CommonLib
+	repo      *git.Repository
 	port      int
 }
 
 var Logger = logger.NewLogger("[SERVER]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
 
-func NewServer(port int, commonLib *common.CommonLib) *Server {
+func gitAuth(token string) *gitHttp.BasicAuth {
+	return &gitHttp.BasicAuth{
+		Username: "git", // "git" works as a placeholder username for most Git providers
+		Password: token,
+	}
+}
+
+func gitClone(repoUrl string, token string) (*git.Repository, error) {
+	tmpDir, err := os.MkdirTemp("", "git-clone-private-*")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temporary directory: %w", err)
+	}
+
+	repo, err := git.PlainClone(tmpDir, false, &git.CloneOptions{
+		URL:      repoUrl,
+		Auth:     gitAuth(token),
+		Progress: os.Stdout,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to clone repository: %w", err)
+	}
+
+	return repo, nil
+}
+
+func NewServer(port int, commonLib *common.CommonLib) (*Server, error) {
+	gitRepo, err := gitClone(config.Env.GitRepo, config.Env.GitToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to clone git repository: %w", err)
+	}
+
 	return &Server{
 		port:      port,
 		commonLib: commonLib,
-	}
+		repo:      gitRepo,
+	}, nil
 }
 
 func (s *Server) Start() error {
@@ -36,6 +70,7 @@ func (s *Server) Start() error {
 
 	router.Use(httputils.LogRequestMiddleware(Logger))
 	router.Use(httputils.CorsMiddleware)
+	router.Use(gitPullMiddleware(s.repo))
 
 	version.SetupVersionRoute(router)
 
@@ -48,9 +83,35 @@ func (s *Server) Start() error {
 	router.HandleFunc("/{command}/exec", s.streamExecCommand).Methods("GET")
 	router.HandleFunc("/{command}/configs", s.getCommandsConfigs).Methods("GET")
 	router.HandleFunc("/stacks", s.getStacks).Methods("GET")
-	router.HandleFunc("/update-repo", s.updateRepo).Methods("GET")
 
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
+}
+
+func gitPullMiddleware(repo *git.Repository) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			worktree, err := repo.Worktree()
+			if err != nil {
+				Logger.Errorf("Error getting worktree: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			err = worktree.Pull(&git.PullOptions{
+				RemoteName: "origin",
+				Auth:       gitAuth(config.Env.GitToken),
+			})
+
+			if err != nil && err != git.NoErrAlreadyUpToDate {
+				Logger.Errorf("Error pulling from git: %v", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func (s *Server) getComposeFiles(w http.ResponseWriter, r *http.Request) {
@@ -214,17 +275,4 @@ func (s *Server) getCommandsConfigs(w http.ResponseWriter, r *http.Request) {
 	Logger.Debugf("Found %d compose configs", len(composeConfigs))
 
 	httputils.WriteYamlResponse(w, composeConfigs)
-}
-
-func (s *Server) updateRepo(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
-	err := common_utils.UpdateRepo(w, config.Env.ComposeDirPath, config.Env.GitToken)
-	if err != nil {
-		Logger.Errorf("Error updating git repo: %v", err)
-		http.Error(w, fmt.Sprintf("Internal Server Error: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	Logger.Infof("Successfully updated git repo at %s", config.Env.ComposeDirPath)
 }

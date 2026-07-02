@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	logger.InitAppLogger("orchestrator-cli")
+	logger.InitAppLogger("orchestrator")
 
 	commonLib := common.NewCommonLib(
 		config.Env.ComposeDirPath,
@@ -24,7 +24,8 @@ func main() {
 	)
 
 	rootCommand := &commands.Command{
-		Command:     "orchestrator-cli",
+		Command: "orchestrator",
+
 		SubCommands: make(map[string]*commands.Command),
 	}
 
