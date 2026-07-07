@@ -2,36 +2,25 @@
 version: "3"
 
 tasks:
+  download:
+    dir: ./src
+    cmds:
+      - go mod download
+  build-src:
+    dir: ./src
+    cmds:
+      - go build -o ../dist/orchestrator
   build:
-    dir: ./cli
+    dir: ./src
     cmds:
-      - task: build-api
-      - task: build-cli-all
-  build-api:
-    dir: ./api
-    cmds:
-      - go build -o ../dist/orchestrator-api
-  start-api:
-    dir: ./api
+      - GOOS=windows GOARCH=amd64 go build -o ../dist/orchestrator-windows-amd64.exe
+      - GOOS=linux GOARCH=amd64 go build -o ../dist/orchestrator-linux-amd64
+      - GOOS=linux GOARCH=arm go build -o ../dist/orchestrator-linux-arm
+      - go build -o ../dist/orchestrator
+  start:
+    dir: ./src
     env:
       ENV_FILE_PATH: /mnt/dev/home-monorepo/apps/orchestrator/.env
     cmds:
-      - task: build-api
-      - ../dist/orchestrator-api {{.CLI_ARGS}}
-  build-cli-all:
-    dir: ./cli
-    cmds:
-      - GOOS=windows GOARCH=amd64 go build -o ../dist/orchestrator-cli-windows-amd64.exe
-      - GOOS=linux GOARCH=amd64 go build -o ../dist/orchestrator-cli-linux-amd64
-      - GOOS=linux GOARCH=arm go build -o ../dist/orchestrator-cli-linux-arm
-  build-cli:
-    dir: ./cli
-    cmds:
-      - go build -o ../dist/orchestrator-cli
-  start-cli:
-    dir: ./cli
-    env:
-      ENV_FILE_PATH: /mnt/dev/home-monorepo/apps/orchestrator/.env
-    cmds:
-      - task: build-cli
-      - ../dist/orchestrator-cli {{.CLI_ARGS}}
+      - task: build
+      - ../dist/orchestrator {{.CLI_ARGS}}

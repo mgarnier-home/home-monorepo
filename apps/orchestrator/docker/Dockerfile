@@ -5,11 +5,9 @@ FROM registry.fedoraproject.org/fedora-minimal AS runtime
 
 RUN microdnf -y install dnf-plugins-core && \
   dnf-3 config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo && \
-  microdnf install -y docker-ce-cli docker-compose-plugin && microdnf clean all
-
-RUN mkdir -p /config /config/entities/ /var/www/olivetin \
-  && \
-  microdnf install -y --nodocs --noplugins --setopt=keepcache=0 --setopt=install_weak_deps=0 \
+  microdnf install -y \
+  docker-ce-cli \
+  docker-compose-plugin \
   iputils \
   openssh-clients \
   jq \
@@ -20,7 +18,6 @@ WORKDIR /orchestrator
 
 COPY --from=build /dist/* .
 
-ENV ORCHESTRATOR_COMPOSE_DIRECTORY_PATH="/compose"
 ENV ORCHESTRATOR_BINARIES_PATH="/orchestrator"
 ENV ORCHESTRATOR_SERVER_PORT="3000"
 
@@ -32,7 +29,7 @@ RUN mkdir -p /root/.ssh; \
   echo "    IdentityFile /orchestrator/ssh/ssh_private_key"; } >> /root/.ssh/config; \
   chmod 600 /root/.ssh/config
 
-ENTRYPOINT ["/orchestrator/orchestrator-api"]
+ENTRYPOINT ["/orchestrator/orchestrator", "start-server"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/version || exit 1

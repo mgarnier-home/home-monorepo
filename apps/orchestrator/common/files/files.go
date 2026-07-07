@@ -34,7 +34,6 @@ func (f *Files) composeFile(stackName, hostName string) *types.ComposeFile {
 		Host:  hostName,
 		Path:  path.Join(stackPath, hostName+"."+stackName+".yml"),
 	}
-
 }
 
 func (f *Files) GetComposeFiles() ([]*types.ComposeFile, error) {

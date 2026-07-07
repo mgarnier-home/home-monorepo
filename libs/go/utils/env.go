@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strconv"
@@ -11,6 +12,8 @@ import (
 
 func InitEnvFromFile() {
 	envFilePath := GetEnv("ENV_FILE_PATH", "./.env")
+
+	fmt.Println("Loading environment variables from file:", envFilePath)
 
 	ex, err := os.Executable()
 	if err != nil {
@@ -58,4 +61,44 @@ func GetEnv[T bool | string | int](key string, defaultValue T) T {
 		return any(value).(T)
 	}
 	return defaultValue
+}
+
+func GetEnvValue[T bool | string | int | []string](key string, defaultValue T, required bool) (error, T) {
+	value := os.Getenv(key)
+
+	if value == "" {
+		if _, err := os.Stat("/run/secrets/" + strings.ToLower(key)); err == nil {
+			fileContent, err := os.ReadFile("/run/secrets/" + strings.ToLower(key))
+
+			if err != nil {
+				value = ""
+			} else {
+				value = string(fileContent)
+			}
+		}
+	}
+
+	if value == "" {
+		if required {
+			return fmt.Errorf("Required environment variable %s is not set", key), defaultValue
+		}
+		return nil, defaultValue
+	}
+
+	switch any(defaultValue).(type) {
+	case bool:
+		if boolValue, err := strconv.ParseBool(value); err == nil {
+			return nil, any(boolValue).(T)
+		}
+	case int:
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return nil, any(intValue).(T)
+		}
+	case string:
+		return nil, any(value).(T)
+	case []string:
+		return nil, any(strings.Split(value, ",")).(T)
+	}
+
+	return fmt.Errorf("Environment variable %s has an invalid type", key), defaultValue
 }

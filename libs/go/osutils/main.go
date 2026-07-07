@@ -23,7 +23,7 @@ type OsCommand struct {
 	Env           []string
 }
 
-func ExecOsCommandOutput(osCommand *OsCommand, commandLog string) (string, error) {
+func ExecOsCommandOutput(osCommand *OsCommand) (string, error) {
 	Logger.Debugf("Executing OS command: \"%s %s\" in directory: \"%s\"", osCommand.OsCommand, strings.Join(osCommand.OsCommandArgs, " "), osCommand.Dir)
 
 	cmd := exec.Command(osCommand.OsCommand, osCommand.OsCommandArgs...)
@@ -126,4 +126,15 @@ func ExecOsCommandStream(osCommand *OsCommand, writer io.Writer, prefix string) 
 	wg.Wait()
 
 	return nil
+}
+
+func FileExists(filename string) (bool, error) {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return !info.IsDir(), nil
 }
