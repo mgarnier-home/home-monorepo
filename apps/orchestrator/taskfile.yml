@@ -22,5 +22,5 @@ tasks:
     env:
       ENV_FILE_PATH: /mnt/dev/home-monorepo/apps/orchestrator/.env
     cmds:
-      - task: build
+      - task: build-src
       - ../dist/orchestrator {{.CLI_ARGS}}

@@ -135,7 +135,7 @@ func (server *Server) getCli(w http.ResponseWriter, r *http.Request) {
 	arch := r.URL.Query().Get("arch")
 	osName := r.URL.Query().Get("os")
 
-	fileName := "orchestrator-cli"
+	fileName := "orchestrator"
 	if arch != "" && osName != "" {
 		fileName += fmt.Sprintf("-%s-%s", osName, arch)
 

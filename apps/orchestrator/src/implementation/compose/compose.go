@@ -32,7 +32,7 @@ func InitComposeService(config *models.OrchestratorConfig) *ComposeService {
 
 	fmt.Printf("Compose dir path: %s\n", config.ComposeDirPath)
 
-	if config.ComposeDirPath == "" {
+	if config.GitRepo != "" {
 		composeFileDir, err = os.MkdirTemp("", "compose-files-*")
 		if err != nil {
 			fmt.Printf("Error creating temporary directory for compose files: %v\n", err)

@@ -105,7 +105,7 @@ func (service *EnvService) RefreshEnvFiles(ctx context.Context) error {
 			service.logger.Errorf("Error downloading file %s: %v", object.Key, err)
 			continue
 		}
-		service.logger.Infof("Downloaded file %s to %s", object.Key, localPath)
+		service.logger.Debugf("Downloaded file %s to %s", object.Key, localPath)
 	}
 
 	return nil
