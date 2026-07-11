@@ -30,8 +30,6 @@ func InitComposeService(config *models.OrchestratorConfig) *ComposeService {
 		err            error
 	)
 
-	fmt.Printf("Compose dir path: %s\n", config.ComposeDirPath)
-
 	if config.GitRepo != "" {
 		composeFileDir, err = os.MkdirTemp("", "compose-files-*")
 		if err != nil {

@@ -13,8 +13,6 @@ import (
 func InitEnvFromFile() {
 	envFilePath := GetEnv("ENV_FILE_PATH", "./.env")
 
-	fmt.Println("Loading environment variables from file:", envFilePath)
-
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)

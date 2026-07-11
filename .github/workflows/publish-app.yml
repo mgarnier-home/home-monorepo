@@ -9,15 +9,10 @@ on:
         required: true
         type: choice
         options:
-          - "autoscaler"
-          - "cron-runner"
           - "dashboard"
           - "go-autosaver"
           - "go-proxy"
-          - "home-container"
           - "orchestrator"
-          - "nodesight"
-          - "stats-api"
           - "traefik-conf"
       version-upgrade:
         description: "How to upgrade the version"

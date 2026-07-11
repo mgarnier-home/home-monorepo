@@ -58,7 +58,7 @@ func main() {
 		Use: "orchestrator",
 	}
 
-	cli.ActionCommands(orchestratorConfig, rootCommand, commandService.GetCommands())
+	cli.ActionCommands(orchestratorConfig, rootCommand)
 
 	rootCommand.AddCommand(cli.CompletionCommand())
 	rootCommand.AddCommand(cli.UpdateCliCommand(orchestratorConfig))

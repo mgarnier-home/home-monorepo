@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -9,17 +10,13 @@ import (
 	"github.com/spf13/cobra"
 	"mgarnier11.fr/go/libs/logger"
 	apiclient "mgarnier11.fr/go/orchestrator/implementation/apiClient"
+	"mgarnier11.fr/go/orchestrator/implementation/command"
 	"mgarnier11.fr/go/orchestrator/implementation/execution"
 	"mgarnier11.fr/go/orchestrator/interfaces/server"
 	"mgarnier11.fr/go/orchestrator/models"
 )
 
 var Logger = logger.NewLogger("[CLI]", "%-10s ", lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")), nil)
-
-type actionCommand struct {
-	Name     string
-	Commands map[string]*actionCommand
-}
 
 // Execution
 func getFullCommand(cobraCmd *cobra.Command) string {
@@ -43,7 +40,7 @@ func getActionCommandFunc( /* orchestratorConfig *models.OrchestratorConfig */ )
 
 		executionService := execution.GetExecutionService()
 
-		err := executionService.ExecCommand(getCliCommand(cmd), service, os.Stdout)
+		err := executionService.ExecCommand(getCliCommand(cmd), service, nil)
 
 		if err != nil {
 			Logger.Errorf("Error executing command %s: %v", getCliCommand(cmd), err)
@@ -54,56 +51,39 @@ func getActionCommandFunc( /* orchestratorConfig *models.OrchestratorConfig */ )
 	}
 }
 
-// Subcommands
-func setSubCommands(commandString string, command *actionCommand) {
-	parts := strings.Split(commandString, " ")
-	mainCmd := parts[0]
-
-	if command.Commands[mainCmd] == nil {
-		command.Commands[mainCmd] = &actionCommand{
-			Name:     mainCmd,
-			Commands: make(map[string]*actionCommand),
-		}
-	}
-
-	if len(parts) == 1 {
-		return
-	}
-
-	setSubCommands(strings.Join(parts[1:], " "), command.Commands[mainCmd])
-}
-
-func addActionCommands(orchestratorConfig *models.OrchestratorConfig, actionCommand *actionCommand, parent *cobra.Command) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:  actionCommand.Name,
-		RunE: getActionCommandFunc( /* orchestratorConfig */ ),
-	}
-
-	if parent != nil {
-		parent.AddCommand(cmd)
-	}
-
-	for _, subCommand := range actionCommand.Commands {
-		addActionCommands(orchestratorConfig, subCommand, cmd)
-	}
-
-	return cmd
-}
-
 // Main cobra commands
-
-func ActionCommands(orchestratorConfig *models.OrchestratorConfig, rootCmd *cobra.Command, commands []*models.Command) error {
-	rootActionCommand := &actionCommand{
-		Name:     "orchestrator",
-		Commands: make(map[string]*actionCommand),
-	}
+func ActionCommands(orchestratorConfig *models.OrchestratorConfig, rootCmd *cobra.Command) error {
+	commands := command.GetCommandService().GetCommands()
 
 	for _, command := range commands {
-		setSubCommands(command.Command, rootActionCommand)
-	}
+		parts := strings.Split(command.Command, " ")
 
-	for _, subCommand := range rootActionCommand.Commands {
-		rootCmd.AddCommand(addActionCommands(orchestratorConfig, subCommand, rootCmd))
+		parentCommand := rootCmd
+
+		for _, part := range parts {
+			if part == "" {
+				return fmt.Errorf("invalid command: %s", command.Command)
+			}
+
+			found := false
+
+			for _, subCmd := range parentCommand.Commands() {
+				if subCmd.Use == part {
+					parentCommand = subCmd
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				newCmd := &cobra.Command{
+					Use:  part,
+					RunE: getActionCommandFunc( /* orchestratorConfig */ ),
+				}
+				parentCommand.AddCommand(newCmd)
+				parentCommand = newCmd
+			}
+		}
 	}
 
 	rootCmd.PersistentFlags().String("mode", "", "Choose execution mode (local, hybrid, remote)")
